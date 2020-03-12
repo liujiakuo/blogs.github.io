@@ -1,0 +1,914 @@
+<!DOCTYPE html>
+
+
+
+
+
+<html class="theme-next mist use-motion" lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="generator" content="Hexo 3.9.0">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=7.3.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=7.3.0">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=7.3.0">
+  <link rel="mask-icon" href="/images/logo.svg?v=7.3.0" color="#222">
+
+<link rel="stylesheet" href="/css/main.css?v=7.3.0">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.7.0">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '7.3.0',
+    exturl: false,
+    sidebar: {"position":"left","width":400,"display":"always","offset":12,"onmobile":false},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    save_scroll: false,
+    copycode: {"enable":false,"show_result":false,"style":null},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: '',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: 'Copy',
+      copy_success: 'Copied',
+      copy_failure: 'Copy failed'
+    }
+  };
+</script>
+
+  <meta name="description" content="jniJni就是java代码与Native(c,c++)代码交互的媒介. 通过jni,java代码可以主动调用native代码,然后native代码在被调用时,可以回调java的代码.jni由两部分构成. Java端的声明为 native 的java方法.和native端对应的Java方法的实现方法. 然后就是通过一些技术把两端的声明方法和实现方法建立映射关系.就可以调用了.">
+<meta name="keywords" content="android framework jni binder">
+<meta property="og:type" content="article">
+<meta property="og:title" content="深入理解android-jni,binder,zygote-ams">
+<meta property="og:url" content="http://yoursite.com/2020/02/25/深入理解android-图床版/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="jniJni就是java代码与Native(c,c++)代码交互的媒介. 通过jni,java代码可以主动调用native代码,然后native代码在被调用时,可以回调java的代码.jni由两部分构成. Java端的声明为 native 的java方法.和native端对应的Java方法的实现方法. 然后就是通过一些技术把两端的声明方法和实现方法建立映射关系.就可以调用了.">
+<meta property="og:locale" content="en">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/00831rSTly1gclp8028ouj31100m0dih.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/00831rSTly1gclp80hvgtj30wy086q42.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/00831rSTly1gclp81emf4j30vi0mqn06.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/00831rSTly1gclp87m6y4j31980i6jvk.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/00831rSTly1gclp7yrdapj312809q760.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/00831rSTly1gclp85og2sj31240s6tbk.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/00831rSTly1gclp84q4xej30vr0u0wij.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/00831rSTly1gclp7z36w4j30tg0sn76k.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/00831rSTly1gclp82dhfpj31400oymzi.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/00831rSTly1gclp80z5kkj30v80e8abv.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/00831rSTly1gclp81emf4j30vi0mqn06.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/00831rSTly1gclp81ycyxj30t80gedgw.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/00831rSTly1gclp83dtxij318q0digpd.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/00831rSTly1gclp840y8dj30h70d7tas.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/00831rSTly1gclp855k7qj30sw0jignh.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/00831rSTly1gclp82u5vcj310p0o7796.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/00831rSTly1gclp870gg6j30vn0on40y.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/00831rSTly1gclp7hgq0ij30ni0okdje.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/00831rSTly1gclp6sr17oj30u00y37c0.jpg">
+<meta property="og:updated_time" content="2020-03-07T14:06:54.043Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="深入理解android-jni,binder,zygote-ams">
+<meta name="twitter:description" content="jniJni就是java代码与Native(c,c++)代码交互的媒介. 通过jni,java代码可以主动调用native代码,然后native代码在被调用时,可以回调java的代码.jni由两部分构成. Java端的声明为 native 的java方法.和native端对应的Java方法的实现方法. 然后就是通过一些技术把两端的声明方法和实现方法建立映射关系.就可以调用了.">
+<meta name="twitter:image" content="https://tva1.sinaimg.cn/large/00831rSTly1gclp8028ouj31100m0dih.jpg">
+  <link rel="canonical" href="http://yoursite.com/2020/02/25/深入理解android-图床版/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+
+  <title>深入理解android-jni,binder,zygote-ams | Hexo</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .motion-element,
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-title { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="en">
+
+  <div class="container sidebar-position-left">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta">
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Hexo</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="Toggle navigation bar">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+      
+      
+      
+        
+        <li class="menu-item menu-item-home">
+      
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>Home</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-about">
+      
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>About</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-tags">
+      
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>Tags</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-archives">
+      
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>Archives</a>
+
+  </li>
+  </ul>
+
+    
+
+</nav>
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content page-post-detail">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/02/25/深入理解android-图床版/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="liujiakuo">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+    </span>
+      <header class="post-header">
+
+        
+          <h1 class="post-title" itemprop="name headline">深入理解android-jni,binder,zygote-ams
+
+            
+          </h1>
+        
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              
+                
+              
+
+              <time title="Created: 2020-02-25 15:48:23" itemprop="dateCreated datePublished" datetime="2020-02-25T15:48:23+08:00">2020-02-25</time>
+            </span>
+          
+            
+
+            
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2020-03-07 22:06:54" itemprop="dateModified" datetime="2020-03-07T22:06:54+08:00">2020-03-07</time>
+              </span>
+            
+          
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="jni"><a href="#jni" class="headerlink" title="jni"></a>jni</h1><p>Jni就是java代码与Native(c,c++)代码交互的媒介. 通过jni,java代码可以主动调用native代码,然后native代码在被调用时,可以回调java的代码.</p><p>jni由两部分构成. Java端的声明为 native 的java方法.和native端对应的Java方法的实现方法. 然后就是通过一些技术把两端的声明方法和实现方法建立映射关系.就可以调用了.</p><a id="more"></a>
+
+<p>jni分为静态注册和动态注册.</p>
+<p>静态注册就是由java端声明的native的java方法生成固定命名规则的native方法的头文件.然后native端实现这些头文件的方法. 在把native端代码打成so包.java端在调用声明native的java方法前加载so包.然后执行native 的java方法.系统就会在so包找找固定命名规则的native方法进行调用.</p>
+<p>静态注册的话,每个java类的native方法都会生成一个固定的.h文件.</p>
+<p>动态注册就是对java端声明的native方法和native端的方法进行动态的绑定(当然这两个方法的形参得匹配),然后保存在一个native端的JNINativeMethod的结构体中,然后在JNI_OnLoad方法中注册这个匹配关系,java中先加载这个native方法生成的so库,然后在java代码执行native声明的方法时,从so库中查找JNINativeMethod机构提的匹配规则,找到对应native中的方法,执行.</p>
+<p>动态注册的话,可以为多个java类中声明的所有native方法声明一个native端实现文件,并且不需要头文件.</p>
+<h2 id="静态注册"><a href="#静态注册" class="headerlink" title="静态注册"></a>静态注册</h2><p>java端native方法如下</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">public static native String getAppKey();  加入native关键字,不需要实现,系统就知道这个方法由native实现</span><br></pre></td></tr></table></figure>
+
+<p>把java端的native声明的方法生成对应头文件.命令行中</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">javah  -jni safedemo.jniTest.NativeHelper    NativeHelper是有native方法的java类,用javah声明</span><br></pre></td></tr></table></figure>
+
+<p>注意.这里有个javah 命令和NativeHelper.java文件的层级关系问题.我这个命令是在java目录下执行的.</p>
+<p>生成navite的头文件.并把它实现.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">/* DO NOT EDIT THIS FILE - it is machine generated */</span><br><span class="line">#include &lt;jni.h&gt;  //这个头文件是必须的</span><br><span class="line">#ifndef _Included_niTest_NativeHelper</span><br><span class="line">#define _Included_safedemo_jiveHelper</span><br><span class="line">#ifdef __cplusplus</span><br><span class="line">extern &quot;C&quot; &#123;</span><br><span class="line">#endif</span><br><span class="line">/*</span><br><span class="line"> * Class:     safedemo_jniTest_NativeHelper</span><br><span class="line"> * Method:    getAppKey</span><br><span class="line"> * Signature: ()Ljava/lang/String;</span><br><span class="line"> * 这里是对这个jni方法的解释 classs是java方法所属的类,然后是方法名,然后是方法的签名,方法签名可已唯一确定一个类中的唯一方法.</span><br><span class="line"> */</span><br><span class="line">JNIEXPORT jstring JNICALL Java_safedemo_jniTest_NativeHelper_getAppKey</span><br><span class="line">  (JNIEnv *env, jclass);</span><br><span class="line"></span><br><span class="line">#ifdef __cplusplus</span><br><span class="line">&#125;</span><br><span class="line">#endif</span><br><span class="line">#endif</span><br></pre></td></tr></table></figure>
+
+<p>把实现这个接口的文件达成so包.在java中调用native前引入.就可以执行native方法了.这里使用了cmake</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">public class NativeHelper &#123;</span><br><span class="line">	static &#123;</span><br><span class="line">		System.loadLibrary(&quot;native-lib&quot;);</span><br><span class="line">	&#125;</span><br><span class="line">		public static native String getAppKey();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这样就建立了so库中的方法和java中的方法的动态绑定关系.</p>
+<p>在java中,因为存在多态性,因此需要通过类名+方法名+方法的签名(返回值+形参)来唯一确定一个方法.</p>
+<p>jni写的过程稍微有些复杂.但是原理其实是比较简单的.就是native声明的java方法和 c代码进行映射,然后调用java代码时执行c代码.</p>
+<h2 id="动态注册"><a href="#动态注册" class="headerlink" title="动态注册"></a>动态注册</h2><p>动态注册的主要数据结构是JNINativeMethod,他定义在 jni.h里如下</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">typedef struct &#123;</span><br><span class="line">    const char* name;	//java的方法名</span><br><span class="line">    const char* signature;	//java方法签名</span><br><span class="line">    void*       fnPtr;	//对应c方法的指针</span><br><span class="line">&#125; JNINativeMethod;</span><br></pre></td></tr></table></figure>
+
+<p>举个例子</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">java方法</span><br><span class="line"> public native void jnitest_nativefunction();</span><br><span class="line">native 方法</span><br><span class="line">	JNIEXPORT void JNICALL android_jnitest_1nativefunction(JNIEnv *, jobject);</span><br><span class="line"></span><br><span class="line">JNINativeMethod结构</span><br><span class="line"> &#123;&quot;jnitest_nativefunction&quot;,       &quot;()V&quot;,    (void *)android_jnitest_nativefunction_01&#125;</span><br><span class="line"> ()V 是形参+返回值的组成,java方法没有形参所以()括号里没值, 返回值为空,表示为V</span><br></pre></td></tr></table></figure>
+
+<p>然后是要把这种映射结构注册到系统中</p>
+<p>在native代码被加载时,jint JNI_OnLoad(JavaVM* vm, void* reserved)方法会被调用.因此我们要实现这个方法,然后注册java和native方法的映射关系.如下.这里是标准写法了.就是把某个java类里的所有映射关系,通过AndroidRuntime::registerNativeMethods 进行注册.</p>
+<p>这里是java类+java方法 和native方法的指针,一起完成的.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">//结构体绑定jnitest_javaclass_a中的两个接口和本地两个实现</span><br><span class="line">static JNINativeMethod gMethods_class_a[] = &#123;</span><br><span class="line">        &#123;&quot;jnitest_nativefunction_01&quot;,       &quot;()V&quot;,    (void*)android_jnitest_nativefunction_01&#125;,</span><br><span class="line">        &#123;&quot;jnitest_nativefunction_02&quot;,       &quot;()V&quot;,    (void*)android_jnitest_nativefunction_02&#125;,</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">//此函数在Java中调用System.loadLibrary(&quot;&quot;);时会被自动触发，在这个函数中将调用上面的两个注册函数，最终返回JNI版本号</span><br><span class="line">jint JNI_OnLoad(JavaVM* vm, void* reserved) &#123;</span><br><span class="line">    JNIEnv *env = NULL;</span><br><span class="line">    jint result = -1;</span><br><span class="line">		//拿到env</span><br><span class="line">    if (vm-&gt;GetEnv((void  ) &amp;env, JNI_VERSION_1_4) != JNI_OK) &#123;</span><br><span class="line">        LOGE(&quot;ERROR: GetEnv failed\n&quot;);</span><br><span class="line">        goto bail;</span><br><span class="line">    &#125;</span><br><span class="line">		//注册两个java方法和本地的绑定关系 com/pioneer/jnitest/jnitest_javaclass是有native方法的类名</span><br><span class="line">    AndroidRuntime::registerNativeMethods(env,</span><br><span class="line">                                          &quot;com/pioneer/jnitest/jnitest_javaclass&quot;,</span><br><span class="line">                                          gMethods_class_a, NELEM(gMethods_class_a));</span><br><span class="line">    result = JNI_VERSION_1_4;</span><br><span class="line"></span><br><span class="line">    bail:</span><br><span class="line">    return result;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="jni数据类型转换"><a href="#jni数据类型转换" class="headerlink" title="jni数据类型转换"></a>jni数据类型转换</h2><p>java中的数据类型和native中有基本的对应关系.特殊的是java的所有对象在native中都是jobjct</p>
+<h3 id="基本数据类型"><a href="#基本数据类型" class="headerlink" title="基本数据类型"></a>基本数据类型</h3><p><img src="https://tva1.sinaimg.cn/large/00831rSTly1gclp8028ouj31100m0dih.jpg" alt="image-20200225213307572"></p>
+<h3 id="引用数据类型"><a href="#引用数据类型" class="headerlink" title="引用数据类型"></a>引用数据类型</h3><p>所有数组都编程了 array, 所有对象都是 jobject</p>
+<figure class="highlight ruby"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">jobject                     (all Java objects)</span><br><span class="line"><span class="params">|</span></span><br><span class="line"><span class="params">|</span>-- jclass                  (java.lang.Class objects)</span><br><span class="line"><span class="params">|-- jstring                 (java.lang.String objects)</span></span><br><span class="line"><span class="params">|</span>-- jarray                  (array)</span><br><span class="line"><span class="params">|     |</span>--jobjectArray       (object arrays)</span><br><span class="line"><span class="params">|     |</span>--jbooleanArray      (boolean arrays)</span><br><span class="line"><span class="params">|     |</span>--jbyteArray         (byte arrays)</span><br><span class="line"><span class="params">|     |</span>--jcharArray         (char arrays)</span><br><span class="line"><span class="params">|     |</span>--jshortArray        (short arrays)</span><br><span class="line"><span class="params">|     |</span>--jintArray          (int arrays)</span><br><span class="line"><span class="params">|     |</span>--jlongArray         (long arrays)</span><br><span class="line"><span class="params">|     |</span>--jfloatArray        (float arrays)</span><br><span class="line"><span class="params">|     |</span>--jdoubleArray       (double arrays)</span><br><span class="line"><span class="params">|</span></span><br><span class="line"><span class="params">|</span>--jthrowable</span><br></pre></td></tr></table></figure>
+
+<h3 id="类属性"><a href="#类属性" class="headerlink" title="类属性"></a>类属性</h3><p>属性变量在 native用 jfieldID 表示  通过Get&lt;&gt;Field ,Set&lt;&gt;Field方法调用 其中的&lt;&gt;可为各种数据类型</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">返回值					方法名					执行环境	操作对象	操作对象的属性</span><br><span class="line">jlong       (*GetLongField)(JNIEnv*, jobject, jfieldID);  </span><br><span class="line">  jfloat      (*GetFloatField)(JNIEnv*, jobject, jfieldID);</span><br><span class="line">  jdouble     (*GetDoubleField)(JNIEnv*, jobject, jfieldID);</span><br><span class="line"></span><br><span class="line">  void        (*SetObjectField)(JNIEnv*, jobject, jfieldID, jobject);</span><br><span class="line">  void        (*SetBooleanField)(JNIEnv*, jobject, jfieldID, jboolean);</span><br><span class="line">  void        (*SetByteField)(JNIEnv*, jobject, jfieldID, jbyte);</span><br><span class="line">  void        (*SetCharField)(JNIEnv*, jobject, jfieldID, jchar);</span><br></pre></td></tr></table></figure>
+
+<p>方法 zai native 用 _jmethodID表示 通过 CallStatic&lt;&gt;Method执行类的方法, Call&lt;&gt;MethodA执行对象的方法</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">对象方法</span><br><span class="line"> 		返回值		| 方法名		|	执行环境	|	操作对象	|操作对象的方法 |  方法参数</span><br><span class="line">		jint         (*CallIntMethod)(JNIEnv*, jobject, jmethodID, ...);</span><br><span class="line">    jint        (*CallIntMethodV)(JNIEnv*, jobject, jmethodID, va_list);</span><br><span class="line">    jint        (*CallIntMethodA)(JNIEnv*, jobject, jmethodID, const jvalue*);</span><br><span class="line">    jlong       (*CallLongMethod)(JNIEnv*, jobject, jmethodID, ...);</span><br><span class="line">    jlong       (*CallLongMethodV)(JNIEnv*, jobject, jmethodID, va_list);</span><br><span class="line">    jlong       (*CallLongMethodA)(JNIEnv*, jobject, jmethodID, const jvalue*);</span><br><span class="line">    jfloat      (*CallFloatMethod)(JNIEnv*, jobject, jmethodID, ...);</span><br><span class="line">类方法</span><br><span class="line">		返回值		|	方法名			执行环境|		操作的类	|类的方法	| 方法参数</span><br><span class="line">    jdouble     (*CallStaticDoubleMethod)(JNIEnv*, jclass, jmethodID, ...);</span><br><span class="line">    jdouble     (*CallStaticDoubleMethodV)(JNIEnv*, jclass, jmethodID, va_list);</span><br><span class="line">    jdouble     (*CallStaticDoubleMethodA)(JNIEnv*, jclass, jmethodID, const jvalue*);</span><br><span class="line">    void        (*CallStaticVoidMethod)(JNIEnv*, jclass, jmethodID, ...);</span><br><span class="line">    void        (*CallStaticVoidMethodV)(JNIEnv*, jclass, jmethodID, va_list);</span><br><span class="line">    void        (*CallStaticVoidMethodA)(JNIEnv*, jclass, jmethodID, const jvalue*);</span><br><span class="line">最后,方法名最后的A,V或不写对应执行方法的参数 ,A一个参数,V 数组,不写表示可变参数</span><br></pre></td></tr></table></figure>
+
+<h3 id="JNIENV"><a href="#JNIENV" class="headerlink" title="JNIENV"></a>JNIENV</h3><p>JNI接口指针仅在当前线程中起作用。这意味着指针不能从一个线程进入另一个线程。然而，可以在不同的咸亨中调用本地方法</p>
+<p>JNIEnv是当前Java线程的执行环境，一个JVM对应一个JavaVM结构，而一个JVM中可能创建多个Java线程，每个线程对应一个JNIEnv结构，它们保存在线程本地存储TLS中。因此，不同的线程的JNIEnv是不同，也不能相互共享使用。JNIEnv结构也是一个函数表，在本地代码中通过JNIEnv的函数表来操作Java数据或者调用Java方法。也就是说，只要在本地代码中拿到了JNIEnv结构，就可以在本地代码中调用Java代码。</p>
+<p>这里都需要传入一个  JNIEnv,这个是每个线程都有一个代表jni环境的结构体,这是通过JNIEnv来调用上边的各种操作类和对象和方法和属性的各种方法.这个JNIEnv在每个jni方法的native实现里都是默认提供的.我们需要通过</p>
+<p>这里引入一篇很好的文章</p>
+<p><a href="http://luori366.github.io/JNI_doc/jni_function_mannual.html" target="_blank" rel="noopener">http://luori366.github.io/JNI_doc/jni_function_mannual.html</a></p>
+<p>JNIEnv首先指向一个线程相关的结构，该结构又指向一个指针数组，在这个指针数组中的每个元素最终指向一个JNI函数。所以可以通过JNIEnv去调用JNI函数</p>
+<h3 id="java方法签名"><a href="#java方法签名" class="headerlink" title="java方法签名"></a>java方法签名</h3><p>由于java的重载,导致光靠java方法名无法确认一个方法,因此需要方法的形参和返回值(差一点,java中,返回值不同不能代表方法重载,但是java虚拟机是支持返回值不同的重载的)</p>
+<p>java的方法签名格式如 </p>
+<p>(参数1类型参数2类型…)返回值类型,如果类型是对象.要写L对象全路径名, 如 String类型写成L/java/language/String. object对象写成 L/java/lang/object,一维数组用[表示</p>
+<p><img src="https://tva1.sinaimg.cn/large/00831rSTly1gclp80hvgtj30wy086q42.jpg" alt="image-20200225220646742"></p>
+<h3 id="对象引用"><a href="#对象引用" class="headerlink" title="对象引用"></a>对象引用</h3><p>因为java有gc垃圾回收,如果native中持有某个java对象,却被回收了.就会出问题.因此native端有对java对象的引用封装,具有不同的回收政策</p>
+<p>LocalRef 本地引用.大部分都是这种,当该native函数返回时,java端就可以回收对应的对象</p>
+<p>GlobalRef 全局引用, 需要native端主动释放该对象,否则java端无法回收,全局引用可以跨方法、跨线程使用，直到被开发者显式释放</p>
+<p>WeakGlobalRef 弱全局引用,运行时可能被回收,所以native端在使用他之前需要判断是否已经被回收</p>
+<p>这些也需要通过JNIEnv指针来操作.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><span class="line">/ </span><br><span class="line">    * 创建 obj 参数所引用对象的新全局引用, 创建的引用要通过调用DeleteGlobalRef() 来显式撤消</span><br><span class="line">    *</span><br><span class="line">    * @param obj 全局或局部引用</span><br><span class="line">    * @return 返回全局引用，如果系统内存不足则返回 NULL</span><br><span class="line">    */</span><br><span class="line">   object NewGlobalRef (JNIEnv *env, jobject obj); </span><br><span class="line">   </span><br><span class="line">   / </span><br><span class="line">    * 删除 globalRef 所指向的全局引用</span><br><span class="line">    *</span><br><span class="line">    * @param globalRef 全局引用</span><br><span class="line">    */    </span><br><span class="line">   void DeleteGlobalRef (JNIEnv *env, jobject globalRef); </span><br><span class="line">   </span><br><span class="line">   / </span><br><span class="line">    * 创建 obj 参数所引用对象的局部引用, 创建的引用要通过调用DeleteLocalRef()来显式删除</span><br><span class="line">    *</span><br><span class="line">    * @param obj 全局或局部引用</span><br><span class="line">    * @return 返回局部引用，如果系统内存不足则返回 NULL</span><br><span class="line">    */    </span><br><span class="line">   jobject NewLocalRef(JNIEnv *env, jobject ref);</span><br><span class="line">   </span><br><span class="line">   / </span><br><span class="line">    * 删除 localRef所指向的局部引用</span><br><span class="line">    *</span><br><span class="line">    * @param localRef局部引用</span><br><span class="line">    */    </span><br><span class="line">   void  DeleteLocalRef (JNIEnv *env, jobject localRef); </span><br><span class="line">   </span><br><span class="line">   / </span><br><span class="line">    * 用obj创建新的弱全局引用，</span><br><span class="line">    * @param obj 全局或局部因哟娜</span><br><span class="line">    * @return 返回弱全局引用，弱obj指向null，或者内存不足时返回NULL，同时抛出异常</span><br><span class="line">    */    </span><br><span class="line">   jweak NewWeakGlobalRef(JNIEnv *env, jobject obj);</span><br><span class="line">   </span><br><span class="line">   / </span><br><span class="line">    * 删除弱全局引用</span><br><span class="line">    */    </span><br><span class="line">   void DeleteWeakGlobalRef(JNIEnv *env, jweak obj);</span><br></pre></td></tr></table></figure>
+
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>jni就是安卓和native搭建的一套调用方式,通过java定义native方法. native端实现方法.两者尽心绑定.从而实现了java调用native, 但是这种调用是在同一线程中实现的.同时也都是从java调用native方法.native调用java方法就有点类似反射,也有点像是java虚拟机的执行方式.</p>
+<p>android studio 中.提供了ndk简化jni的开发. 他的cmake文件指定把哪些native文件编程一个so包.so包是有针对不同平台的不同文件.</p>
+<p>下边提供几个好的博客</p>
+<p><a href="https://www.jianshu.com/p/87ce6f565d37" target="_blank" rel="noopener">https://www.jianshu.com/p/87ce6f565d37</a></p>
+<p><a href="http://luori366.github.io/JNI_doc/jni_function_mannual.html" target="_blank" rel="noopener">http://luori366.github.io/JNI_doc/jni_function_mannual.html</a></p>
+<p><a href="https://www.zybuluo.com/cxm-2016/note/563686" target="_blank" rel="noopener">https://www.zybuluo.com/cxm-2016/note/563686</a></p>
+<h1 id="binder-机制"><a href="#binder-机制" class="headerlink" title="binder 机制"></a>binder 机制</h1><h2 id="binder载体-parcel"><a href="#binder载体-parcel" class="headerlink" title="binder载体 parcel"></a>binder载体 parcel</h2><p>Parcel 是数据的容器,用来通过Binder发送数据.他的特点是用对象的内存直接打包起来,然后发送到对方的进程.</p>
+<p>因此他不适合用于数据持久化(如把对象写到文件中),而只是用于跨进程传递.以为他是把对象的完整内存都保存并传递的.可以理解为夸进程传递后.两个进程里的对象是完全一摸一样的 .</p>
+<h2 id="binder驱动与协议"><a href="#binder驱动与协议" class="headerlink" title="binder驱动与协议"></a>binder驱动与协议</h2><p>android是基于linux内核的.binder驱动也是一个标准的linux驱动,android里进程的通过binder的进程间通讯.都是要与binder驱动打交道的.binder驱动在内核态.binder驱动的位置是(/dev/binder).</p>
+<p>每个响应使用binder通讯的进程.都要与binder驱动打交道.</p>
+<p>binder驱动提供的接口如下.</p>
+<p>binder_poll,(多路复用io机制,简单说就是同时监听多个io线路的变化,哪个io线路有数据变化了.就通知监听者) </p>
+<p>各种io资料<a href="https://segmentfault.com/a/1190000003063859" target="_blank" rel="noopener">https://segmentfault.com/a/1190000003063859</a></p>
+<p>binder_open,  打开binder驱动.每个进程都要,通过(ProcessState打开)每个进程会分配最大4M的binder驱动内存,这个内存是逐渐分配的.初始为一页,同时把这个内存和程序的内存建立映射关系.</p>
+<p>binder_ioctl,     对驱动内存的操作.主要是读写操作.通过这个.将数据在进程内存和内核中传递.从而实现ipc</p>
+<p>binder_mmap,    内存映射.进程和内核binder驱动通过内存映射到同一个内存空间上,二者都有指向这块内存的指针.这样内核把数据拷贝到这个内存空间上,对应的进程就拿到了数据.也就是获得了跨进程传递的数据.</p>
+<h2 id="binder服务管理-ServiceManager"><a href="#binder服务管理-ServiceManager" class="headerlink" title="binder服务管理-ServiceManager"></a>binder服务管理-ServiceManager</h2><h3 id="Servicemanager-功能"><a href="#Servicemanager-功能" class="headerlink" title="Servicemanager 功能"></a>Servicemanager 功能</h3><p>大部分的系统服务.因为需要使用binder机制,又为了简化.所以都注册到ServiceManager中(这一过程也是一次binder通信).而ServiceManager是android在init进程时启动的.并且作为默认的binder管家.APP可以通过binder号为0而拿到这个ServiceManager的代理.从而获得其他的系统服务.</p>
+<p>ServiceManager在启动时会把自己注册为整个系统的binder管家.然后打开binder设备.进程mmap内存映射.</p>
+<p>然后ServiceManager就进入了循环,通过ioctl来监听binder驱动发来的消息(也就是其他进程与ServiceManager的通信请求),</p>
+<p>然后把请求转换到具体的处理函数中进行处理</p>
+<p>最后把处理的结果写回给binder驱动(传递回发送请求的进程.</p>
+<p>ServiceManager对外提供的服务如getService,addService,checkServic,listService.</p>
+<p>serviceManager会把执行服务的结果写回binder驱动</p>
+<h3 id="获取ServiceManager流程"><a href="#获取ServiceManager流程" class="headerlink" title="获取ServiceManager流程"></a>获取ServiceManager流程</h3><p>我们如何向ServiceManager获取服务呢?通常有如下几部</p>
+<p>打开binder设备-&gt;执行mmap内存映射-&gt;通过binder驱动向ServiceManager发送请求(sm的handle为0)-&gt;获得结果</p>
+<p>这里有些步骤是所有binder进行ipc都需要的.因此需要进行封装,不用让我们每次使用时手写.</p>
+<p>ProcessState 是进程唯一的.用来在进程开始时打开binder设备,执行mmap内存映射</p>
+<p>IPCThreadState 是每个线程唯一的.每个线程都可以进行binder通信,并且biner通信的实际代码也是在IPCThreadState中实现的.</p>
+<p>Proxy.  proxy和服务实现一个共同的服务接口I Service,具有相同的功能, proxy在客户端.客户端调用它,就相当于调用服务进程的特定服务.总层次如下</p>
+<p><img src="https://tva1.sinaimg.cn/large/00831rSTly1gclp81emf4j30vi0mqn06.jpg" alt="image-20200301220817905"></p>
+<h3 id="ServiceManagerProxy"><a href="#ServiceManagerProxy" class="headerlink" title="ServiceManagerProxy"></a>ServiceManagerProxy</h3><p>在ServiceManager中.在client会获取一个代理类. ServiceManagerProxy ,他和服务端的ServiceManager都实现了 IServiceManager 接口,也就是具有相同的功能.而代理类对功能的处理则是通过内部的IBinder类的mRemote的 transact 方法.来进行ipc通信.此时这个线程会被挂起.等待服务端返回后才能继续执行.</p>
+<h3 id="BpBinder和BinderProxy"><a href="#BpBinder和BinderProxy" class="headerlink" title="BpBinder和BinderProxy"></a>BpBinder和BinderProxy</h3><p>因此我们看到.具体具体业务的执行.都会有proxy代理类转换到IBinder类的对象来处理.那么这个对象那里来的的?</p>
+<p>这个Binder就是来自client进程中native端的ProcessState.方法如下,这里创建的就是BpBinder</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sp&lt;IBinder&gt; ProcessState::getContextObject(const sp&lt;IBinder&gt;&amp; caller)</span><br></pre></td></tr></table></figure>
+
+<p>因为代码设计到了java层和native层.所以有很多类在两层都有相似的名称.</p>
+<p>如binder的客户端在java层是BinderProxy,在native层是BpBinder.他俩是对应的.并且能够找到对方.因为java层的binder是由native层的BpBinder对象创建而来的.</p>
+<p>这样. ServiceManagerProxy 的请求方法就转到了client进程中java里的BinderProxy.transact来处理了.而BinderProxy.transact方法是native方法.这又转到了native层.找到对应的native层的BpBinder来处理.</p>
+<p>这里简单说就是client端的 ServiceManagerProxy 的请求,最后倒流client端native里的BpBinder.transact方法里了.</p>
+<p>而BpBinder.transact的方法.又是由 IPCThreadState . transact 来执行的.</p>
+<p>流程如下,下边所有方法都是client进程的.</p>
+<p>(Java)ServiceManagerProxy.getService -&gt;(java)BinderProxy.transact -&gt;(native)BpBinder.transact-&gt;(native)IPCThreadState.transact</p>
+<h3 id="ProcessState"><a href="#ProcessState" class="headerlink" title="ProcessState"></a>ProcessState</h3><p>一个进程只有一个ProcessState.他在创建时打开binder驱动,进行mmap内存映射.也就是一个进程之后进行一次内存映射,里边的线程都使用者一块内存.并且ProcessState会保存该进程创建的所有的binder信息,这里的binder是BpBinder. 每个BpBinder都和一个int的handle绑定.用来指明这个代理的binder的主人.</p>
+<p>主要.这时候.新建的BpBinder只有一个handle标识.并没有和远程服务有什么关系.ServiceManager作为系统服务的大管家,他的handler默认是0.</p>
+<p>上文我们看到.BpBinder.transact最后转化到了IPCThreadState.transact.的方法里.这里的IPCThreadState是线程单实例的.我们继续分析IPCThreadState,他是真正通过binder驱动与远方发送数据的地方.</p>
+<h3 id="IPCThreadState进行ipc通信"><a href="#IPCThreadState进行ipc通信" class="headerlink" title="IPCThreadState进行ipc通信"></a>IPCThreadState进行ipc通信</h3><h4 id="transact函数"><a href="#transact函数" class="headerlink" title="transact函数"></a>transact函数</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">Handle 表示要照的server的服务的标记, code是要执行什么服务,data和reply是发送的数据和接受的响应.flags是一些模式.可以指定异步,异步就是直接返回.不等待执行结果.</span><br><span class="line">status_t IPCThreadState::transact(int32_t handle,uint32_t code, const Parcel&amp; data,</span><br><span class="line">  Parcel* reply, uint32_t flags)</span><br><span class="line">&#123;</span><br><span class="line"> flags |= TF_ACCEPT_FDS;</span><br><span class="line">    if (err == NO_ERROR) &#123; 把要发出的数据整理好.写到mOut里.</span><br><span class="line">        err = writeTransactionData(BC_TRANSACTION, flags, handle, code, data, NULL);</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    if ((flags &amp; TF_ONE_WAY) == 0) &#123;发送数据,得到结果</span><br><span class="line">        if (reply) &#123;</span><br><span class="line">            err = waitForResponse(reply);</span><br><span class="line">        &#125; else &#123;</span><br><span class="line">            Parcel fakeReply;</span><br><span class="line">            err = waitForResponse(&amp;fakeReply);</span><br><span class="line">        &#125;</span><br><span class="line">        </span><br><span class="line">    &#125;</span><br><span class="line">    return err;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="waitForResponse函数"><a href="#waitForResponse函数" class="headerlink" title="waitForResponse函数"></a>waitForResponse函数</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">status_t IPCThreadState::waitForResponse(Parcel *reply, status_t *acquireResult)</span><br><span class="line">&#123;</span><br><span class="line">    int32_t cmd;</span><br><span class="line">    int32_t err;</span><br><span class="line"></span><br><span class="line">    while (1) &#123;</span><br><span class="line">    		//真正执行与驱动交换数据</span><br><span class="line">        if ((err=talkWithDriver()) &lt; NO_ERROR) break;</span><br><span class="line">        cmd = mIn.readInt32(); //返回结过的不同处理.一会在看</span><br><span class="line">        switch (cmd) &#123;</span><br><span class="line">	        case BR_TRANSACTION_COMPLETE:</span><br><span class="line">  	      case BR_FAILED_REPLY:</span><br><span class="line">    	    case BR_REPLY:</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="talkWithDriver"><a href="#talkWithDriver" class="headerlink" title="talkWithDriver"></a>talkWithDriver</h4><p>这个函数读写都是在这执行.具体是读还是写则是有mIn和mOut的数据决定的.,把数据写入bwr中.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line">status_t IPCThreadState::talkWithDriver(bool doReceive)</span><br><span class="line">&#123;</span><br><span class="line">    //这个是与驱动打交道的数据结构.他负责写出数据和读入数据</span><br><span class="line">    binder_write_read bwr;</span><br><span class="line">    </span><br><span class="line">    //mOut就是负责要写出的书,min是负责读入的数据,他们里边都有个位置计算已经读了多少,还剩多少.</span><br><span class="line">    //需要用mIn和mOut来初始化bwr, 来确定需要读写的数据和数据大小</span><br><span class="line">    bwr.write_size = outAvail;</span><br><span class="line">    bwr.write_buffer = (long unsigned int)mOut.data();</span><br><span class="line"></span><br><span class="line">    // 这里是处理要读的数据</span><br><span class="line">    if (doReceive &amp;&amp; needRead) &#123;</span><br><span class="line">        bwr.read_size = mIn.dataCapacity();</span><br><span class="line">        bwr.read_buffer = (long unsigned int)mIn.data();</span><br><span class="line">    &#125; else &#123;</span><br><span class="line">        bwr.read_size = 0;</span><br><span class="line">    &#125;</span><br><span class="line">    status_t err;</span><br><span class="line">    do &#123;</span><br><span class="line">         //与binder驱动进行数据交换. BINDER_WRITE_READ这个命令很重要.我们以后要驱动的里这部分.</span><br><span class="line">        if (ioctl(mProcess-&gt;mDriverFD, BINDER_WRITE_READ, &amp;bwr) &gt;= 0)</span><br><span class="line">            err = NO_ERROR;</span><br><span class="line">        else</span><br><span class="line">            err = -errno;</span><br><span class="line">    &#125; while (err == -EINTR);</span><br><span class="line">    //根据数据交换的结果.来确定本次读了多少.写了多少.更新mIn和mOut的数据尺度.</span><br><span class="line">    if (err &gt;= NO_ERROR) &#123;</span><br><span class="line">        if (bwr.write_consumed &gt; 0) &#123;</span><br><span class="line">            if (bwr.write_consumed &lt; (ssize_t)mOut.dataSize())</span><br><span class="line">                mOut.remove(0, bwr.write_consumed);</span><br><span class="line">            else    </span><br><span class="line">                mOut.setDataSize(0);</span><br><span class="line">        &#125;</span><br><span class="line">        if (bwr.read_consumed &gt; 0) &#123;</span><br><span class="line">            mIn.setDataSize(bwr.read_consumed);</span><br><span class="line">            mIn.setDataPosition(0);</span><br><span class="line">        &#125;</span><br><span class="line">         </span><br><span class="line">        return NO_ERROR;</span><br><span class="line">    &#125;</span><br><span class="line">    return err;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>mIn和mOut解释如下,他俩都是Parcel类的对象.MDataCapacity表示改对象的数据最大容量.</p>
+<p>其实读写的过程就是要使mDataPos最后等于mDataSize.</p>
+<p><img src="https://tva1.sinaimg.cn/large/00831rSTly1gclp87m6y4j31980i6jvk.jpg" alt="image-20200301234611274"></p>
+<p>上边通过ioctl和驱动进行了数据交换,再把交换结果通过mIn和mOut更新.也就知道本次写和读的情况.</p>
+<h4 id="ioctl-binder驱动"><a href="#ioctl-binder驱动" class="headerlink" title="ioctl(binder驱动)"></a>ioctl(binder驱动)</h4><p>如果是同步执行(就是等待返回结果).会把client进程挂起.等待服务端响应后在唤醒服务端.</p>
+<p>copy_from_user从用户空间负责数据到内核中.</p>
+<p>根据用户进程中talkWithDriver中填写的bwr数据分别处理.</p>
+<p>有数据要写出就执行binder_Thread_write,有数据要读入就执行binder_thread_read.如果失败了.还有把负责到内核的数据在复制回用户控件.</p>
+<p><img src="https://tva1.sinaimg.cn/large/00831rSTly1gclp7yrdapj312809q760.jpg" alt="image-20200302001403716"></p>
+<p><img src="https://tva1.sinaimg.cn/large/00831rSTly1gclp85og2sj31240s6tbk.jpg" alt="image-20200302001425557"></p>
+<p>下边看binder_Thread_write如何写出数据(这里有个疑问.已经到了驱动,但是没看到那个标识指向要访问的服务端啊?–更正,在IpcThreadState.writeTransactionData包装数据时候,把handle写在了mOut里了.)</p>
+<p>通过客户端指定的handle.找到目标对象的target_node.进入找到目前对象的进程target_proc和线程target_Thread.</p>
+<p>拿到target_thread目标线程的todo和wait列表.然后生成一个binder_transaction变量,加入到目标线程的todo队列中.(这样目标线程被唤醒,就可以从list中拿到client端的请求).又生成一个binder_work变量,加入到client对应线程的todo队列中.  </p>
+<p>然后填写发给对方的binder_transaction数据,包括调用者和目标对象的信息,和本次转换的内存.</p>
+<p>最后唤醒对方服务进程.</p>
+<p>这是分成两路.client的执行和server的执行.</p>
+<h4 id="驱动返回client"><a href="#驱动返回client" class="headerlink" title="驱动返回client"></a>驱动返回client</h4><p>先看client执行binder_Thread_write后又判断是否要读,会执行binder_Thread_read</p>
+<p>从client的todo队列中取出一个请求(上边写数据的时候放进来的binder_work),取出的这个命令又向上报.直接到IPCThreadState.waitForResponse中talkWithDriver后的命令处理,此时命令cmd为BR_TRANSACTION_COMPLETE,然后结束此次循环,再次开始执行while循环,继续talkWithDriver.</p>
+<p>这就代表是本次发送已经完成.然后继续talkWithDriver与驱动交互.但这次已经没有数据要写出了.因此只执行数据读.然后进行睡眠.等待服务端处理完在唤醒.</p>
+<p>也就是说.在client端.talkWithDriver把数据写出后,内核返回信息使client再次执行waitForResources里的wihle循环,然后再等待读取消息时进入睡眠.</p>
+<p>大概流程倒是这样的</p>
+<p><img src="https://tva1.sinaimg.cn/large/00831rSTly1gclp84q4xej30vr0u0wij.jpg" alt="binder-clent12415"></p>
+<h3 id="serviceManager被唤醒"><a href="#serviceManager被唤醒" class="headerlink" title="serviceManager被唤醒"></a>serviceManager被唤醒</h3><p>ServiceManager在启动时,会先打开binder驱动,然后进行mmap.再把自己设置成系统的大管家.然后就进入了一个无线的for循环,通过ioctl监听只读请求,等待客户端请求.因此会进入驱动中的binder_Thread_read.此时没有数据到来.就会进入休眠</p>
+<p>ServiceManager被唤醒后.会检查todo队列是否有要处理的请求.如果有.就交给ServiceManager来处理.此时会到ServiceManager的 binder_parse 中解析</p>
+<p>binder_parse中,对不同命令进行分别处理.主要作用就是得到客户端要请求的数据,进行封装.然后通过ioctl交给binder驱动,写回给用户端.</p>
+<p>ServiceManager中,组装的数据是各个注册到ServiceManager中的服务对应的一个binder驱动中的id号.通过这个id.可以找到对应的服务.(驱动中,通过这个id号,可以找到对应进程中对binder驱动进行的内存映射区域,然后就能给这个进程发送数据了)</p>
+<p>ServiceManager中组装好数据后,里边包含要获得的服务的指针,在通过ioctl写回驱动.</p>
+<p>驱动里从这数据中拿到要返回的client的信息,找到client的进程和线程,找到对应的todo和wait队列,给client的todo队列写一个变量.给ServiceManager的todo队列也写一个变量.然后唤醒client进程.并把ServiceManager要发送给client的数据返回给他.</p>
+<p>ServiceManager在接着处理我方todo队列的消息.然后也随之进入睡眠了.等待下一次唤醒</p>
+<p>内核在通过copy_to_user,把数据复制到client进程的空间.用户控件就继续执行talkWithDriver之后的代码.此时就拿到了server端的数据了.</p>
+<p>client线程在把收到的数据转换成一个binder.在提供出去,在封装成各种 proxy.就可以使用了.</p>
+<p><img src="https://tva1.sinaimg.cn/large/00831rSTly1gclp7z36w4j30tg0sn76k.jpg" alt="binder-server12415"></p>
+<p>在驱动中,各个进程的binder是通过一个句柄值(handle)来区分的.服务端也是把这个句柄值和一些数据返回给用户端,从而完成夸进程通信.</p>
+<h2 id="总体概括"><a href="#总体概括" class="headerlink" title="总体概括"></a>总体概括</h2><p>binder 是安卓特有的进程间通讯的机制.因为不同进程的内存是不同的.不能直接进行数据交换.linux本有一些跨进程通讯的方式.本质上都是把数据在两个进程间传递.而binder机制是为安卓设计的.他的特点是只涉及一次内存复制.就比较高效.且binder机制进行了分层.把底层的数据拷贝和上层也业务进行了分类.使上层使用时,不必写重复的bindner先关的代码.进程都有一个binder标准.通过该标志,可以找到对应的进程.</p>
+<p>考虑一下传统的IPC方式中，数据是怎样从发送端到达接收端的呢？通常的做法是，发送方将准备好的数据存放在缓存区中，调用API通过系统调用进入内核中。内核服务程序在内核空间分配内存，将数据从发送方缓存区复制到内核缓存区中。接收方读数据时也要提供一块缓存区，内核将数据从内核缓存区拷贝到接收方提供的缓存区中并唤醒接收线程，完成一次数据发送。这种存储-转发机制有两个缺陷：首先是效率低下，需要做两次拷贝：用户空间-&gt;内核空间-&gt;用户空间。Linux使用copy_from_user()和copy_to_user()实现这两个跨空间拷贝，在此过程中如果使用了高端内存（high memory），这种拷贝需要临时建立/取消页面映射，造成性能损失。其次是接收数据的缓存要由接收方提供，可接收方不知道到底要多大的缓存才够用，只能开辟尽量大的空间或先调用API接收消息头获得消息体大小，再开辟适当的空间接收消息体。两种做法都有不足，不是浪费空间就是浪费时间</p>
+<p><img src="https://tva1.sinaimg.cn/large/00831rSTly1gclp82dhfpj31400oymzi.jpg" alt="image-20200301203239363"></p>
+<p>binder机制最底层是binder驱动.他是如何实现一次复制就在两个进程中传送数据的?</p>
+<p>原理如下图</p>
+<p><img src="https://tva1.sinaimg.cn/large/00831rSTly1gclp80z5kkj30v80e8abv.jpg" alt="image-20200301203437457"></p>
+<h3 id="驱动层"><a href="#驱动层" class="headerlink" title="驱动层"></a>驱动层</h3><p>这利用了内存映射的原理,我们假设目前是A进行向B进程发送数据.而在B进程启动之初,就对binder驱动进行了内存映射,(binder驱动工作在内核态,可以访问任意的内存地址),操作是先打开binder驱动.在操作获得的描述符进行内存映射,内存映射的结果就是binder驱动和B进程都获得了一块物理内存,并且binder驱动和B进程都有一个指针指向这个物理内存(这个物理内存在内核上分配),这样.b进程和Binder驱动任意一方对这个内存的操作,都能让对方知道变化.当A进程要向B发送数据时,会调用Binder驱动,binder驱动通过copy_from_user把数据从进程A中拷贝到Binder驱动中,而拷贝的内存位置就是进程B和Binder驱动进行映射的这块内存.这样从进程A来说,就是把数据从用户进程A拷贝到了binder驱动的内核中.而对于进程B.则看到驱动把数据从进程A直接拷贝到自己的内存中.这就实现了一次拷贝在两个进程中传递数据.</p>
+<p>这里几个注意的点. 进程与binder驱动建立内存映射的时候.使用的内存是binder驱动的,是在内核中.</p>
+<p>进程B建立内存映射后.通过监听这端内存的io变化.就知道是否有数据到来了.</p>
+<p>因此.每个进程在启动的时候,都会与binder驱动建立内存映射关系,(在开始时,只分配一个比较小的内存用来提高进程创建速度,且节省内存)</p>
+<h3 id="Binder层"><a href="#Binder层" class="headerlink" title="Binder层"></a>Binder层</h3><p>在驱动层面已经实现了基础的数据传输.这过程是固定且麻烦的.因此系统进程封装后.我们直接使用就可以.</p>
+<p>在业务层.要处理的就是.把数据封装成固定的格式.交给驱动去传递.然后到对方进程时能正确的解析出来.进行处理.</p>
+<p>这里使用了parcel,他是一种数容器.直接把要传输的数据的整个内存给传输过去了.保证两边对象的一致性.</p>
+<p>为了进一步简化,系统有封装了binder这一结构. 他代表在两边传递的数据.android里大多用binder的是各种服务.</p>
+<p>因此先定义一种共同的接口interface,在两个进程实现.client中则是把请求转换成binder处理.而server端就是从binder中拿出请求,完成具体的工作.这里就是更进一步的抽象封装,业务层只需要设计具体的服务如何提供,然后再把数据一封装就完成了</p>
+<p>这里产生的binder层,在client端是bpbinder,在server端是bbinder.这是用来封装数据并发送过去的一层.</p>
+<h3 id="代理层"><a href="#代理层" class="headerlink" title="代理层"></a>代理层</h3><p>在上边是业务层.两端都有实现同样接口的类.处理具体的功能,如activitymanagerservice在服务端,对应客户端是activitymanagerproxy(我自己起的名字,) 客户端的调用 activitymanagerproxy的具体功能,activitymanagerproxy再把数据交个bpbinder进行封装.bpbinder封装完成后,把数据通过IpcThreadState来发送数据,在通过binder驱动发送过去.在server端.先是binder驱动的监听知道数据到来.在转成bbinder解析数据,在交给activitymanagerservice执行.</p>
+<p>同时为了简化.加入了ServiceManager,统一管理所有的系统服务.系统服务要先注册到ServiceManager,才算对外暴露.APP像使用什么服务时,先想ServiceManager,得到一个对应服务的代理.这个代理把想执行的请求,和远端的binder是具有联系的.通过他就可以进行binder通信</p>
+<p>上文的binder.不一定是framework中的binder类.只是一个功能的描述.</p>
+<p>所以.最底层是binder驱动.需要每个进程在启动时打开驱动,进行内存映射,通过ProcessState</p>
+<p>上层是IPCThreadState.他是每个线程唯一,真正用数据与binder驱动交互的地方.发送数据,得到请求</p>
+<p>在上层是Binder,在发送数据时,通过binder把数据发给IPCThreadState,而在获得了远程的数据返回后.IPCThreadState又回把数组封装成一个binder,向上传递.</p>
+<p>可以这样理解,每个线程可以进行很多次 跨进程通讯,但是每次可能远程通信都不同. IPCThreadState提供了远程通信的通道.但是通道的内容是由binder决定里的.所以同一个线程里.通道有一个,但是内容有很多.</p>
+<p>在上一层.把binder封装成proxy.提供给客户端.就彻底隐藏了底层的复杂机制.上层只需要操作这个代理类就可以了.</p>
+<p>最外边则是通过ServiceManager的代理类来拿到其他服务的代理. ServiceManager作为系统服务关键.默认为handle号为0.可以直接获取他的代理.这次,在看这个分层.就很清楚了.</p>
+<p>同时还要知道一点.java层的binder只不过是native层的一个镜像.二者是绑定的.java层主要功能都是通过native层来实现的</p>
+<p><img src="https://tva1.sinaimg.cn/large/00831rSTly1gclp81emf4j30vi0mqn06.jpg" alt="image-20200301220817905"></p>
+<h1 id="系统启动"><a href="#系统启动" class="headerlink" title="系统启动"></a>系统启动</h1><h2 id="系统组成"><a href="#系统组成" class="headerlink" title="系统组成"></a>系统组成</h2><p>系统启动时,会加载一系列的其他服务,这是通过读取配置文件实现的.</p>
+<p>系统启动的第一个进程是init进程,他会读取init.rc配置文件来启动过各种服务</p>
+<h3 id="init-rc"><a href="#init-rc" class="headerlink" title="init.rc"></a>init.rc</h3><p>分为 actio(动作),commands(命令) services(服务)options(选项)</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">on&lt;trigger&gt; 触发条件																			</span><br><span class="line">	&lt;command1&gt; 执行命令1																		</span><br><span class="line">	&lt;command2&gt;	执行命令2																		</span><br><span class="line">	也就是在发送了trigger动作时,执行命令1和命令2 </span><br><span class="line">举例</span><br><span class="line">on boot //触发boot事件时</span><br><span class="line">mkdir  /dev  创建dev目录</span><br><span class="line">class_start	default 启动所有default标</span><br><span class="line">	</span><br><span class="line">service 是定义的可执行程序,他会列出要执行的文件的路径,和附带的约束,通常运行于另外的进程中.</span><br><span class="line">services &lt;name&gt;&lt;pathname&gt;[ arguement]</span><br><span class="line">	&lt;option&gt;</span><br><span class="line">	&lt;option&gt;</span><br><span class="line">举例</span><br><span class="line">service zygote /system/bin.app_process  定制zygote服务</span><br><span class="line">	socket zygote 666											启动socket,</span><br></pre></td></tr></table></figure>
+
+<h3 id="ServiceManager-init启动"><a href="#ServiceManager-init启动" class="headerlink" title="ServiceManager(init启动)"></a>ServiceManager(init启动)</h3><p>ServiceManager也是由init.rc配置文件里面并由 init进程 启动的一个额外的进程.他同zyote进程绑定.同生共死.他负责所有binder通信的注册和管理.</p>
+<h3 id="zygote-init启动"><a href="#zygote-init启动" class="headerlink" title="zygote(init启动)"></a>zygote(init启动)</h3><p>也是由init.rc进程创建的另一个进程.用于fork进程用,他启动后,会通过socket 监听systemServer发来的请求.然后fork自己创建新进程.安卓里大多数应用进程和系统进程都是他fork出来的.也是由init.rc配置文件里面试并由init进程启动的.他死亡时会杀掉他所有创建的子进程.</p>
+<p>主要流程</p>
+<p>调用AppRuntime.start.把任务都交个他处理</p>
+<p>AppRuntime.start里.创建java虚拟机,动态注册大量jni函数,调用ZygoteInit.main方法.</p>
+<p>ZygoteInit.main里 1注册ZygoteInit用的socket.自己作为服务端,2反射加载类和framework.apk中资源.3通过forkSystemServer来启动system_server进程4.开启循环.等待socket客户端的连接.</p>
+<p>zygote进程和systemServer进程是同生共死的.systemServer死了.zygote进程也会杀死自己.</p>
+<h3 id="systemServer-zygote启动"><a href="#systemServer-zygote启动" class="headerlink" title="systemServer(zygote启动)"></a>systemServer(zygote启动)</h3><p>由zygote进程创建的另一个进程.由zygote启动的虚拟机中的java类ZygoteInit来启动.通过forkSystemServer.来生产一个新进程.用于加载各种服务.</p>
+<p>启动时执行 handleSystemServerProcess 里边调用了RuntimeInit. zygoteInit </p>
+<p>这里边创建了1.ProcessState(进程独有的)与binder通信系统建立联系.然后2.启动SystemServer(java)的main函数</p>
+<p>SystemServer里执行了init1,开启图形和声音的服务和 init2,启动了serverThread,初始化各种服务.又执行ProcessState和IpcThreadState的线程服务,开启了两个binder通信线程.</p>
+<p>总之就是在native端和java端启动了各种服务.init1的服务是native的.init2的服务是java端的,通过线程启动.</p>
+<h3 id="启动其他进程"><a href="#启动其他进程" class="headerlink" title="启动其他进程"></a>启动其他进程</h3><p>当需要启动一个进程时.通过向zygote进程发送socket信息来让zygote进程fork出新进程.以activitymanager.创建socket及发送给zygote是有process.java类实现</p>
+<p>zygoteInit.java中通过ZygoteConnection.runOnce来处理收到的请求.然后就是fork出新进程.然后让子进程处理请求.</p>
+<p><img src="https://tva1.sinaimg.cn/large/00831rSTly1gclp81ycyxj30t80gedgw.jpg" alt="image-20200304001205885"></p>
+<h1 id="ActivityManagerService"><a href="#ActivityManagerService" class="headerlink" title="ActivityManagerService"></a>ActivityManagerService</h1><p>AMS由SystemServer创建,并且SystemServer会等AMS启动完在继续执行.</p>
+<p>原理是SystemServer调用AMS的main方法. main方法中开启一个线程.然后SystemServer会在这里wait,等到线程里创建AMS成功后,AMS的线程notify唤醒SystemServer继续工作.</p>
+<p>Ams的主要任务是负责系统内四大组件的启动,切换,调用及应用进程的管理和调度.</p>
+<p>ActivityStack 则是用来管理Activity状态的类.他里边保存了几个集合,用来存储各种状态的Activity</p>
+<p><img src="https://tva1.sinaimg.cn/large/00831rSTly1gclp83dtxij318q0digpd.jpg" alt="image-20200304221404144"></p>
+<p>Activity在Ams里都抽象成了ActivityRecord 类</p>
+<p>值得注意的是,AMS因为需要调用用户进程,所以每个进程在启动时候,都会与ams建立链接,同时ams也会获得一个向用户进程发消息的binder(ApplicationThread),通过他,AMS就可以主动向用户进程发消息,执行一些操作.此时AMS变成了binder的client端,用户进程成了binder的server端. 这种方式是匿名binder.</p>
+<h2 id="AMS启动"><a href="#AMS启动" class="headerlink" title="AMS启动"></a>AMS启动</h2><p>Ams在SystemServer的线程中启动,大概步骤如下,也就是先启动Ams.然后又等待Ams的启动回调.</p>
+<p>//创建线程,启动</p>
+<p>  context = ActivityManagerService. main (factoryTest);</p>
+<p>//把systemServer 加入到Ams中管理</p>
+<p>  ActivityManagerService. setSystemProcess ();</p>
+<p> //初始化系统provider</p>
+<p>ActivityManagerService. installSystemProviders ();</p>
+<p>//Ams和Wms(WindowManagerService)建立联系</p>
+<p>((ActivityManagerService)ServiceManager. getService (“activity”))</p>
+<p>​                    . setWindowManager (wm);</p>
+<p>//ams启动完成的回调,ams的 systemReady 完成后,其他服务的 systemReady 才能被调用.</p>
+<p>  ((ActivityManagerService)ActivityManagerNative. getDefault ())</p>
+<p>​                . systemReady (new  Runnable () {})</p>
+<h3 id="ActivityManagerService-main"><a href="#ActivityManagerService-main" class="headerlink" title="ActivityManagerService.main"></a>ActivityManagerService.main</h3><p>启动一个线程AThread,创建AMS后进入looper循环</p>
+<p>Ams的创建中初始化几个系统运行状态服务,如ProcessStats,是一个统计信息的服务.并创建一个线程用来更新统计信息.</p>
+<p>创建几个系统服务service</p>
+<p>通过ActivityThread.main 创建ActivityThread(此时在SystemServer线程).</p>
+<p>ActivityThread会为”android”(也就是faramwork.apk)这个app创建application和context并进行关联.这是系统资源APP.所以AMS为他初始化了和应用APP一样的环境.</p>
+<p> 总结就是.启动一个loop线程,创建AMS,为系统APP创建ActivityThread.Application,Context.</p>
+<p>此时的ActivityThrad运行在SystemServer进程中.是系统APP(framework.apk)的主线程</p>
+<h3 id="ActivityManagerService-setSystemProcess"><a href="#ActivityManagerService-setSystemProcess" class="headerlink" title="ActivityManagerService.setSystemProcess"></a>ActivityManagerService.setSystemProcess</h3><p>把AMS注册到ServiceManager中.</p>
+<p>获取系统APP(framework.apk)的ApplicationInfo,ApplicationInfo是PackageManagerServic中对应用信息的抽象.对应AndroidManifest里的application节点</p>
+<p>调用ActivityThread. installSystemApplicationInfo   这里真正将系统APP的ApplicationInfo和Context绑定起来.此时 AMS为系统APP在System_server中制造的APP的运行时环境才算完整.</p>
+<p>为系统APP创造ProcessRecord,代表进程的记录.并保存在AMS中.ProcessRecord是AMS里对APP进程的一个抽象.用来保存进程的信息. ProcessRecord中还保存了AMS和用户进程通信的IApplicationThread,在客户端对应的则是ApplicationThread. AMS通过IApplicationThread来调用客户端,这也是一个binder通信(通常都是binder通信.但是在系统服务这里.是同一进程的.则不是binder通信)</p>
+<p>总结,主要是把AMS注册到ServiceManager,然后通过PKMS返回的ApplicationInfo,创建system_server进程的ProcessRecord.加入AMS的管理.(因为framework.apk.运行在system_server进程)</p>
+<h3 id="ActivityManagerService-systemReady"><a href="#ActivityManagerService-systemReady" class="headerlink" title="ActivityManagerService.systemReady"></a>ActivityManagerService.systemReady</h3><p>发送ACTION_PRE_BOOT_COMPLETED广播</p>
+<p>杀死先于AMS启动的应用进程.</p>
+<p>完成其他服务的 systemReady 方法,再启动系统桌面home</p>
+<p>home启动成功后,会回到Ams的finishBooting方法,然后Ams发送ACTION_BOOT_COMPLETED广播.</p>
+<h3 id="总结-1"><a href="#总结-1" class="headerlink" title="总结"></a>总结</h3><p>AMS的main函数,创建AMS对象,开启一个looper线程,为framework.apk 初始化环境(创建ActivityThread.Application,Context.)</p>
+<p>AMS的setSystemProcess . 注册AMS和一些运行信息服务到ServiceManager.并为system_server创建processRecord.表示system_server进程也作为AMS管理的用户进程.(因为system_server中有framework.apk等)</p>
+<p>AMS的installSystemProviders. 为AMS加载 SettingsProvider</p>
+<p>AMS的systemReady.扫尾工作.启动系统桌面. Home Activity.</p>
+<h2 id="startActivity-分析"><a href="#startActivity-分析" class="headerlink" title="startActivity 分析"></a>startActivity 分析</h2><p>从Am.java 分析Activity的启动. am是 提供的脚本.用来和AMS交互. 如 </p>
+<p>am start -W -n com.test/MainActivity    启动com.test包下的 MainActivity.  am 命令要 通过adb shell 登录手机后执行</p>
+<h3 id="ActivityStack简介"><a href="#ActivityStack简介" class="headerlink" title="ActivityStack简介"></a>ActivityStack简介</h3><p>mMainStack是ActivityStack类. 他负责组织 Activity的task栈.  task栈是用来完成同一任务的结果.不同APP的Activity可以在一个栈里. 安卓还支持多个task 栈.但是只能有一个在前台, 当一个栈在前台时,点击返回按钮,则会把这个task栈的所有Activity都清空,然后在回调别的task栈上.</p>
+<p>ActivityStack 及相关成员如下</p>
+<p><img src="https://tva1.sinaimg.cn/large/00831rSTly1gclp840y8dj30h70d7tas.jpg" alt="image-20200307130000093"></p>
+<p>可以看到.在AMS中.所有的Activity都抽象成ActivityRecord. 而task则由TaskRecord表示. ActivityRecord知道自己属于哪个task.而ActivityStack则通过mHistory管理ActivityRecord.</p>
+<p><img src="https://tva1.sinaimg.cn/large/00831rSTly1gclp855k7qj30sw0jignh.jpg" alt="image-20200307130710483"></p>
+<p>ActivityStack里有很多不同状态的ActivRecord ,因此ActivityStack肯定要让ActivityRecord在不同状态切换</p>
+<p>ArrayList<activityrecord> mStoppingActivities</activityrecord></p>
+<p>ArrayList<activityrecord> mGoingToSleepActivities</activityrecord></p>
+<p>ArrayList<activityrecord> mWaitingVisibleActivities</activityrecord></p>
+<p>ArrayList<activityrecord> mHistory </activityrecord></p>
+<p>ActivityStack 主要功能如下</p>
+<p> topRunningActivityLocked  找到正在运行的ActivityRecord</p>
+<p> findActivityLocked  根据intent和ActivityInfo.来匹配ActivityRecord</p>
+<p>所有大概来看 ActivityStack 就是通过保管TaskRecord和ActivityRecord. 来管理Activity和task 的关系.(四种启动模式)</p>
+<h3 id="ActivityStack-startActivityMayWait"><a href="#ActivityStack-startActivityMayWait" class="headerlink" title="ActivityStack.startActivityMayWait"></a>ActivityStack.startActivityMayWait</h3><p>AMS的启动从 startActivityAndWait 开始</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">mMainStack.startActivityMayWait(caller, -1, intent, resolvedType,</span><br><span class="line">                resultTo, resultWho, requestCode, startFlags, profileFile, profileFd,</span><br><span class="line">                res, null, options, userId);</span><br></pre></td></tr></table></figure>
+
+<p>startActivityMayWait 的大概流程是.</p>
+<p>创建ActivityRecord.得到TaskRecord(如果有FLAG_ACTIVITY_NEW_TASK标识),还要启动一个新进程来加载Activity实例.如果当前有展示的Activity.还要停止当前Activity.精简代码如下</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">final int startActivityMayWait()&#123;</span><br><span class="line">//1.通过intent 从 PackageManagerService中得到ActivityInfo</span><br><span class="line">ActivityInfo aInfo = resolveActivity(intent, resolvedType, debug,</span><br><span class="line">                profileFile, profileFd, autoStopProfiler);</span><br><span class="line">      //2.执行函数Activity启动          </span><br><span class="line">     int res = startActivityLocked(caller, intent, resolvedType,</span><br><span class="line">                    grantedUriPermissions, grantedMode, aInfo,</span><br><span class="line">                    resultTo, resultWho, requestCode, callingPid, callingUid,</span><br><span class="line">                    onlyIfNeeded, componentSpecified, null); </span><br><span class="line"> //3.等待用户进程启动成功后回调AMS,保存该Activityinfo 启动结果.</span><br><span class="line"></span><br><span class="line"> if (res == IActivityManager.START_SUCCESS) &#123;</span><br><span class="line">         mWaitingActivityLaunched.add(outResult)</span><br><span class="line">         do &#123;</span><br><span class="line">                 try &#123;</span><br><span class="line">            	     mService.wait();</span><br><span class="line">                   &#125; catch (InterruptedException e) &#123;</span><br><span class="line">                  &#125;</span><br><span class="line">             &#125; while (!outResult.timeout &amp;&amp; outResult.who == null);</span><br><span class="line">       &#125;</span><br><span class="line">                    </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>那么.第二步就是启动Activity的地方.这里有两个同名函数,此时是走参数多的那个.</p>
+<h3 id="ActivityStack-startActivityLocked-参数多的"><a href="#ActivityStack-startActivityLocked-参数多的" class="headerlink" title="ActivityStack.startActivityLocked(参数多的)"></a>ActivityStack.startActivityLocked(参数多的)</h3><p>主要是进行权限的检查,和activity的来龙去脉的设置</p>
+<ol>
+<li>先是拿到调用者进程的pid和uid.看是否正确,</li>
+<li>在设定 要启动Activity的 sourceRecord和resultRecord这俩都是(ActivityRecord),表示谁启动的新Activity.和新Activity完成后 返回到那里.</li>
+<li>处理intent的flag</li>
+<li>检查调用者权限.用1步骤的pid和uid看调用者使用有权限启动Activity.</li>
+<li>创建要启动Activity的ActivityRecord对象.</li>
+<li>启动Activity.</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">startActivityLocked&#123;</span><br><span class="line">//1.先是拿到调用者进程的pid和uid.看是否正确</span><br><span class="line">  if (callerApp != null) &#123;</span><br><span class="line">      callingPid = callerApp.pid;</span><br><span class="line">      callingUid = callerApp.info.uid;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  2.//然后在设定 要启动Activity的 sourceRecord和resultRecord这俩都是(ActivityRecord),表示谁启动的新Activity.和新Activity完成后 返回到那里</span><br><span class="line">   ActivityRecord sourceRecord = null;</span><br><span class="line">  ActivityRecord resultRecord = null;</span><br><span class="line"></span><br><span class="line">  3.处理flag</span><br><span class="line">    int launchFlags = intent.getFlags();</span><br><span class="line">  4. 检查调用者权限</span><br><span class="line">      final int perm = mService.checkComponentPermission(aInfo.permission, callingPid,</span><br><span class="line">                callingUid, aInfo.applicationInfo.uid, aInfo.exported);</span><br><span class="line">  5. 创建一个ActivityRecord 对象.就是我们要启动的Activity的在AMS的代表</span><br><span class="line">      ActivityRecord r = new ActivityRecord(mService, this, callerApp, callingUid,</span><br><span class="line">                intent, resolvedType, aInfo, mService.mConfiguration,</span><br><span class="line">                resultRecord, resultWho, requestCode, componentSpecified);</span><br><span class="line">    6.启动Activity</span><br><span class="line">    err = startActivityUncheckedLocked(r, sourceRecord,</span><br><span class="line">                grantedUriPermissions, grantedMode, onlyIfNeeded, true);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="ActivityStack-startActivityUncheckedLocked"><a href="#ActivityStack-startActivityUncheckedLocked" class="headerlink" title="ActivityStack.startActivityUncheckedLocked"></a>ActivityStack.startActivityUncheckedLocked</h3><ol>
+<li>根据intent.flag来为新的Activity选择合适的task.</li>
+<li>找到一个ActivityRecord</li>
+<li>为新的ActivityRecord 设置 taskRecord,此时新Activity的 ActivityRecord 和TaskRecord都准备好了</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">//1.根据intent.flag来为新的Activity选择合适的task.</span><br><span class="line">launchFlags |= Intent.FLAG_ACTIVITY_NEW_TASK;</span><br><span class="line">//2. 找到合适的 ActivityRecord</span><br><span class="line">  ActivityRecord taskTop = r.launchMode != ActivityInfo.LAUNCH_SINGLE_INSTANCE</span><br><span class="line">                        ? findTaskLocked(intent, r.info)</span><br><span class="line">                        : findActivityLocked(intent, r.info);</span><br><span class="line">//3.为 新的ActivityRecord 设置 taskRecord</span><br><span class="line">if (reuseTask == null) &#123;</span><br><span class="line">      r.setTask(new TaskRecord(mService.mCurTask, r.info, intent), null, true);</span><br><span class="line">  &#125; else &#123;</span><br><span class="line">      r.setTask(reuseTask, reuseTask, true);</span><br><span class="line">  &#125;</span><br><span class="line">  //一个同名函数,这次是参数少的,里边主要是执行 resumeTopActivityLocked.</span><br><span class="line">  startActivityLocked(r, newTask, doResume, keepCurTransition, options);</span><br></pre></td></tr></table></figure>
+
+<h3 id="ActivityStack-resumeTopActivityLocked"><a href="#ActivityStack-resumeTopActivityLocked" class="headerlink" title="ActivityStack.resumeTopActivityLocked"></a>ActivityStack.resumeTopActivityLocked</h3><ol>
+<li>找到要启动的Activity</li>
+<li>暂停旧的Activity</li>
+<li>新的Activity和wms搭配,继续执行新Activity的启动.</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">//找到队列中栈顶中运行的Activity.这是我们要启动的那个</span><br><span class="line">ActivityRecord next = topRunningActivityLocked(null);</span><br><span class="line">//暂停目前正在显示的Activity.(暂停原来的Activity.好让新的Activity显示出来)</span><br><span class="line">//这里.ams会等待旧Activity暂停.暂停后客户端会回调ams的resumeTopActivitLocked.然后继续启动新的activity</span><br><span class="line">if (mResumedActivity != null) &#123;</span><br><span class="line">      (userLeaving, false);</span><br><span class="line">      return true;</span><br><span class="line">  &#125;</span><br><span class="line">//  再次执行时,旧Activity已经暂停了.此时要启动新Activity.</span><br><span class="line">  //新Activity和wms绑定</span><br><span class="line">   if (SHOW_APP_STARTING_PREVIEW &amp;&amp; mMainStack) &#123;</span><br><span class="line">          mService.mWindowManager.setAppStartingWindow(</span><br><span class="line">                  next.appToken, next.packageName, next.theme,</span><br><span class="line">                  mService.compatibilityInfoForPackageLocked(</span><br><span class="line">                          next.info.applicationInfo),</span><br><span class="line">                  next.nonLocalizedLabel,</span><br><span class="line">                  next.labelRes, next.icon, next.windowFlags,</span><br><span class="line">                  null, true);</span><br><span class="line">      &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  //继续启动新Activity.</span><br><span class="line">  startSpecificActivityLocked(next, true, true);</span><br></pre></td></tr></table></figure>
+
+<p>此时这里产生了分叉.旧的Activity需要暂停.然后新的Activity在进行启动.我们先看新的Activity的启动.旧Activity的暂停以后再看</p>
+<h3 id="ActivityStack-startSpecificActivityLocked"><a href="#ActivityStack-startSpecificActivityLocked" class="headerlink" title="ActivityStack.startSpecificActivityLocked"></a>ActivityStack.startSpecificActivityLocked</h3><ol>
+<li>先拿到新Activity对应的进程</li>
+<li>如果进程已经启动.就继续启动Activity</li>
+<li>进程没启动,先启动Activity所在进程</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">processRecord 是进程在AMs的抽象对象. 这里看新Activity的进程是否存在</span><br><span class="line">ProcessRecord app = mService.getProcessRecordLocked(r.processName,</span><br><span class="line">                r.info.applicationInfo.uid);</span><br><span class="line">  //如果集成已经启动.就直接启动Activity.</span><br><span class="line">  if (app != null &amp;&amp; app.thread != null) &#123;</span><br><span class="line">                app.addPackage(r.info.packageName);</span><br><span class="line">                realStartActivityLocked(r, app, andResume, checkConfig);</span><br><span class="line">                return;</span><br><span class="line">  &#125;</span><br><span class="line">  //进程没启动,先启动进程</span><br><span class="line">  mService.startProcessLocked(r.processName, r.info.applicationInfo, true, 0,</span><br><span class="line">                &quot;activity&quot;, r.intent.getComponent(), false, false);</span><br></pre></td></tr></table></figure>
+
+<p>这里又分叉了. 我们按复杂的走.先启动进程</p>
+<h3 id="AMS-startProcessLocked"><a href="#AMS-startProcessLocked" class="headerlink" title="AMS.startProcessLocked"></a>AMS.startProcessLocked</h3><ol>
+<li>通过启动ActivityThread 来启动用户进程,同时保存用户进程的ProcessRecord在ams中</li>
+</ol>
+<p>ActivityThread 就是用户线程.当然这个本质是通过zygote进程fork出的新进程.然后执行ActivityThread的main函数.</p>
+<ol start="2">
+<li>发送延时消息(10s),如果10s内用户进程没启动完毕并向AMS注册.则认为用户进程启动失败.</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">来启动用户进程,执行ActivityThread ,同时保存用户进程的ProcessRecord在ams中</span><br><span class="line"> Process.ProcessStartResult startResult = Process.start(&quot;android.app.ActivityThread&quot;,</span><br><span class="line">                    app.processName, uid, uid, gids, debugFlags,</span><br><span class="line">                    app.info.targetSdkVersion, null);</span><br><span class="line">  AMS发送一个超时消息.等待Activity的进程启动完与ams沟通.也就是如果这个超时消息响应时,新Activity的进程还没启动完并与ams沟通.则认为 用户进程启动失败.</span><br><span class="line">  synchronized (mPidsSelfLocked) &#123;</span><br><span class="line">      this.mPidsSelfLocked.put(startResult.pid, app);</span><br><span class="line">      Message msg = mHandler.obtainMessage(PROC_START_TIMEOUT_MSG);</span><br><span class="line">      msg.obj = app;</span><br><span class="line">      mHandler.sendMessageDelayed(msg, startResult.usingWrapper</span><br><span class="line">              ? PROC_START_TIMEOUT_WITH_WRAPPER : PROC_START_TIMEOUT);</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://tva1.sinaimg.cn/large/00831rSTly1gclp82u5vcj310p0o7796.jpg" alt="image-20200307164943836"></p>
+<p>到这里.我们知道.一个Activity 的启动.在AMS端.需要有一个ActivitRecord,TaskRecord.ProcessRecord.来对应.</p>
+<p>同时,还要处理他原有Activity的暂停,旧的Activity的暂停.早于新Activity 的启动.</p>
+<h3 id="ActivityThread-main"><a href="#ActivityThread-main" class="headerlink" title="ActivityThread.main"></a>ActivityThread.main</h3><ol>
+<li>开启消息循环loop</li>
+<li>创建ActivityThread对象.执行attach方法</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">Looper.prepareMainLooper();</span><br><span class="line">if (sMainThreadHandler == null) &#123;</span><br><span class="line">    sMainThreadHandler = new Handler();</span><br><span class="line">&#125;</span><br><span class="line">    </span><br><span class="line">ActivityThread thread = new ActivityThread();</span><br><span class="line">thread.attach(false);</span><br><span class="line">    </span><br><span class="line">Looper.loop();</span><br></pre></td></tr></table></figure>
+
+<h3 id="ActivityThread-attach"><a href="#ActivityThread-attach" class="headerlink" title="ActivityThread.attach"></a>ActivityThread.attach</h3><ol>
+<li>主要就是与AMS建立binder通信. 这里的mAppThread 是ApplicationThread类,这里ActivityThread的内部类,传递给AMS,AMS就可以通过 他来主动调用ActivityThread的方法.也就是AMS主动通过Binder与ActivityThread交流.此时AMS是binder的client端.</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">IActivityManager mgr = ActivityManagerNative.getDefault();</span><br><span class="line">       try &#123;</span><br><span class="line">           mgr.attachApplication(mAppThread);</span><br><span class="line">       &#125; catch (RemoteException ex) &#123;</span><br><span class="line">       &#125;</span><br></pre></td></tr></table></figure>
+
+<p>ApplicationThread 在收到AMS的消息后.会通过handler.把消息发给ActivityThread来执行.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">public final void scheduleResumeActivity(IBinder token, boolean isForward) &#123;</span><br><span class="line">         queueOrSendMessage(H.RESUME_ACTIVITY, token, isForward ? 1 : 0);</span><br><span class="line">     &#125;</span><br></pre></td></tr></table></figure>
+
+<p>ActivityThread 里的attac方法.接收方是AMS里的 attachApplicationLocked </p>
+<h3 id="AMS-attachApplicationLocked"><a href="#AMS-attachApplicationLocked" class="headerlink" title="AMS. attachApplicationLocked"></a>AMS. attachApplicationLocked</h3><ol>
+<li>把用户进程发来的binder和AMS对应的ProcessRecord绑定起来.</li>
+<li>移除AMS之前发出的等待用户进程启动的消息</li>
+<li>通知用户进程初始化android的运行环境,并创建application对象.执行oncreate.</li>
+<li>找到之前正在等待启动的activity,然后继续启动他</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">private final boolean attachApplicationLocked(IApplicationThread thread,int pid) &#123;</span><br><span class="line">	//把用户进程传来的ApplicationThread 和一个processRecord 绑定起来.</span><br><span class="line">       ProcessRecord app;</span><br><span class="line">       app = mPidsSelfLocked.get(pid);</span><br><span class="line">       app.thread = thread;</span><br><span class="line">	//移除AMS之前发出的等待10s内用户进程启动的消息        </span><br><span class="line">   mHandler.removeMessages(PROC_START_TIMEOUT_MSG, app);</span><br><span class="line">   //通知用户进程初始化android的运行环境,在用户端会初始化很多东西.并创建application对象.执行oncreate.</span><br><span class="line">    thread.bindApplication(processName, appInfo, providers,</span><br><span class="line">                   app.instrumentationClass, profileFile, profileFd, profileAutoStop,</span><br><span class="line">                   app.instrumentationArguments, app.instrumentationWatcher, testMode,</span><br><span class="line">                   enableOpenGlTrace, isRestrictedBackupMode || !normalMode, app.persistent,</span><br><span class="line">                   new Configuration(mConfiguration), app.compat, getCommonServicesLocked(),</span><br><span class="line">                   mCoreSettingsObserver.getCoreSettingsLocked());</span><br><span class="line">     </span><br><span class="line">     //找到之前正在等待启动的activity,然后继续启动他</span><br><span class="line">    ActivityRecord hr = mMainStack.topRunningActivityLocked(null);</span><br><span class="line">    mMainStack.realStartActivityLocked(hr, app, true, true)</span><br><span class="line">    </span><br><span class="line">    //后面还有启动Service.不看了</span><br><span class="line"> &#125;</span><br></pre></td></tr></table></figure>
+
+<p>总结,用户进程的启动由AMS决定.AMS通过zygote来fork出用户进程,用户进程启动后主动向AMS注册.AMS再把这个用户进程和一个ProcessRecord 绑定起来.同时回调用户进程进行初始化.用户进程在初始化资源,创建Application.并执行onCreate.</p>
+<h3 id="ACtivityStack-realStartActivityLocked"><a href="#ACtivityStack-realStartActivityLocked" class="headerlink" title="ACtivityStack.realStartActivityLocked"></a>ACtivityStack.realStartActivityLocked</h3><p>此时,用户进程已经启动完毕. ActivityRecord, TaskRecord,ProcessRecord 都已经准备好了.用户进程中Application已经创建并执行onCreate.继续执行Activity</p>
+<ol>
+<li>通知用户进程启动Activity. </li>
+<li>等待用户进程Activity启动,执行完onResume后通知AMS,这里AMS也是超时等待,10s内APP没通知,就认为app启动失败.</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"> final boolean realStartActivityLocked(ActivityRecord r,</span><br><span class="line">            ProcessRecord app, boolean andResume, boolean checkConfig)&#123;</span><br><span class="line">   //processRecord 把ActivityRecord 保存起来.         </span><br><span class="line">   app.activities.add(r);</span><br><span class="line">	//通知用户进程启动activity.通过ApplicationThread进行binder通信来实现.</span><br><span class="line">	 app.thread.scheduleLaunchActivity(new Intent(r.intent), r.appToken,</span><br><span class="line">                    System.identityHashCode(r), r.info,</span><br><span class="line">                    new Configuration(mService.mConfiguration),</span><br><span class="line">                    r.compat, r.icicle, results, newIntents, !andResume,</span><br><span class="line">                    mService.isNextTransitionForward(), profileFile, profileFd,</span><br><span class="line">                    profileAutoStop);</span><br><span class="line">    //等待用户进程Activity启动,执行完onResume后通知AMS,这里AMS也是超时等待,10s内APP没通知,就认为app启动失败.                </span><br><span class="line">     completeResumeLocked(r);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>此时AMS又通知Activity进行启动.我们要再次来到用户进程.ApplicationThread 通过发消息.传递给ActivityThread.handleLaunchActivity方法</p>
+<h3 id="ActivityThread-handleLaunchActivity"><a href="#ActivityThread-handleLaunchActivity" class="headerlink" title="ActivityThread.handleLaunchActivity"></a>ActivityThread.handleLaunchActivity</h3><ol>
+<li>执行activity的onCreat方法 和onRestart方法</li>
+<li>执行activity的onResume方法.同时用handle发送了一个Idler消息.Idler消息会在向AMS发送通知.说明用户进程里Activity 已经成功显示.AMS就去掉上一步的超时等待的消息</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">private void handleLaunchActivity(ActivityClientRecord r, Intent customIntent) &#123;</span><br><span class="line">		//执行activity的onCreat方法 和onRestart方法</span><br><span class="line">	 Activity a = performLaunchActivity(r, customIntent);</span><br><span class="line">	 //执行activity的onResume方法.同时用handle发送了一个Idler消息.Idler消息会在向AMS发送通知.说明用户进程里Activity 已经成功显示.AMS就去掉上一步的超时等待的消息.</span><br><span class="line">	  handleResumeActivity(r.token, false, r.isForward);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>AMS收到这个消息后.就知道APP已经成功启动了.会做一些收尾的工作.然后结束那些处于stop和finish状态的activity.</p>
+<h3 id="ActivityStack-activityIdleInternal"><a href="#ActivityStack-activityIdleInternal" class="headerlink" title="ActivityStack.activityIdleInternal"></a>ActivityStack.activityIdleInternal</h3><ol>
+<li>处理所有的stop和finish状态的activity</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">stopActivityLocked(r);</span><br><span class="line">destroyActivityLocked(r, true, false, &quot;finish-idle&quot;);</span><br></pre></td></tr></table></figure>
+
+<p>到此. 我们经历了一个activity的启动. 首先是权限的检查,然后为这个新的activity创建ActivityRecord.ProcessRecord,TaskRecord, 然后在启动用户线程,创建Application,用户线程在绑定到AMS,AMS在把ProcessRecord和ApplicationThread进行绑定然后通知用户进程初始化安卓环境.AMS在通知ActivityThread 进行launchActivity. 用户进程就创建这个Activity.执行onCreate,onStart,onResume. 然后在onResume后通知Ams启动完毕.Ams在做一些收尾工作.</p>
+<p><img src="https://tva1.sinaimg.cn/large/00831rSTly1gclp870gg6j30vn0on40y.jpg" alt="image-20200307180845839"></p>
+<h3 id="ActivityStack"><a href="#ActivityStack" class="headerlink" title="ActivityStack."></a>ActivityStack.</h3><p>之前我们在ActivityThread..resumeTopActivityLocked的时候,看到,会先中止旧的activity的显示,在创建新的activity.当时略过去.现在继续看旧activity的暂停过程</p>
+<ol>
+<li>拿到要暂停的activityRecord</li>
+<li>通知该进程,暂停这个activity</li>
+<li>发送超时提醒,等待用户端暂停后通知AMS</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">	//拿到正在显示的activity,也就是要暂停的那个</span><br><span class="line">ActivityRecord prev = mResumedActivity;</span><br><span class="line">//同理.通过用户进程的ApplicationThread来通知用户进程,这个activity要暂停</span><br><span class="line">   prev.app.thread.schedulePauseActivity(prev.appToken, prev.finishing,</span><br><span class="line">                    userLeaving, prev.configChangeFlags);</span><br><span class="line">  //同样设置延时等待,等用户进程暂停activity后的通知,这个实际是500毫秒.</span><br><span class="line">  Message msg = mHandler.obtainMessage(LAUNCH_TIMEOUT_MSG);</span><br><span class="line">            mHandler.sendMessageDelayed(msg, LAUNCH_TIMEOUT);</span><br></pre></td></tr></table></figure>
+
+<p>这就又进入了用户进程的执行情况</p>
+<h3 id="ActivityThread-handlePauseActivity"><a href="#ActivityThread-handlePauseActivity" class="headerlink" title="ActivityThread.handlePauseActivity"></a>ActivityThread.handlePauseActivity</h3><ol>
+<li>调用户的onPause</li>
+<li>通知AMS. 用户端onPause完成</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">//调用户的onPause</span><br><span class="line"> r.activity.mConfigChangeFlags |= configChanges;</span><br><span class="line"> performPauseActivity(token, finished, r.isPreHoneycomb());</span><br><span class="line"></span><br><span class="line"> try &#123; 	//通知AMS. 用户端onPause完成</span><br><span class="line">     ActivityManagerNative.getDefault().activityPaused(token);</span><br><span class="line"> &#125; catch (RemoteException ex) &#123;</span><br><span class="line"> &#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="ActivityStack-completePauseLocked"><a href="#ActivityStack-completePauseLocked" class="headerlink" title="ActivityStack.completePauseLocked"></a>ActivityStack.completePauseLocked</h3><ol>
+<li>跳转这暂停的activityinfo 在activityStack中各个状态里边中的情况,把他加入mStoppingActivities里.这会在新ActivityRecord 对应的activity完全启动完成后.执行旧activity的onstop.</li>
+<li>因此我们看到.旧activity的onPaus是早于新activity的onCreate.但是旧activity的onStop要等新activity的onResume 执行完成后才执行.</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">ActivityRecord prev = mPausingActivity;</span><br><span class="line">mStoppingActivities.add(prev);</span><br><span class="line">mWaitingVisibleActivities.remove(prev);</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://tva1.sinaimg.cn/large/00831rSTly1gclp7hgq0ij30ni0okdje.jpg" alt="image-20200307183446289"></p>
+<p>最后在附一个自己整理的流程图</p>
+<p><img src="https://tva1.sinaimg.cn/large/00831rSTly1gclp6sr17oj30u00y37c0.jpg" alt="ams124"></p>
+
+    </div>
+
+    
+    
+    
+        
+      
+
+      <footer class="post-footer">
+          
+            
+          
+          <div class="post-tags">
+            
+              <a href="/tags/android-framework-jni-binder/" rel="tag"># android framework jni binder</a>
+            
+          </div>
+        
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+              
+                <a href="/2020/01/23/深入理解java虚拟机/" rel="next" title="深入理解java虚拟机">
+                  <i class="fa fa-chevron-left"></i> 深入理解java虚拟机
+                </a>
+              
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+              
+                <a href="/2020/02/25/深入理解android/" rel="prev" title="深入理解android-jni,binder,zygote-ams">
+                  深入理解android-jni,binder,zygote-ams <i class="fa fa-chevron-right"></i>
+                </a>
+              
+            </div>
+          </div>
+        
+      </footer>
+    
+  </div>
+  
+  
+  
+  </article>
+
+  </div>
+
+
+          </div>
+          
+
+        </div>
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">liujiakuo</p>
+  <div class="site-description motion-element" itemprop="description"></div>
+</div>
+  <nav class="site-state motion-element">
+      <div class="site-state-item site-state-posts">
+        
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">13</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-tags">
+        
+        
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-name">tags</span>
+        
+      </div>
+    
+  </nav>
+
+
+
+        </div>
+      </div>
+      <!--noindex-->
+        <div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+            
+            
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#jni"><span class="nav-text">jni</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#静态注册"><span class="nav-text">静态注册</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#动态注册"><span class="nav-text">动态注册</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#jni数据类型转换"><span class="nav-text">jni数据类型转换</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#基本数据类型"><span class="nav-text">基本数据类型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#引用数据类型"><span class="nav-text">引用数据类型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#类属性"><span class="nav-text">类属性</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#JNIENV"><span class="nav-text">JNIENV</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#java方法签名"><span class="nav-text">java方法签名</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#对象引用"><span class="nav-text">对象引用</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#总结"><span class="nav-text">总结</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#binder-机制"><span class="nav-text">binder 机制</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#binder载体-parcel"><span class="nav-text">binder载体 parcel</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#binder驱动与协议"><span class="nav-text">binder驱动与协议</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#binder服务管理-ServiceManager"><span class="nav-text">binder服务管理-ServiceManager</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Servicemanager-功能"><span class="nav-text">Servicemanager 功能</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#获取ServiceManager流程"><span class="nav-text">获取ServiceManager流程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ServiceManagerProxy"><span class="nav-text">ServiceManagerProxy</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#BpBinder和BinderProxy"><span class="nav-text">BpBinder和BinderProxy</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ProcessState"><span class="nav-text">ProcessState</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#IPCThreadState进行ipc通信"><span class="nav-text">IPCThreadState进行ipc通信</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#transact函数"><span class="nav-text">transact函数</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#waitForResponse函数"><span class="nav-text">waitForResponse函数</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#talkWithDriver"><span class="nav-text">talkWithDriver</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#ioctl-binder驱动"><span class="nav-text">ioctl(binder驱动)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#驱动返回client"><span class="nav-text">驱动返回client</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#serviceManager被唤醒"><span class="nav-text">serviceManager被唤醒</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#总体概括"><span class="nav-text">总体概括</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#驱动层"><span class="nav-text">驱动层</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Binder层"><span class="nav-text">Binder层</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#代理层"><span class="nav-text">代理层</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#系统启动"><span class="nav-text">系统启动</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#系统组成"><span class="nav-text">系统组成</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#init-rc"><span class="nav-text">init.rc</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ServiceManager-init启动"><span class="nav-text">ServiceManager(init启动)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#zygote-init启动"><span class="nav-text">zygote(init启动)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#systemServer-zygote启动"><span class="nav-text">systemServer(zygote启动)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#启动其他进程"><span class="nav-text">启动其他进程</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#ActivityManagerService"><span class="nav-text">ActivityManagerService</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#AMS启动"><span class="nav-text">AMS启动</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#ActivityManagerService-main"><span class="nav-text">ActivityManagerService.main</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ActivityManagerService-setSystemProcess"><span class="nav-text">ActivityManagerService.setSystemProcess</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ActivityManagerService-systemReady"><span class="nav-text">ActivityManagerService.systemReady</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#总结-1"><span class="nav-text">总结</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#startActivity-分析"><span class="nav-text">startActivity 分析</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#ActivityStack简介"><span class="nav-text">ActivityStack简介</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ActivityStack-startActivityMayWait"><span class="nav-text">ActivityStack.startActivityMayWait</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ActivityStack-startActivityLocked-参数多的"><span class="nav-text">ActivityStack.startActivityLocked(参数多的)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ActivityStack-startActivityUncheckedLocked"><span class="nav-text">ActivityStack.startActivityUncheckedLocked</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ActivityStack-resumeTopActivityLocked"><span class="nav-text">ActivityStack.resumeTopActivityLocked</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ActivityStack-startSpecificActivityLocked"><span class="nav-text">ActivityStack.startSpecificActivityLocked</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#AMS-startProcessLocked"><span class="nav-text">AMS.startProcessLocked</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ActivityThread-main"><span class="nav-text">ActivityThread.main</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ActivityThread-attach"><span class="nav-text">ActivityThread.attach</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#AMS-attachApplicationLocked"><span class="nav-text">AMS. attachApplicationLocked</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ACtivityStack-realStartActivityLocked"><span class="nav-text">ACtivityStack.realStartActivityLocked</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ActivityThread-handleLaunchActivity"><span class="nav-text">ActivityThread.handleLaunchActivity</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ActivityStack-activityIdleInternal"><span class="nav-text">ActivityStack.activityIdleInternal</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ActivityStack"><span class="nav-text">ActivityStack.</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ActivityThread-handlePauseActivity"><span class="nav-text">ActivityThread.handlePauseActivity</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ActivityStack-completePauseLocked"><span class="nav-text">ActivityStack.completePauseLocked</span></a></li></ol></li></ol></li></ol></div>
+            
+
+          </div>
+        </div>
+      <!--/noindex-->
+      
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2020</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">liujiakuo</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> v3.9.0</div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">Theme – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> v7.3.0</div>
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+      </div>
+
+    
+
+  </div>
+
+  
+  <script src="/lib/jquery/index.js?v=3.4.1"></script>
+  <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+<script src="/js/utils.js?v=7.3.0"></script>
+  <script src="/js/motion.js?v=7.3.0"></script>
+
+
+  <script src="/js/schemes/muse.js?v=7.3.0"></script>
+
+
+
+<script src="/js/next-boot.js?v=7.3.0"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+
+  
+  <script src="/js/scrollspy.js?v=7.3.0"></script>
+<script src="/js/post-details.js?v=7.3.0"></script>
+
+
+</body>
+</html>
