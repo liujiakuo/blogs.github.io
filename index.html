@@ -212,6 +212,288 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/03/17/glide-源码解析/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="liujiakuo">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+    </span>
+      <header class="post-header">
+
+        
+          <h1 class="post-title" itemprop="name headline">
+              
+              <a href="/2020/03/17/glide-源码解析/" class="post-title-link" itemprop="url">glide-源码解析</a>
+            
+          </h1>
+        
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              
+                
+              
+
+              <time title="Created: 2020-03-17 20:41:59" itemprop="dateCreated datePublished" datetime="2020-03-17T20:41:59+08:00">2020-03-17</time>
+            </span>
+          
+            
+
+            
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2020-03-25 13:13:55" itemprop="dateModified" datetime="2020-03-25T13:13:55+08:00">2020-03-25</time>
+              </span>
+            
+          
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Glide.with(this)</span><br><span class="line">        .load(&quot;http://p3.pstatp.com/origin/pgc-image/15220293999066398493c24&quot;)</span><br><span class="line">        .into(imageView);</span><br></pre></td></tr></table></figure>
+          <!--noindex-->
+          
+            <div class="post-button text-center">
+              <a class="btn" href="/2020/03/17/glide-源码解析/#more" rel="contents">
+                Read more &raquo;
+              </a>
+            </div>
+          
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+          <div class="post-eof"></div>
+        
+      </footer>
+  </div>
+  
+  
+  
+  </article>
+
+    
+      
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/03/13/lakecanary源码解析/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="liujiakuo">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+    </span>
+      <header class="post-header">
+
+        
+          <h1 class="post-title" itemprop="name headline">
+              
+              <a href="/2020/03/13/lakecanary源码解析/" class="post-title-link" itemprop="url">lakecanary源码解析</a>
+            
+          </h1>
+        
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              
+                
+              
+
+              <time title="Created: 2020-03-13 20:48:00" itemprop="dateCreated datePublished" datetime="2020-03-13T20:48:00+08:00">2020-03-13</time>
+            </span>
+          
+            
+
+            
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2020-03-21 17:22:19" itemprop="dateModified" datetime="2020-03-21T17:22:19+08:00">2020-03-21</time>
+              </span>
+            
+          
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>简单说.lakecanary 利用了java里的弱引用. 他把activity声明为弱引用.当一个引用对象只有弱引用时,会加入弱引用的ReferenceQueue中. lakecanary还有一个自己保存的所有要检测泄露的弱引用对象的队列. 两个队列想比较.都存在的对象.说名只有弱引用了.也就是可以被gc回收了.就排除掉. 同时通过开始<strong>HeapDumper(堆信息转储)</strong> 查看堆信息的引用链.找到内存泄露的点.</p>
+          <!--noindex-->
+          
+            <div class="post-button text-center">
+              <a class="btn" href="/2020/03/13/lakecanary源码解析/#more" rel="contents">
+                Read more &raquo;
+              </a>
+            </div>
+          
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+          <div class="post-eof"></div>
+        
+      </footer>
+  </div>
+  
+  
+  
+  </article>
+
+    
+      
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/03/13/EventBus源码解析/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="liujiakuo">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+    </span>
+      <header class="post-header">
+
+        
+          <h1 class="post-title" itemprop="name headline">
+              
+              <a href="/2020/03/13/EventBus源码解析/" class="post-title-link" itemprop="url">EventBus源码解析</a>
+            
+          </h1>
+        
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              
+                
+              
+
+              <time title="Created: 2020-03-13 20:48:00" itemprop="dateCreated datePublished" datetime="2020-03-13T20:48:00+08:00">2020-03-13</time>
+            </span>
+          
+            
+
+            
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2020-03-17 20:45:43" itemprop="dateModified" datetime="2020-03-17T20:45:43+08:00">2020-03-17</time>
+              </span>
+            
+          
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h1 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h1><p>eventBus 的目的就是简化时间的传递.并且是以对象作为数据传递. 还加入了监听者可以选择在哪个线程监听.</p><p>其实也是监听者模式.那么就有.发送信息方, 接受信息方,和信息. 同时由于接收方可以选择线程,并且一个接收者可以接收多中消息.发送者也可以发送种消息.就有常驻的后台线程,并且发送的线程都有消息队列.支持不断的添加消息.</p>
+          <!--noindex-->
+          
+            <div class="post-button text-center">
+              <a class="btn" href="/2020/03/13/EventBus源码解析/#more" rel="contents">
+                Read more &raquo;
+              </a>
+            </div>
+          
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+          <div class="post-eof"></div>
+        
+      </footer>
+  </div>
+  
+  
+  
+  </article>
+
+    
+      
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/03/09/AMS_WMS图片/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -341,7 +623,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2020-03-12 12:42:26" itemprop="dateModified" datetime="2020-03-12T12:42:26+08:00">2020-03-12</time>
+                <time title="Modified: 2020-03-12 15:15:32" itemprop="dateModified" datetime="2020-03-12T15:15:32+08:00">2020-03-12</time>
               </span>
             
           
@@ -362,6 +644,100 @@
           
             <div class="post-button text-center">
               <a class="btn" href="/2020/03/08/深入理解android2-WMS-控件/#more" rel="contents">
+                Read more &raquo;
+              </a>
+            </div>
+          
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+          <div class="post-eof"></div>
+        
+      </footer>
+  </div>
+  
+  
+  
+  </article>
+
+    
+      
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/03/08/深入理解android2-WMS-图床版/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="liujiakuo">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+    </span>
+      <header class="post-header">
+
+        
+          <h1 class="post-title" itemprop="name headline">
+              
+              <a href="/2020/03/08/深入理解android2-WMS-图床版/" class="post-title-link" itemprop="url">深入理解android2-WMS,控件-图床版</a>
+            
+          </h1>
+        
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              
+                
+              
+
+              <time title="Created: 2020-03-08 16:22:42" itemprop="dateCreated datePublished" datetime="2020-03-08T16:22:42+08:00">2020-03-08</time>
+            </span>
+          
+            
+
+            
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2020-03-12 15:17:01" itemprop="dateModified" datetime="2020-03-12T15:17:01+08:00">2020-03-12</time>
+              </span>
+            
+          
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h1 id="WMS"><a href="#WMS" class="headerlink" title="WMS"></a>WMS</h1><p>WMS主要负责两个功能, 一是负责窗口的管理,如窗口的增加删除,层级.二是负责全局事件的派发.如触摸点击事件.</p><p>先简单介绍几个重要的类</p><p>IWindowSession.  进程唯一的.是一个匿名binder.通过他向WMS请求窗口操作</p>
+          <!--noindex-->
+          
+            <div class="post-button text-center">
+              <a class="btn" href="/2020/03/08/深入理解android2-WMS-图床版/#more" rel="contents">
                 Read more &raquo;
               </a>
             </div>
@@ -596,7 +972,7 @@
         
           <h1 class="post-title" itemprop="name headline">
               
-              <a href="/2020/02/25/深入理解android-图床版/" class="post-title-link" itemprop="url">深入理解android-jni,binder,zygote-ams</a>
+              <a href="/2020/02/25/深入理解android-图床版/" class="post-title-link" itemprop="url">深入理解android-jni,binder,zygote-ams-图床版</a>
             
           </h1>
         
@@ -623,7 +999,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2020-03-07 22:06:54" itemprop="dateModified" datetime="2020-03-07T22:06:54+08:00">2020-03-07</time>
+                <time title="Modified: 2020-03-12 14:50:33" itemprop="dateModified" datetime="2020-03-12T14:50:33+08:00">2020-03-12</time>
               </span>
             
           
@@ -761,382 +1137,6 @@
   </article>
 
     
-      
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/01/23/深入理解java虚拟机的-图床版/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="liujiakuo">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Hexo">
-    </span>
-      <header class="post-header">
-
-        
-          <h1 class="post-title" itemprop="name headline">
-              
-              <a href="/2020/01/23/深入理解java虚拟机的-图床版/" class="post-title-link" itemprop="url">深入理解java虚拟机-图传版</a>
-            
-          </h1>
-        
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">Posted on</span>
-
-              
-                
-              
-
-              <time title="Created: 2020-01-23 15:48:23" itemprop="dateCreated datePublished" datetime="2020-01-23T15:48:23+08:00">2020-01-23</time>
-            </span>
-          
-            
-
-            
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2020-03-07 19:47:24" itemprop="dateModified" datetime="2020-03-07T19:47:24+08:00">2020-03-07</time>
-              </span>
-            
-          
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h1 id="1-java内存"><a href="#1-java内存" class="headerlink" title="1.java内存"></a>1.java内存</h1><p><img src="https://tva1.sinaimg.cn/large/006tNbRwly1gbcahryastj30ok0bcwgb.jpg" alt="image-20200128150152686"></p><h2 id="1-1内存区域划分"><a href="#1-1内存区域划分" class="headerlink" title="1.1内存区域划分"></a>1.1内存区域划分</h2><p>java虚拟机会把内存分成几个不同的区域,都有各自的用途</p><p><img src="https://tva1.sinaimg.cn/large/006tNbRwly1gbcauv04p9j30k00bi0v1.jpg" alt="img"></p><h3 id="程序计数器-program-counter-register"><a href="#程序计数器-program-counter-register" class="headerlink" title="程序计数器(program counter register)"></a>程序计数器(program counter register)</h3><p>pc寄存器用来指向接下来执行的字节码指令的地址,通过更新pc指令的值来连续执行指令.每个线程都有自己的pc寄存器</p>
-          <!--noindex-->
-          
-            <div class="post-button text-center">
-              <a class="btn" href="/2020/01/23/深入理解java虚拟机的-图床版/#more" rel="contents">
-                Read more &raquo;
-              </a>
-            </div>
-          
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-          <div class="post-eof"></div>
-        
-      </footer>
-  </div>
-  
-  
-  
-  </article>
-
-    
-      
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/12/30/java多线程/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="liujiakuo">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Hexo">
-    </span>
-      <header class="post-header">
-
-        
-          <h1 class="post-title" itemprop="name headline">
-              
-              <a href="/2019/12/30/java多线程/" class="post-title-link" itemprop="url">java多线程</a>
-            
-          </h1>
-        
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">Posted on</span>
-
-              
-                
-              
-
-              <time title="Created: 2019-12-30 21:17:24" itemprop="dateCreated datePublished" datetime="2019-12-30T21:17:24+08:00">2019-12-30</time>
-            </span>
-          
-            
-
-            
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2020-03-07 19:59:58" itemprop="dateModified" datetime="2020-03-07T19:59:58+08:00">2020-03-07</time>
-              </span>
-            
-          
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h1 id="基础api"><a href="#基础api" class="headerlink" title="基础api"></a>基础api</h1><p>先看下线程相关的基础</p><h2 id="继承Thread-和实现Runnable的区别"><a href="#继承Thread-和实现Runnable的区别" class="headerlink" title="继承Thread 和实现Runnable的区别"></a>继承Thread 和实现Runnable的区别</h2><p>基础Thread后.就没法继承其他类了.局限性大.实现runnable后还可以集成别的类.</p><p>线程由线程调度器来调度.执行start的方法的顺序不代表线程的启动顺序</p>
-          <!--noindex-->
-          
-            <div class="post-button text-center">
-              <a class="btn" href="/2019/12/30/java多线程/#more" rel="contents">
-                Read more &raquo;
-              </a>
-            </div>
-          
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-          <div class="post-eof"></div>
-        
-      </footer>
-  </div>
-  
-  
-  
-  </article>
-
-    
-      
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/12/10/深入理解计算机系统/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="liujiakuo">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Hexo">
-    </span>
-      <header class="post-header">
-
-        
-          <h1 class="post-title" itemprop="name headline">
-              
-              <a href="/2019/12/10/深入理解计算机系统/" class="post-title-link" itemprop="url">深入理解计算机系统</a>
-            
-          </h1>
-        
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">Posted on</span>
-
-              
-                
-              
-
-              <time title="Created: 2019-12-10 19:29:57" itemprop="dateCreated datePublished" datetime="2019-12-10T19:29:57+08:00">2019-12-10</time>
-            </span>
-          
-            
-
-            
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2019-12-17 21:53:05" itemprop="dateModified" datetime="2019-12-17T21:53:05+08:00">2019-12-17</time>
-              </span>
-            
-          
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>本笔记内容来自,深入理解计本笔记内容来自,深入理解计算机系统,现代操作系统,操作系统精髓与设计原理</p><h1 id="程序的机器级表示"><a href="#程序的机器级表示" class="headerlink" title="程序的机器级表示"></a>程序的机器级表示</h1><h2 id="编译的过程"><a href="#编译的过程" class="headerlink" title="编译的过程"></a>编译的过程</h2><p>如图所示</p><p><img src="/2019/12/10/深入理解计算机系统/image-20191210203711023.png" alt> </p><p>首先,c预处理器把源文件中的#include指定的文件都插入源文件,并扩展替换#define声明的宏.然后编译器把源文件转成汇编文件(里边都是汇编指令),然后由汇编器转成可重定位目标程序(也就是机器码,但还缺少一些东西,如全局地址),最后由连接器把目标文件和库函数合并,并产生全局地址.生产最终可执行程序.</p>
-          <!--noindex-->
-          
-            <div class="post-button text-center">
-              <a class="btn" href="/2019/12/10/深入理解计算机系统/#more" rel="contents">
-                Read more &raquo;
-              </a>
-            </div>
-          
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-          <div class="post-eof"></div>
-        
-      </footer>
-  </div>
-  
-  
-  
-  </article>
-
-    
-      
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/12/10/深入理解计算机系统图床版/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="liujiakuo">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Hexo">
-    </span>
-      <header class="post-header">
-
-        
-          <h1 class="post-title" itemprop="name headline">
-              
-              <a href="/2019/12/10/深入理解计算机系统图床版/" class="post-title-link" itemprop="url">深入理解计算机系统图床版</a>
-            
-          </h1>
-        
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">Posted on</span>
-
-              
-                
-              
-
-              <time title="Created: 2019-12-10 19:29:57" itemprop="dateCreated datePublished" datetime="2019-12-10T19:29:57+08:00">2019-12-10</time>
-            </span>
-          
-            
-
-            
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2019-12-17 21:55:33" itemprop="dateModified" datetime="2019-12-17T21:55:33+08:00">2019-12-17</time>
-              </span>
-            
-          
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>本笔记内容来自,深入理解计本笔记内容来自,深入理解计算机系统,现代操作系统,操作系统精髓与设计原理</p><h1 id="程序的机器级表示"><a href="#程序的机器级表示" class="headerlink" title="程序的机器级表示"></a>程序的机器级表示</h1><h2 id="编译的过程"><a href="#编译的过程" class="headerlink" title="编译的过程"></a>编译的过程</h2><p>如图所示</p><p><img src="https://tva1.sinaimg.cn/large/006tNbRwly1ga01ztkndsj30km03r3yw.jpg" alt> </p><p>首先,c预处理器把源文件中的#include指定的文件都插入源文件,并扩展替换#define声明的宏.然后编译器把源文件转成汇编文件(里边都是汇编指令),然后由汇编器转成可重定位目标程序(也就是机器码,但还缺少一些东西,如全局地址),最后由连接器把目标文件和库函数合并,并产生全局地址.生产最终可执行程序.</p>
-          <!--noindex-->
-          
-            <div class="post-button text-center">
-              <a class="btn" href="/2019/12/10/深入理解计算机系统图床版/#more" rel="contents">
-                Read more &raquo;
-              </a>
-            </div>
-          
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-          <div class="post-eof"></div>
-        
-      </footer>
-  </div>
-  
-  
-  
-  </article>
-
-    
   </section>
 
   
@@ -1174,7 +1174,7 @@
         
           <a href="/archives/">
         
-          <span class="site-state-item-count">13</span>
+          <span class="site-state-item-count">17</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
@@ -1195,7 +1195,11 @@
         
           
         
-        <span class="site-state-item-count">5</span>
+          
+        
+          
+        
+        <span class="site-state-item-count">7</span>
         <span class="site-state-item-name">tags</span>
         
       </div>

@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+
+
+
+
+
+<html class="theme-next mist use-motion" lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="generator" content="Hexo 3.9.0">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=7.3.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=7.3.0">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=7.3.0">
+  <link rel="mask-icon" href="/images/logo.svg?v=7.3.0" color="#222">
+
+<link rel="stylesheet" href="/css/main.css?v=7.3.0">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.7.0">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '7.3.0',
+    exturl: false,
+    sidebar: {"position":"left","width":400,"display":"always","offset":12,"onmobile":false},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    save_scroll: false,
+    copycode: {"enable":false,"show_result":false,"style":null},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: '',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: 'Copy',
+      copy_success: 'Copied',
+      copy_failure: 'Copy failed'
+    }
+  };
+</script>
+
+  <meta name="description" content="概述eventBus 的目的就是简化时间的传递.并且是以对象作为数据传递. 还加入了监听者可以选择在哪个线程监听.其实也是监听者模式.那么就有.发送信息方, 接受信息方,和信息. 同时由于接收方可以选择线程,并且一个接收者可以接收多中消息.发送者也可以发送种消息.就有常驻的后台线程,并且发送的线程都有消息队列.支持不断的添加消息.">
+<meta name="keywords" content="android 工具源码">
+<meta property="og:type" content="article">
+<meta property="og:title" content="EventBus源码解析">
+<meta property="og:url" content="http://yoursite.com/2020/03/13/EventBus源码解析/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="概述eventBus 的目的就是简化时间的传递.并且是以对象作为数据传递. 还加入了监听者可以选择在哪个线程监听.其实也是监听者模式.那么就有.发送信息方, 接受信息方,和信息. 同时由于接收方可以选择线程,并且一个接收者可以接收多中消息.发送者也可以发送种消息.就有常驻的后台线程,并且发送的线程都有消息队列.支持不断的添加消息.">
+<meta property="og:locale" content="en">
+<meta property="og:image" content="http://yoursite.com/2020/03/13/EventBus源码解析/image-20200317111831057.png">
+<meta property="og:image" content="http://yoursite.com/2020/03/13/EventBus源码解析/image-20200317112854191.png">
+<meta property="og:updated_time" content="2020-03-17T12:45:43.741Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="EventBus源码解析">
+<meta name="twitter:description" content="概述eventBus 的目的就是简化时间的传递.并且是以对象作为数据传递. 还加入了监听者可以选择在哪个线程监听.其实也是监听者模式.那么就有.发送信息方, 接受信息方,和信息. 同时由于接收方可以选择线程,并且一个接收者可以接收多中消息.发送者也可以发送种消息.就有常驻的后台线程,并且发送的线程都有消息队列.支持不断的添加消息.">
+<meta name="twitter:image" content="http://yoursite.com/2020/03/13/EventBus源码解析/image-20200317111831057.png">
+  <link rel="canonical" href="http://yoursite.com/2020/03/13/EventBus源码解析/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+
+  <title>EventBus源码解析 | Hexo</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .motion-element,
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-title { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="en">
+
+  <div class="container sidebar-position-left">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta">
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Hexo</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="Toggle navigation bar">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+      
+      
+      
+        
+        <li class="menu-item menu-item-home">
+      
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>Home</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-about">
+      
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>About</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-tags">
+      
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>Tags</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-archives">
+      
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>Archives</a>
+
+  </li>
+  </ul>
+
+    
+
+</nav>
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content page-post-detail">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/03/13/EventBus源码解析/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="liujiakuo">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+    </span>
+      <header class="post-header">
+
+        
+          <h1 class="post-title" itemprop="name headline">EventBus源码解析
+
+            
+          </h1>
+        
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              
+                
+              
+
+              <time title="Created: 2020-03-13 20:48:00" itemprop="dateCreated datePublished" datetime="2020-03-13T20:48:00+08:00">2020-03-13</time>
+            </span>
+          
+            
+
+            
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2020-03-17 20:45:43" itemprop="dateModified" datetime="2020-03-17T20:45:43+08:00">2020-03-17</time>
+              </span>
+            
+          
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h1><p>eventBus 的目的就是简化时间的传递.并且是以对象作为数据传递. 还加入了监听者可以选择在哪个线程监听.</p><p>其实也是监听者模式.那么就有.发送信息方, 接受信息方,和信息. 同时由于接收方可以选择线程,并且一个接收者可以接收多中消息.发送者也可以发送种消息.就有常驻的后台线程,并且发送的线程都有消息队列.支持不断的添加消息.</p><a id="more"></a>
+
+<p>简单看下使用过程</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line">public class EventBusAActivity extends AppCompatActivity &#123;</span><br><span class="line"></span><br><span class="line">    @Override</span><br><span class="line">    protected void onCreate(Bundle savedInstanceState) &#123;</span><br><span class="line">        super.onCreate(savedInstanceState);</span><br><span class="line">        setContentView(R.layout.activity_event_bus_a);</span><br><span class="line">        EventBus.getDefault().register(this); //注册为监听者.</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    @Override</span><br><span class="line">    protected void onDestroy() &#123;</span><br><span class="line">        super.onDestroy();</span><br><span class="line">        EventBus.getDefault().unregister(this); //销毁时取消注册.取消监听.</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public void onEvent(B b) &#123; //监听B对象的到来,方法名都是onEvent开头.通过参数来确定要监听什么对象</span><br><span class="line">        Toast.makeText(this, b.toString(), Toast.LENGTH_SHORT).show();</span><br><span class="line">    &#125;</span><br><span class="line">    public void postEvent(View view) &#123;//发送消息.</span><br><span class="line">        new Publish().postEvent();</span><br><span class="line">    &#125;</span><br><span class="line">    class B &#123; 被发送的对象</span><br><span class="line">         String  name;</span><br><span class="line">        public B(String name) &#123;</span><br><span class="line">            this.name = name;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public class Publish &#123;</span><br><span class="line">        void postEvent() &#123; </span><br><span class="line">        		发送消息.所有监听 B的监听者.都会收到消息.</span><br><span class="line">            EventBus.getDefault().post(new B(&quot;eventb&quot;));</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>## </p>
+<h2 id="事件订阅者"><a href="#事件订阅者" class="headerlink" title="事件订阅者"></a>事件订阅者</h2><p>.也就是监听消息发生的.我们要通过EventBus.getDefault().register(this)注册事件订阅者.同时.重写onEvent、onEventMainThread、onEventBackgroundThread和onEventAsync.方法表示要在不同线程进行监听.</p>
+<p>eventBus 的事件订阅和 事件分发是分开的. 也就是 订阅者和发布者不知道对方是谁,因此就通过订阅的消息类型.也就是onEvent方法的参数. 来确定 public void onEvent(B b) {  }  这样写后, 所有发送B类对象的消息. 这个订阅者都会收到. 因此.eventbus 中有一个 事件类型和订阅者的绑定关系.  一个事件可能有多个订阅者.因此关系如下</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Map&lt;Event, ArrayList&lt;subscriber&gt;&gt; subscriberByEventType;</span><br></pre></td></tr></table></figure>
+
+<p>这里的event就是消息类型.这里进行 而subscriber则是订阅者.  同时.一个消息的订阅者的处理方法可能有onEvent、onEventMainThread、onEventBackgroundThread和onEventAsync 这几种.因此需要进行一下抽象.</p>
+<p>把订阅者对象.和订阅者的方法.封装成一个类.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">Subscription &#123;</span><br><span class="line">    final Object subscriber;  订阅者对象</span><br><span class="line">    final SubscriberMethod subscriberMethod;  订阅者监听的方法</span><br><span class="line">     final int priority; 优先级</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>而订阅消息 则通过他的class类型来标识,因此在代码中是</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">private final Map&lt;Class&lt;?&gt;, CopyOnWriteArrayList&lt;Subscription&gt;&gt; subscriptionsByEventType;</span><br></pre></td></tr></table></figure>
+
+<p>因此通过消息类型找到消息的订阅者.</p>
+<p>同时.一个时间订阅者可能订阅多中消息类型事件,</p>
+<h2 id="消息重载"><a href="#消息重载" class="headerlink" title="消息重载"></a>消息重载</h2><p>假设A extends B. 此时有两个事件订阅者类, SubScriberA订阅了A. SubscriberB订阅了B. 那么当我们post(A)时,SubscribeA和SubscribeB都应该收到消息. 而我们post(b) 时.只有SubscribeB能收到消息.也就是子类型的消息应该可以通知监听他父类型的订阅者.</p>
+<p>因此我们要保存一个消息类型和他对应的所有父类型的匹配关系</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">private static final Map&lt;Class&lt;?&gt;, List&lt;Class&lt;?&gt;&gt;&gt; eventTypesCache = new HashMap&lt;Class&lt;?&gt;, List&lt;Class&lt;?&gt;&gt;&gt;();</span><br></pre></td></tr></table></figure>
+
+<p>key是一个消息的类型. value 是他的所有父类行和所有接口类型组成的集合,当添加一个消息类型时,会迭代他所有的父类和接口来找出全部父类型.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">private List&lt;Class&lt;?&gt;&gt; lookupAllEventTypes(Class&lt;?&gt; eventClass) &#123; evevntClass是消息类型</span><br><span class="line">        synchronized (eventTypesCache) &#123;</span><br><span class="line">            List&lt;Class&lt;?&gt;&gt; eventTypes = eventTypesCache.get(eventClass);</span><br><span class="line">            if (eventTypes == null) &#123;</span><br><span class="line">                eventTypes = new ArrayList&lt;Class&lt;?&gt;&gt;();</span><br><span class="line">                Class&lt;?&gt; clazz = eventClass;</span><br><span class="line">                while (clazz != null) &#123;</span><br><span class="line">                    eventTypes.add(clazz);</span><br><span class="line">                    addInterfaces(eventTypes, clazz.getInterfaces()); //遍历接口类型</span><br><span class="line">                    clazz = clazz.getSuperclass();	//遍历父类型</span><br><span class="line">                &#125;</span><br><span class="line">                eventTypesCache.put(eventClass, eventTypes);</span><br><span class="line">            &#125;</span><br><span class="line">            return eventTypes;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    /** Recurses through super interfaces. */</span><br><span class="line">    static void addInterfaces(List&lt;Class&lt;?&gt;&gt; eventTypes, Class&lt;?&gt;[] interfaces) &#123;</span><br><span class="line">        for (Class&lt;?&gt; interfaceClass : interfaces) &#123;</span><br><span class="line">            if (!eventTypes.contains(interfaceClass)) &#123;</span><br><span class="line">                eventTypes.add(interfaceClass);</span><br><span class="line">                addInterfaces(eventTypes, interfaceClass.getInterfaces());</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="线程切换"><a href="#线程切换" class="headerlink" title="线程切换"></a>线程切换</h2><p>因为监听者可以选择在什么线程得到消息.onEvent 表示在事件发送的线程监听、onEventMainThread表示在主线程监听事件、onEventBackgroundThread 表示在后台线程. onEventAsync表示在单独的线程.这里可以看到.是监听者指定线程.发送者需要参考监听者要求.那么肯定是能有个变量保存监听者的请求线程.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">final class SubscriberMethod &#123;</span><br><span class="line">    final Method method;</span><br><span class="line">    final ThreadMode threadMode;</span><br><span class="line">    final Class&lt;?&gt; eventType;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这是对订阅者方法的抽象  method代表方法. threadMode代表监听者要求在哪个线程接收事件. eventType表示消息的类型,也就是订阅者方法形参的类型 </p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">public void onEventMainThred(B b) &#123;&#125;</span><br><span class="line">对于这个方法 SubscriberMethod如下</span><br><span class="line">method = onEventMainThread</span><br><span class="line">threadMode =mainThread</span><br><span class="line">eventType = B.class</span><br></pre></td></tr></table></figure>
+
+<h3 id="main线程消息"><a href="#main线程消息" class="headerlink" title="main线程消息"></a>main线程消息</h3><p>HandlerPoster 是main线程 handler.</p>
+<p>HandlerPoster mainThreadPoster = new HandlerPoster(this, Looper.getMainLooper(), 10);</p>
+<p>他里边还有个链表结构的队列.PendingPostQueue.把消息交给他后.他先把消息入队,然后在handlerMessage中遍历PendingPostQueue队列.执行里边的消息. 就达到了把消息发送到main线程执行.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">void enqueue(Subscription subscription, Object event) &#123;</span><br><span class="line">        PendingPost pendingPost = PendingPost.obtainPendingPost(subscription, event);</span><br><span class="line">        synchronized (this) &#123;</span><br><span class="line">        //消息入队</span><br><span class="line">            queue.enqueue(pendingPost);</span><br><span class="line">            //到主线程执行</span><br><span class="line">                sendMessage(obtainMessage()</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">@Override</span><br><span class="line">    public void handleMessage(Message msg) &#123;</span><br><span class="line">            while (true) &#123;</span><br><span class="line">            //循环拿出消息.通过eventBus执行. 那么就执行在住线程了.</span><br><span class="line">                PendingPost pendingPost = queue.poll();</span><br><span class="line">                eventBus.invokeSubscriber(pendingPost);</span><br><span class="line">                &#125;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="后台线程消息"><a href="#后台线程消息" class="headerlink" title="后台线程消息"></a>后台线程消息</h3><p>BackgroundPoster 继承自Runnable. 利用也有一个消息队列PendingPostQueue,消息入栈时,他是通过把消息加入到消息队列.再把自己加入ExecutorService线程池,然后在run里执行消息的处理.就在后台执行了.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">public void enqueue(Subscription subscription, Object event) &#123;</span><br><span class="line">       PendingPost pendingPost = PendingPost.obtainPendingPost(subscription, event);</span><br><span class="line">       synchronized (this) &#123;</span><br><span class="line">       //消息入队. 把自己加入到线程池中执行</span><br><span class="line">           queue.enqueue(pendingPost);</span><br><span class="line">               eventBus.getExecutorService().execute(this);</span><br><span class="line">       &#125;</span><br><span class="line">   &#125;</span><br><span class="line"></span><br><span class="line">   @Override  线程池中执行eventBus 的处理消息函数.</span><br><span class="line">   public void run() &#123;</span><br><span class="line">               while (true) &#123;</span><br><span class="line">                   PendingPost pendingPost = queue.poll(1000);</span><br><span class="line">                   eventBus.invokeSubscriber(pendingPost);</span><br><span class="line">               &#125;</span><br><span class="line">           &#125; </span><br><span class="line">   &#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="异步消息"><a href="#异步消息" class="headerlink" title="异步消息"></a>异步消息</h3><p>AsyncPoster 也是集成自runnable. 里边也有链表结构的PendingPostQueue消息队列, 他也是通过ExecutorService线程池来执行.不过他是每次加入一个消息就把自己加入到线程池中执行,也就是每次只执行一个消息.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">public void enqueue(Subscription subscription, Object event) &#123;</span><br><span class="line">        PendingPost pendingPost = PendingPost.obtainPendingPost(subscription, event);</span><br><span class="line">        queue.enqueue(pendingPost); //消息入队. 自己加入线程池</span><br><span class="line">        eventBus.getExecutorService().execute(this);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    @Override</span><br><span class="line">    public void run() &#123; 取出一个消息,执行</span><br><span class="line">        PendingPost pendingPost = queue.poll();</span><br><span class="line">        eventBus.invokeSubscriber(pendingPost);</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里我们看到.这三个线程的选择.只设置把消息放到哪里执行.但是最后还都是eventBus.invokeSubscriber(pendingPost);来执行的消息.</p>
+<h2 id="消息处理对象池"><a href="#消息处理对象池" class="headerlink" title="消息处理对象池"></a>消息处理对象池</h2><p>PendingPost 是 一个对象池. 他封装了要处理的消息类型event和每次的一个订阅者subscription, 因为一次消息可能要把一个event传递给多个subscription,在上边的几个线程中, 加入队列的就是PendingPost ,他链接event和一个subscription.  用完后在把pendingPost回收.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line">final class PendingPost &#123;</span><br><span class="line">    private final static List&lt;PendingPost&gt; pendingPostPool = new ArrayList&lt;PendingPost&gt;();</span><br><span class="line">    Object event;</span><br><span class="line">    Subscription subscription;</span><br><span class="line">    </span><br><span class="line">    </span><br><span class="line">    //获取的方法</span><br><span class="line">       static PendingPost obtainPendingPost(Subscription subscription, Object event) &#123;</span><br><span class="line">        synchronized (pendingPostPool) &#123;</span><br><span class="line">            int size = pendingPostPool.size();</span><br><span class="line">            if (size &gt; 0) &#123;</span><br><span class="line">            //拿到一个pendingpost.用事件和订阅者组装他</span><br><span class="line">                PendingPost pendingPost = pendingPostPool.remove(size - 1);</span><br><span class="line">                pendingPost.event = event;  </span><br><span class="line">                pendingPost.subscription = subscription;</span><br><span class="line">                pendingPost.next = null;</span><br><span class="line">                return pendingPost;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        return new PendingPost(event, subscription);</span><br><span class="line">    &#125;</span><br><span class="line">		//用完后清空事件和订阅者,然后再把pendingpost给回收,最大支持1万个.pendingpost</span><br><span class="line">    static void releasePendingPost(PendingPost pendingPost) &#123;</span><br><span class="line">        pendingPost.event = null;</span><br><span class="line">        pendingPost.subscription = null;</span><br><span class="line">        pendingPost.next = null;</span><br><span class="line">        synchronized (pendingPostPool) &#123;</span><br><span class="line">            // Don&apos;t let the pool grow indefinitely</span><br><span class="line">            if (pendingPostPool.size() &lt; 10000) &#123;</span><br><span class="line">                pendingPostPool.add(pendingPost);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="消息最终处理"><a href="#消息最终处理" class="headerlink" title="消息最终处理"></a>消息最终处理</h2><p>上边线程哪里看到 通过eventBus.invokeSubscriber(pendingPost);来执行的消息. 来执行事件.其实就是从pendingpost 取出消息event对象. 和一个订阅者.Subscription包装类,上边我们记录了Subscription包装了订阅者对象和订阅的方法.因此通过反射来执行订阅者的方法.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">void invokeSubscriber(PendingPost pendingPost) &#123;</span><br><span class="line">    Object event = pendingPost.event;</span><br><span class="line">    Subscription subscription = pendingPost.subscription;</span><br><span class="line">    //回收pendingpost </span><br><span class="line">    PendingPost.releasePendingPost(pendingPost);</span><br><span class="line">    if (subscription.active) &#123;</span><br><span class="line">        invokeSubscriber(subscription, event);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line">void invokeSubscriber(Subscription subscription, Object event) &#123;</span><br><span class="line">        try &#123;</span><br><span class="line">        //订阅者方法通过反射.来执行.  method.invoke(class,parameter)</span><br><span class="line">            subscription.subscriberMethod.method.invoke(subscription.subscriber, event);</span><br><span class="line">        &#125; catch (InvocationTargetException e) &#123;</span><br><span class="line">            handleSubscriberException(subscription, event, e.getCause());</span><br><span class="line">        &#125; catch (IllegalAccessException e) &#123;</span><br><span class="line">            throw new IllegalStateException(&quot;Unexpected exception&quot;, e);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="发现事件订阅者"><a href="#发现事件订阅者" class="headerlink" title="发现事件订阅者"></a>发现事件订阅者</h2><p>每个类通过EventBus.getDefault().register(this);就成了事件订阅者. 然后就可以自行指定要监控的消息类和订阅方法.那么势必要找到订阅者订阅了哪些消息类型,和对应的订阅方法.</p>
+<p>这是通过反射实现的.SubscriberMethodFinder 类.遍历所有注册的订阅者的method. 找到onEvent开头的.取出参数,就是消息类型,通过方法名取出 订阅者要求的线程模式.封装成 SubscriberMethod</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">class SubscriberMethod &#123;</span><br><span class="line">    final Method method;  反射的方法</span><br><span class="line">    final ThreadMode threadMode;  改方法要求的线程模式</span><br><span class="line">    final Class&lt;?&gt; eventType;		消息类型.也就是方法形参的class类</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+
+<p>看看如何反射订阅者封装成 SubScriberMethod, 这里看到.使用缓存.所以不需要多次遍历一个订阅者.同时还迭代的拿到该订阅者所有父类的订阅事件,</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br></pre></td><td class="code"><pre><span class="line">List&lt;SubscriberMethod&gt; findSubscriberMethods(Class&lt;?&gt; subscriberClass) &#123;</span><br><span class="line">       String key = subscriberClass.getName();</span><br><span class="line">       List&lt;SubscriberMethod&gt; subscriberMethods;//该订阅者的所有定义方法的集合</span><br><span class="line">       synchronized (methodCache) &#123;</span><br><span class="line">           subscriberMethods = methodCache.get(key); //先查找缓存,通过订阅者类名</span><br><span class="line">       &#125;</span><br><span class="line">       if (subscriberMethods != null) &#123;</span><br><span class="line">           return subscriberMethods;</span><br><span class="line">       &#125;</span><br><span class="line">       //该订阅者的所有定阅方法</span><br><span class="line">       subscriberMethods = new ArrayList&lt;SubscriberMethod&gt;();</span><br><span class="line">       Class&lt;?&gt; clazz = subscriberClass;</span><br><span class="line">       HashSet&lt;String&gt; eventTypesFound = new HashSet&lt;String&gt;();</span><br><span class="line">       StringBuilder methodKeyBuilder = new StringBuilder();</span><br><span class="line">       while (clazz != null) &#123;</span><br><span class="line">           Method[] methods = clazz.getDeclaredMethods(); //拿到订阅者类的所有方法.遍历</span><br><span class="line">           for (Method method : methods) &#123;</span><br><span class="line">               String methodName = method.getName();</span><br><span class="line">                   //注册的订阅方法只有一个参数,就是要订阅的消息</span><br><span class="line">                       if (parameterTypes.length == 1) &#123; //截取方法名  onEvent之后的字符串,</span><br><span class="line">                           // onEventMainThrad 就 截取出 MainThread.因此确认是要求正在主线程监听,</span><br><span class="line">                           //这里就是订阅者通过方法名来觉得在哪个线程监听.</span><br><span class="line">                           String modifierString = methodName.substring(&quot;onEvent&quot;.length());</span><br><span class="line">                           ThreadMode threadMode;  //这就是觉得在哪个线程的模式.</span><br><span class="line">                           if (modifierString.length() == 0) &#123;</span><br><span class="line">                               threadMode = ThreadMode.PostThread;</span><br><span class="line">                           &#125; else if (modifierString.equals(&quot;MainThread&quot;)) &#123;</span><br><span class="line">                               threadMode = ThreadMode.MainThread;</span><br><span class="line">                           &#125; else if (modifierString.equals(&quot;BackgroundThread&quot;)) &#123;</span><br><span class="line">                               threadMode = ThreadMode.BackgroundThread;</span><br><span class="line">                           &#125; else if (modifierString.equals(&quot;Async&quot;)) &#123;</span><br><span class="line">                               threadMode = ThreadMode.Async;</span><br><span class="line">                           &#125;</span><br><span class="line">                           //拼装方法名, 通过方法名确定方法唯一性.</span><br><span class="line">                           Class&lt;?&gt; eventType = parameterTypes[0];</span><br><span class="line">                           methodKeyBuilder.setLength(0);</span><br><span class="line">                           methodKeyBuilder.append(methodName);</span><br><span class="line">                           methodKeyBuilder.append(&apos;&gt;&apos;).append(eventType.getName());</span><br><span class="line">                           String methodKey = methodKeyBuilder.toString();</span><br><span class="line">                           if (eventTypesFound.add(methodKey)) &#123;</span><br><span class="line">                               //确保方法子类重写父类方法后,只有子类订阅会被触发</span><br><span class="line">                                subscriberMethods.add(new SubscriberMethod(method, threadMode, eventType));</span><br><span class="line">                           &#125;</span><br><span class="line">                       &#125;</span><br><span class="line">           &#125;</span><br><span class="line">           //同时遍历了子类和父类,</span><br><span class="line">           clazz = clazz.getSuperclass();</span><br><span class="line">       &#125;</span><br><span class="line">           //加到缓存中,下次就不在查找这个订阅者了.</span><br><span class="line">           synchronized (methodCache) &#123;</span><br><span class="line">               methodCache.put(key, subscriberMethods);</span><br><span class="line">           &#125;</span><br><span class="line">           return subscriberMethods;</span><br><span class="line">   &#125;</span><br></pre></td></tr></table></figure>
+
+<p>这样.一个订阅方法的抽象subscriberMethod就完成了. 这里的List<subscribermethod> subscriberMethods是该订阅者的所有订阅方法集合,我们还要把这个集合和该订阅者绑定起来.</subscribermethod></p>
+<p>这里注意.一个订阅者类可能有多个订阅方法. 而每个订阅方法又监听不同的 消息类型.并且 同一个消息类型,可能有多个订阅者, 而我们发送消息 是只有指定消息类型. 所以我们要建立起消息类型到订阅者的 一对多映射.</p>
+<p><img src="/2020/03/13/EventBus源码解析/image-20200317111831057.png" alt="image-20200317111831057"></p>
+<h2 id="绑定订阅者和订阅消息"><a href="#绑定订阅者和订阅消息" class="headerlink" title="绑定订阅者和订阅消息"></a>绑定订阅者和订阅消息</h2><p>看eventBus里最主要的两个方法, 第一个是通过反正找到订阅者的所有订阅方法,抽象为SubscriberMethod.</p>
+<p>然后遍历.为没给个订阅者和抽象方法匹配到一个消息类型.</p>
+<p>Subscription是一个订阅者对一个消息类型的抽象. 因此我们的一个订阅者,如果订阅了多个消息.就会有多个Subscription,而每个Subscription则绑定了这个对象自己和他的一个订阅方法. </p>
+<p><img src="/2020/03/13/EventBus源码解析/image-20200317112854191.png" alt="image-20200317112854191"></p>
+<p>这里主要是通过订阅方发的消息类型,来创建Subcsription.并加入到这个消息类型对应的集合中.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br></pre></td><td class="code"><pre><span class="line">private synchronized void register(Object subscriber, boolean sticky, int priority) &#123;</span><br><span class="line">        //subscriber是订阅者. 这里已经通过反射, 拿到该订阅者所有的订阅方法了.组成一个集合</span><br><span class="line">        List&lt;SubscriberMethod&gt; subscriberMethods = subscriberMethodFinder.findSubscriberMethods(subscriber.getClass());</span><br><span class="line">        //遍历订阅方法,因为订阅方法里有消息类型,可以加入对应消息类型的检测队列中.</span><br><span class="line">        for (SubscriberMethod subscriberMethod : subscriberMethods) &#123;</span><br><span class="line">            subscribe(subscriber, subscriberMethod, sticky, priority);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    // 注意这是同步方法.subscriptionsByEventType代表消息类型和该消息类型的所有订阅者的一对多映射.这个是全局唯一的.要同步执行.</span><br><span class="line">    private void subscribe(Object subscriber, SubscriberMethod subscriberMethod, boolean sticky, int priority) &#123;</span><br><span class="line">        //从订阅方法中得到 要检测的消息类型.</span><br><span class="line">        Class&lt;?&gt; eventType = subscriberMethod.eventType;</span><br><span class="line">        //改消息类型的所有订阅者对象集合</span><br><span class="line">        CopyOnWriteArrayList&lt;Subscription&gt; subscriptions = subscriptionsByEventType.get(eventType);</span><br><span class="line">        //根据订阅者类和订阅者的一个方法.新建的一个订阅者对象.</span><br><span class="line">        Subscription newSubscription = new Subscription(subscriber, subscriberMethod, priority);</span><br><span class="line">        if (subscriptions == null) &#123;</span><br><span class="line">            subscriptions = new CopyOnWriteArrayList&lt;Subscription&gt;();</span><br><span class="line">            subscriptionsByEventType.put(eventType, subscriptions);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        //根据优先级.插入到改消息的订阅者对象的集合中,</span><br><span class="line">        int size = subscriptions.size();</span><br><span class="line">        for (int i = 0; i &lt;= size; i++) &#123;</span><br><span class="line">            if (i == size || newSubscription.priority &gt; subscriptions.get(i).priority) &#123;</span><br><span class="line">                subscriptions.add(i, newSubscription);</span><br><span class="line">                break;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        // 找到改订阅者的所有订阅的消息类型. 并添加本次的消息类型.</span><br><span class="line">        List&lt;Class&lt;?&gt;&gt; subscribedEvents = typesBySubscriber.get(subscriber);</span><br><span class="line">        if (subscribedEvents == null) &#123;</span><br><span class="line">            subscribedEvents = new ArrayList&lt;Class&lt;?&gt;&gt;();</span><br><span class="line">            typesBySubscriber.put(subscriber, subscribedEvents);</span><br><span class="line">        &#125;</span><br><span class="line">        subscribedEvents.add(eventType);</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">        if (sticky) &#123; //如果是sticky消息. 就立刻发送消息让订阅者执行</span><br><span class="line">            Object stickyEvent;</span><br><span class="line">            synchronized (stickyEvents) &#123;</span><br><span class="line">                stickyEvent = stickyEvents.get(eventType);</span><br><span class="line">            &#125;</span><br><span class="line">            if (stickyEvent != null) &#123;</span><br><span class="line">                postToSubscription(newSubscription, stickyEvent, Looper.getMainLooper() == Looper.myLooper());</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<p>其实主要是量点,通过消息类型.创建Subscription,建立消息和订阅者的联系.  然后把消息类型加入该订阅者对应的消息类型集合中.typesBySubscriber</p>
+<h2 id="取消订阅者绑定"><a href="#取消订阅者绑定" class="headerlink" title="取消订阅者绑定"></a>取消订阅者绑定</h2><p>在看看取消绑定的逻辑. 就是找到这个订阅者定义的所有消息类型. 然后依次删除消息类型对应的这个订阅者的Subscription</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line">public synchronized void unregister(Object subscriber) &#123;</span><br><span class="line">		//这个订阅者的所有消息类型</span><br><span class="line">    List&lt;Class&lt;?&gt;&gt; subscribedTypes = typesBySubscriber.get(subscriber);</span><br><span class="line">    if (subscribedTypes != null) &#123;</span><br><span class="line">        for (Class&lt;?&gt; eventType : subscribedTypes) &#123;</span><br><span class="line">        //遍历这个消息类型.和这个订阅者的绑定关系</span><br><span class="line">            unubscribeByEventType(subscriber, eventType);</span><br><span class="line">        &#125;</span><br><span class="line">        typesBySubscriber.remove(subscriber);</span><br><span class="line">    &#125; </span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">private void unubscribeByEventType(Object subscriber, Class&lt;?&gt; eventType) &#123;</span><br><span class="line">		//根据消息类型.遍历订阅者Subscription, 如果和传入的要删除的订阅者一致,就删除掉</span><br><span class="line">        List&lt;Subscription&gt; subscriptions = subscriptionsByEventType.get(eventType);</span><br><span class="line">        if (subscriptions != null) &#123;</span><br><span class="line">            int size = subscriptions.size();</span><br><span class="line">            for (int i = 0; i &lt; size; i++) &#123;</span><br><span class="line">                Subscription subscription = subscriptions.get(i);</span><br><span class="line">                if (subscription.subscriber == subscriber) &#123;</span><br><span class="line">                    subscription.active = false;</span><br><span class="line">                    subscriptions.remove(i);</span><br><span class="line">                    i--;</span><br><span class="line">                    size--;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="发送消息"><a href="#发送消息" class="headerlink" title="发送消息"></a>发送消息</h2><p>常规的发送消息就是EventBus.getDefault().post(new C());</p>
+<p>然后就通过消息类型 C的class.找到注册的订阅者. 然后在根据订阅者要求的线程,把消息加入到不同线程的队列中,然后线程在执行订阅者的注册方法.</p>
+<h3 id="消息加入队列"><a href="#消息加入队列" class="headerlink" title="消息加入队列"></a>消息加入队列</h3><p>因为发送消息可以在任何地方.event为每个线程创建PostingThreadState.里边有个eventQuene来保存这个线程要发送的消息.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">private final ThreadLocal&lt;EventBus.PostingThreadState&gt; currentPostingThreadState = new ThreadLocal&lt;EventBus.PostingThreadState&gt;() &#123;</span><br><span class="line">    @Override</span><br><span class="line">    protected EventBus.PostingThreadState initialValue() &#123;</span><br><span class="line">        return new EventBus.PostingThreadState();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>currentPostingThreadState 通过 ThreadLocal 保证每个线程只能拿到自己线程的 PostingThreadState,而PostingThreadState里有个eventQueue承载要发送的消息.</p>
+<p>消息加入PostingThreadState的队列.遍历发送</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">public void post(Object event) &#123;</span><br><span class="line">    PostingThreadState postingState = currentPostingThreadState.get();</span><br><span class="line">    List&lt;Object&gt; eventQueue = postingState.eventQueue;</span><br><span class="line">    //消息加入队列</span><br><span class="line">    eventQueue.add(event);</span><br><span class="line">    if (!postingState.isPosting) &#123;</span><br><span class="line">        postingState.isMainThread = Looper.getMainLooper() == Looper.myLooper();</span><br><span class="line">        try &#123;</span><br><span class="line">        /遍历发送消息</span><br><span class="line">            while (!eventQueue.isEmpty()) &#123;</span><br><span class="line">                postSingleEvent(eventQueue.remove(0), postingState);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125; </span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="拿到所有消息类型"><a href="#拿到所有消息类型" class="headerlink" title="拿到所有消息类型"></a>拿到所有消息类型</h3><p>拿到该消息的所有类型.包括他的类型和他所有父类的类型,这是为了订阅父类型消息的订阅者,可以收到子类型的消息.也就是 子消息可以通知他父类型消息的订阅者</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">private void postSingleEvent(Object event, PostingThreadState postingState) throws Error &#123;</span><br><span class="line">    Class&lt;?&gt; eventClass = event.getClass();</span><br><span class="line">    if (eventInheritance) &#123;</span><br><span class="line">    		找到该消息类型及所有父类 的class</span><br><span class="line">        List&lt;Class&lt;?&gt;&gt; eventTypes = lookupAllEventTypes(eventClass);</span><br><span class="line">        int countTypes = eventTypes.size();</span><br><span class="line">        for (int h = 0; h &lt; countTypes; h++) &#123;</span><br><span class="line">            Class&lt;?&gt; clazz = eventTypes.get(h);</span><br><span class="line">            //用所有的消息类型.进行消息执行.</span><br><span class="line">            subscriptionFound |= postSingleEventForEventType(event, postingState, clazz);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125; else &#123;</span><br><span class="line">        subscriptionFound = postSingleEventForEventType(event, postingState, eventClass);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="消息及订阅者封装"><a href="#消息及订阅者封装" class="headerlink" title="消息及订阅者封装"></a>消息及订阅者封装</h3><p>这里就是通过消息类型,找到所有的消息订阅者,订阅者指定了线程模式,然后遍历,把消息和消息订阅者发送到对应的线程队列来执行.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">private boolean postSingleEventForEventType(Object event, PostingThreadState postingState, Class&lt;?&gt; eventClass) &#123;</span><br><span class="line">       CopyOnWriteArrayList&lt;Subscription&gt; subscriptions;</span><br><span class="line">       synchronized (this) &#123;</span><br><span class="line">       // 通过消息类型找到所有的订阅者,封装在一个PostingState中</span><br><span class="line">           subscriptions = subscriptionsByEventType.get(eventClass);</span><br><span class="line">       &#125;</span><br><span class="line">       if (subscriptions != null &amp;&amp; !subscriptions.isEmpty()) &#123;</span><br><span class="line">           for (Subscription subscription : subscriptions) &#123;</span><br><span class="line">               postingState.event = event;</span><br><span class="line">               postingState.subscription = subscription;</span><br><span class="line">               boolean aborted = false;</span><br><span class="line">               try &#123;</span><br><span class="line">               //封装成消息后.发送到对应线程执行.</span><br><span class="line">                   postToSubscription(subscription, event, postingState.isMainThread);</span><br><span class="line">                   aborted = postingState.canceled;</span><br><span class="line">               &#125; finally &#123;</span><br><span class="line">                   postingState.event = null;</span><br><span class="line">                   postingState.subscription = null;</span><br><span class="line">                   postingState.canceled = false;</span><br><span class="line">               &#125;</span><br><span class="line">           &#125;</span><br><span class="line">           return true;</span><br><span class="line">       &#125;</span><br><span class="line">       return false;</span><br><span class="line">   &#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="分发消息到不同线程"><a href="#分发消息到不同线程" class="headerlink" title="分发消息到不同线程"></a>分发消息到不同线程</h3><p>isMainThread是通过Looper.getMainLooper() == Looper.myLooper()当前looper是否是主线程looper来判断是否是主线程,然后把消息和订阅者发送到不同的线程队列中.这和之前的线程切换就连起来了.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">private void postToSubscription(Subscription subscription, Object event, boolean isMainThread) &#123;</span><br><span class="line">       switch (subscription.subscriberMethod.threadMode) &#123;</span><br><span class="line">           case PostThread:</span><br><span class="line">               invokeSubscriber(subscription, event);</span><br><span class="line">               break;</span><br><span class="line">           case MainThread:</span><br><span class="line">               if (isMainThread) &#123;</span><br><span class="line">                   invokeSubscriber(subscription, event);</span><br><span class="line">               &#125; else &#123;</span><br><span class="line">                   mainThreadPoster.enqueue(subscription, event);</span><br><span class="line">               &#125;</span><br><span class="line">               break;</span><br><span class="line">           case BackgroundThread:</span><br><span class="line">               if (isMainThread) &#123;</span><br><span class="line">                   backgroundPoster.enqueue(subscription, event);</span><br><span class="line">               &#125; else &#123;</span><br><span class="line">                   invokeSubscriber(subscription, event);</span><br><span class="line">               &#125;</span><br><span class="line">               break;</span><br><span class="line">           case Async:</span><br><span class="line">               asyncPoster.enqueue(subscription, event);</span><br><span class="line">               break;</span><br><span class="line">           default:</span><br><span class="line">               throw new IllegalStateException(&quot;Unknown thread mode: &quot; + subscription.subscriberMethod.threadMode);</span><br><span class="line">       &#125;</span><br><span class="line">   &#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="eventBus-流程概述"><a href="#eventBus-流程概述" class="headerlink" title="eventBus 流程概述"></a>eventBus 流程概述</h2><ol>
+<li>初始化eventBus,包括一个后台线程池, 向主线程发消息的handler.异步执行消息的runnable.</li>
+<li>注册EventBus.getDefault().register(this);</li>
+</ol>
+<p>注册后.通过subscriberMethodFinder.findSubscriberMethods找到该类和他的父类所有的onEvent开头的监听方法.绑定方法和消息参数类型,形成SubscriberMethod集合,通过参数名指定接收消息的线程</p>
+<p>遍历SubscriberMethod集合,通过消息类型找到 监听改消息的所有 订阅者抽象.Subscription,并把本次的订阅方法和订阅者形成新的Subscription.加入到对应的消息类型集合中, 此时,消息类型和订阅者对象,订阅者方法的绑定关系就完成</p>
+<p>找到改订阅者的所有订阅的消息类型.保存在typesBySubscriber .此时订阅者和他订阅 的消息建立绑定关系</p>
+<ol start="3">
+<li>发送消息.</li>
+</ol>
+<p>先把消息加入到线程唯一的PostingThreadState的队列eventQueue中.遍历发送</p>
+<p>通过lookupAllEventTypes(eventClass); 找到消息类型的所有类及所有父类,接口类型.遍历这些类型发送消息.</p>
+<p>通过 subscriptionsByEventType 找到这些消息类型对应的 订阅者Subscription,遍历进行消息发送,</p>
+<p>通过订阅者指定的线程表示.把订阅者和消息加入到指定的线程的消息队列PendingPostQueue中.</p>
+<p>如果是主线程.就用handler往主线程发消息.在handlemessage中处理加入的消息.</p>
+<p>如果是后台线程,就把线程加入到runnable中.在run中取出消息队列的消息</p>
+<ol start="4">
+<li>执行消息</li>
+</ol>
+<p>最后通过subscription.subscriberMethod.method.invoke(subscription.subscriber, event); 用反射的方式,执行订阅者的订阅方法. 参数是订阅者对象和消息对象.</p>
+
+    </div>
+
+    
+    
+    
+        
+      
+
+      <footer class="post-footer">
+          
+            
+          
+          <div class="post-tags">
+            
+              <a href="/tags/android-工具源码/" rel="tag"># android 工具源码</a>
+            
+          </div>
+        
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+              
+                <a href="/2020/03/09/AMS_WMS图片/" rel="next" title="">
+                  <i class="fa fa-chevron-left"></i> 
+                </a>
+              
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+              
+                <a href="/2020/03/13/lakecanary源码解析/" rel="prev" title="lakecanary源码解析">
+                  lakecanary源码解析 <i class="fa fa-chevron-right"></i>
+                </a>
+              
+            </div>
+          </div>
+        
+      </footer>
+    
+  </div>
+  
+  
+  
+  </article>
+
+  </div>
+
+
+          </div>
+          
+
+        </div>
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">liujiakuo</p>
+  <div class="site-description motion-element" itemprop="description"></div>
+</div>
+  <nav class="site-state motion-element">
+      <div class="site-state-item site-state-posts">
+        
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">17</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-tags">
+        
+        
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+        <span class="site-state-item-count">7</span>
+        <span class="site-state-item-name">tags</span>
+        
+      </div>
+    
+  </nav>
+
+
+
+        </div>
+      </div>
+      <!--noindex-->
+        <div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+            
+            
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#概述"><span class="nav-text">概述</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#事件订阅者"><span class="nav-text">事件订阅者</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#消息重载"><span class="nav-text">消息重载</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#线程切换"><span class="nav-text">线程切换</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#main线程消息"><span class="nav-text">main线程消息</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#后台线程消息"><span class="nav-text">后台线程消息</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#异步消息"><span class="nav-text">异步消息</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#消息处理对象池"><span class="nav-text">消息处理对象池</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#消息最终处理"><span class="nav-text">消息最终处理</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#发现事件订阅者"><span class="nav-text">发现事件订阅者</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#绑定订阅者和订阅消息"><span class="nav-text">绑定订阅者和订阅消息</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#取消订阅者绑定"><span class="nav-text">取消订阅者绑定</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#发送消息"><span class="nav-text">发送消息</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#消息加入队列"><span class="nav-text">消息加入队列</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#拿到所有消息类型"><span class="nav-text">拿到所有消息类型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#消息及订阅者封装"><span class="nav-text">消息及订阅者封装</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#分发消息到不同线程"><span class="nav-text">分发消息到不同线程</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#eventBus-流程概述"><span class="nav-text">eventBus 流程概述</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </div>
+      <!--/noindex-->
+      
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2020</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">liujiakuo</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> v3.9.0</div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">Theme – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> v7.3.0</div>
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+      </div>
+
+    
+
+  </div>
+
+  
+  <script src="/lib/jquery/index.js?v=3.4.1"></script>
+  <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+<script src="/js/utils.js?v=7.3.0"></script>
+  <script src="/js/motion.js?v=7.3.0"></script>
+
+
+  <script src="/js/schemes/muse.js?v=7.3.0"></script>
+
+
+
+<script src="/js/next-boot.js?v=7.3.0"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+
+  
+  <script src="/js/scrollspy.js?v=7.3.0"></script>
+<script src="/js/post-details.js?v=7.3.0"></script>
+
+
+</body>
+</html>
