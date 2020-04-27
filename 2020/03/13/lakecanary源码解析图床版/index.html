@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+
+
+
+
+
+<html class="theme-next mist use-motion" lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="generator" content="Hexo 3.9.0">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=7.3.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=7.3.0">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=7.3.0">
+  <link rel="mask-icon" href="/images/logo.svg?v=7.3.0" color="#222">
+
+<link rel="stylesheet" href="/css/main.css?v=7.3.0">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.7.0">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '7.3.0',
+    exturl: false,
+    sidebar: {"position":"left","width":400,"display":"always","offset":12,"onmobile":false},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    save_scroll: false,
+    copycode: {"enable":false,"show_result":false,"style":null},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: '',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: 'Copy',
+      copy_success: 'Copied',
+      copy_failure: 'Copy failed'
+    }
+  };
+</script>
+
+  <meta name="description" content="简单说.lakecanary 利用了java里的弱引用. 他把activity声明为弱引用.当一个引用对象只有弱引用时,会加入弱引用的ReferenceQueue中. lakecanary还有一个自己保存的所有要检测泄露的弱引用对象的队列. 两个队列想比较.都存在的对象.说名只有弱引用了.也就是可以被gc回收了.就排除掉. 同时通过开始HeapDumper(堆信息转储) 查看堆信息的引用链.找到内">
+<meta name="keywords" content="android 工具源码">
+<meta property="og:type" content="article">
+<meta property="og:title" content="lakecanary源码解析">
+<meta property="og:url" content="http://yoursite.com/2020/03/13/lakecanary源码解析图床版/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="简单说.lakecanary 利用了java里的弱引用. 他把activity声明为弱引用.当一个引用对象只有弱引用时,会加入弱引用的ReferenceQueue中. lakecanary还有一个自己保存的所有要检测泄露的弱引用对象的队列. 两个队列想比较.都存在的对象.说名只有弱引用了.也就是可以被gc回收了.就排除掉. 同时通过开始HeapDumper(堆信息转储) 查看堆信息的引用链.找到内">
+<meta property="og:locale" content="en">
+<meta property="og:updated_time" content="2020-03-21T09:22:19.950Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="lakecanary源码解析">
+<meta name="twitter:description" content="简单说.lakecanary 利用了java里的弱引用. 他把activity声明为弱引用.当一个引用对象只有弱引用时,会加入弱引用的ReferenceQueue中. lakecanary还有一个自己保存的所有要检测泄露的弱引用对象的队列. 两个队列想比较.都存在的对象.说名只有弱引用了.也就是可以被gc回收了.就排除掉. 同时通过开始HeapDumper(堆信息转储) 查看堆信息的引用链.找到内">
+  <link rel="canonical" href="http://yoursite.com/2020/03/13/lakecanary源码解析图床版/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+
+  <title>lakecanary源码解析 | Hexo</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .motion-element,
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-title { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="en">
+
+  <div class="container sidebar-position-left">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta">
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Hexo</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="Toggle navigation bar">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+      
+      
+      
+        
+        <li class="menu-item menu-item-home">
+      
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>Home</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-about">
+      
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>About</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-tags">
+      
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>Tags</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-archives">
+      
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>Archives</a>
+
+  </li>
+  </ul>
+
+    
+
+</nav>
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content page-post-detail">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/03/13/lakecanary源码解析图床版/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="liujiakuo">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+    </span>
+      <header class="post-header">
+
+        
+          <h1 class="post-title" itemprop="name headline">lakecanary源码解析
+
+            
+          </h1>
+        
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              
+                
+              
+
+              <time title="Created: 2020-03-13 20:48:00" itemprop="dateCreated datePublished" datetime="2020-03-13T20:48:00+08:00">2020-03-13</time>
+            </span>
+          
+            
+
+            
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2020-03-21 17:22:19" itemprop="dateModified" datetime="2020-03-21T17:22:19+08:00">2020-03-21</time>
+              </span>
+            
+          
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>简单说.lakecanary 利用了java里的弱引用. 他把activity声明为弱引用.当一个引用对象只有弱引用时,会加入弱引用的ReferenceQueue中. lakecanary还有一个自己保存的所有要检测泄露的弱引用对象的队列. 两个队列想比较.都存在的对象.说名只有弱引用了.也就是可以被gc回收了.就排除掉. 同时通过开始<strong>HeapDumper(堆信息转储)</strong> 查看堆信息的引用链.找到内存泄露的点.</p><a id="more"></a>
+<h1 id="基础知识"><a href="#基础知识" class="headerlink" title="基础知识"></a>基础知识</h1><h2 id="内存泄漏（Memory-Leak）"><a href="#内存泄漏（Memory-Leak）" class="headerlink" title="内存泄漏（Memory Leak）"></a>内存泄漏（Memory Leak）</h2><p>是指程序中己动态分配的堆内存由于某种原因程序未释放或无法释放，造成系统内存的浪费，导致程序运行速度减慢甚至系统崩溃等严重后果。</p>
+<p>就是我们已经使用完的对象.但是仍有不知名的强引用在指向他.因此gc认为他还有用不去回收,而我们认为他需要回收却没法回收.占据内存无法释放.</p>
+<h2 id="可达性分析"><a href="#可达性分析" class="headerlink" title="可达性分析"></a>可达性分析</h2><p>java通过可达性分析来判断对象是否需要被回收.该方法的基本思想是通过一系列的“GC Roots”对象作为起点进行搜索，如果在“GC Roots”和一个对象之间没有可达路径，则称该对象是不可达的，不过要注意的是被判定为不可达的对象不一定就会成为可回收对象。被判定为不可达的对象要成为可回收对象必须至少经历两次标记过程，如果在这两次标记过程中仍然没有逃脱成为可回收对象的可能性，则基本上就真的成为可回收对象了。</p>
+<h2 id="GC-Roots"><a href="#GC-Roots" class="headerlink" title="GC Roots"></a>GC Roots</h2><p>Java语言中，可作为GC Roots的对象包含以下几种：</p>
+<ol>
+<li>虚拟机栈(栈帧中的本地变量表)中引用的对象。(方法的形参和方法内的局部变量)</li>
+<li>方法区中静态属性引用的对象(staic 属性)</li>
+<li>方法区中常量引用的对象(static final属性)</li>
+<li>本地方法栈中(Native方法)引用的对象(可以理解为:引用Native方法的所有对象)</li>
+</ol>
+<h2 id="WeakReference"><a href="#WeakReference" class="headerlink" title="WeakReference"></a>WeakReference</h2><p>弱引用,用弱引用指向的对象,一旦这个对象没有任何强引用指向他了.他就可以被垃圾回收收走. 我们在代码中用弱引用来防止内存泄露</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">public WeakReference(T referent, ReferenceQueue&lt;? super T&gt; q) &#123;</span><br><span class="line">    super(referent, q);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>弱引用创建时,可以传入一个ReferenceQueue. 有什么用呢?就是当弱引用指向的对象.没有任何强引用的时候,这时称他为弱可达.也就是只有这个弱引用可以指向他.这时可以被垃圾回收.而被回收后,弱引用对象,会加入这个ReferenceQueue中. 这里我们知道.对象变成弱可达的时候,也就意味着他可以被gc回收不会泄露了.</p>
+<p>在对象被回收后，会把弱引用对象，也就是WeakReference对象或者其子类的对象，放入队列ReferenceQueue中，注意不是被弱引用的对象，被弱引用的对象已经被回收了。</p>
+<p>ReferenceQueue名义上是一个队列，但实际内部并非有实际的存储结构，它的存储是依赖于内部节点之间的关系来表达。可以理解为queue是一个类似于链表的结构，这里的节点其实就是reference本身。可以理解为queue为一个链表的容器，其自己仅存储当前的head节点，而后面的节点由每个reference节点自己通过next来保持即可。</p>
+<h1 id="基础原理"><a href="#基础原理" class="headerlink" title="基础原理"></a>基础原理</h1><ol>
+<li>监听activity状态.等发生ondestory时,表示该activity应该可以被回收了,通过注册 Application的ActivityLifecycleCallbacks来监听activity的onDestory事件.发生时,表示该activity应该被回收了</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">   application.registerActivityLifecycleCallbacks(lifecycleCallbacks);</span><br><span class="line">private final Application.ActivityLifecycleCallbacks lifecycleCallbacks =</span><br><span class="line">      new Application.ActivityLifecycleCallbacks() &#123;</span><br><span class="line">        @Override public void onActivityCreated(Activity activity, Bundle savedInstanceState) &#123;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        @Override public void onActivityStarted(Activity activity) &#123;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        @Override public void onActivityResumed(Activity activity) &#123;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        @Override public void onActivityPaused(Activity activity) &#123;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        @Override public void onActivityStopped(Activity activity) &#123;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        @Override public void onActivitySaveInstanceState(Activity activity, Bundle outState) &#123;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        @Override public void onActivityDestroyed(Activity activity) &#123;</span><br><span class="line">          ActivityRefWatcher.this.onActivityDestroyed(activity);</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;;</span><br></pre></td></tr></table></figure>
+
+<ol start="2">
+<li>为这个activity建立弱引用,进行追踪</li>
+</ol>
+<p>watchedReference就是这个activity.为他生成一个唯一的key来标识对象.创建一个KeyedWeakReference,并传入ReferenceQueue . 当这个activity会变成弱可达的时候.就进入ReferenceQueue里了.retainedKeys 是用来保存所有待管程的对象的key,表示所有待回收的对象可以.如果gc后 retainedKeys 不为空,那么遗留的就代表发生了内存泄露</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">   private final Set&lt;String&gt; retainedKeys;</span><br><span class="line">  private final ReferenceQueue&lt;Object&gt; queue;</span><br><span class="line">public void watch(Object watchedReference, String referenceName) &#123;</span><br><span class="line">  </span><br><span class="line">    String key = UUID.randomUUID().toString();</span><br><span class="line">    retainedKeys.add(key);</span><br><span class="line">    final KeyedWeakReference reference =</span><br><span class="line">        new KeyedWeakReference(watchedReference, key, referenceName, queue);</span><br><span class="line"></span><br><span class="line">    ensureGoneAsync(watchStartNanoTime, reference);</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+
+<ol start="3">
+<li>触发gc, 看到人家是查看源码发现Syste.gc并不能每次都实时触发,所以采用Runtime.gc(),触发后又让虚拟机执行对象的finalize方法,finalize方法只会执行一次,是对象gc前挽救自己的最后一个机会.</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">GcTrigger DEFAULT = new GcTrigger() &#123;</span><br><span class="line">    @Override public void runGc() &#123;</span><br><span class="line">      // Code taken from AOSP FinalizationTest:</span><br><span class="line">      // https://android.googlesource.com/platform/libcore/+/master/support/src/test/java/libcore/</span><br><span class="line">      // java/lang/ref/FinalizationTester.java</span><br><span class="line">      // System.gc() does not garbage collect every time. Runtime.gc() is</span><br><span class="line">      // more likely to perfom a gc.</span><br><span class="line">      Runtime.getRuntime().gc();</span><br><span class="line">      enqueueReferences();</span><br><span class="line">      System.runFinalization();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    private void enqueueReferences() &#123;</span><br><span class="line">      // Hack. We don&apos;t have a programmatic way to wait for the reference queue daemon to move</span><br><span class="line">      // references to the appropriate queues.</span><br><span class="line">      try &#123;</span><br><span class="line">        Thread.sleep(100);</span><br><span class="line">      &#125; catch (InterruptedException e) &#123;</span><br><span class="line">        throw new AssertionError();</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;;</span><br></pre></td></tr></table></figure>
+
+<ol start="4">
+<li>看这个对象gc后是否还有变成弱可达,,如果没有变成弱可达,就说明有强引用对象指向他.就说明泄露了.</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">//retainedKeys中持有所有要观察的对象的key,如果一个对象变成弱可达,因为我们之前采用弱引用进行了包装,那么他在就会在gc前出现在 ReferenceQuene 中,那么我们retainedKeys中对应的key就要删除.因为这个对象肯定可以被回收了.</span><br><span class="line">private final ReferenceQueue&lt;Object&gt; queue;</span><br><span class="line"> private void removeWeaklyReachableReferences() &#123;</span><br><span class="line">   KeyedWeakReference ref;</span><br><span class="line">   while ((ref = (KeyedWeakReference) queue.poll()) != null) &#123;</span><br><span class="line">     retainedKeys.remove(ref.key);</span><br><span class="line">   &#125;</span><br><span class="line"> &#125;</span><br><span class="line"> //判断对象是否泄漏,也就是这个弱引用对象的key在retainedKeys中有数据</span><br><span class="line"> private boolean gone(KeyedWeakReference reference) &#123;</span><br><span class="line">   return !retainedKeys.contains(reference.key);</span><br><span class="line"> &#125;</span><br></pre></td></tr></table></figure>
+
+<ol start="5">
+<li>查找这个activity对应的对象的引用链.通过查看堆HeapDumper(堆信息转储)</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">通过fileProvider暴露一个路径,在用debug生成堆信息转储文件.</span><br><span class="line">File heapDumpFile = leakDirectoryProvider.newHeapDumpFile();</span><br><span class="line">Debug.dumpHprofData(heapDumpFile.getAbsolutePath());</span><br><span class="line"></span><br><span class="line">因为这个分析过程比较费时.因此采用开启一个服务.并在单独的进程中启动.以防app进程造成影响.</span><br><span class="line"></span><br><span class="line"> heapdumpListener.analyze(</span><br><span class="line">          new HeapDump(heapDumpFile, reference.key, reference.name, excludedRefs, watchDurationMs,</span><br><span class="line">              gcDurationMs, heapDumpDurationMs));</span><br></pre></td></tr></table></figure>
+
+<p>别人写的新版.原理还都是一样的 <a href="https://www.jianshu.com/p/75f0e1fea3e0" target="_blank" rel="noopener">https://www.jianshu.com/p/75f0e1fea3e0</a></p>
+<p>![image-20200314230009507](/Users/liujiakuo/Library/Application Support/typora-user-images/image-20200314230009507.png)</p>
+<h1 id="额外技能点"><a href="#额外技能点" class="headerlink" title="额外技能点"></a>额外技能点</h1><h2 id="Executor"><a href="#Executor" class="headerlink" title="Executor"></a>Executor</h2><p>通过线程工程,创建一个已经配置好的线程池.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Executors.newSingleThreadExecutor(new LeakCanarySingleThreadFactory(threadName));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><a href="https://www.cnblogs.com/MOBIN/p/5436482.html" target="_blank" rel="noopener">https://www.cnblogs.com/MOBIN/p/5436482.html</a></p>
+<p><a href="https://blog.csdn.net/coding_or_coded/article/details/6856014" target="_blank" rel="noopener">https://blog.csdn.net/coding_or_coded/article/details/6856014</a></p>
+<p><a href="https://blog.csdn.net/weixin_40304387/article/details/80508236" target="_blank" rel="noopener">https://blog.csdn.net/weixin_40304387/article/details/80508236</a></p>
+<p><a href="https://blog.csdn.net/tongdanping/article/details/79604637" target="_blank" rel="noopener">https://blog.csdn.net/tongdanping/article/details/79604637</a></p>
+<p>先记录吧.回头在看</p>
+<h2 id="IdleHandler"><a href="#IdleHandler" class="headerlink" title="IdleHandler"></a>IdleHandler</h2><p>IdleHandler即在looper里面的message处理完了的时候去调用,</p>
+<p>向消息队列中添加一个新的MessageQueue.IdleHandler。当调用IdleHandler.queueIdle()返回false时，此MessageQueue.IdleHandler会自动的从消息队列中移除。或者调用removeIdleHandler(MessageQueue.IdleHandler)也可以从消息队列中移除MessageQueue.IdleHandler。</p>
+<p>这也是向handler里发消息的一种方式,但是这个消息会在消息队列的messagequene的消息都执行完成后在调用.</p>
+<p>每次消费掉一个有效message，在获取下一个message时，如果当前时刻没有需要消费的有效(需要立刻执行)的message，那么会执行IdleHandler一次，执行完成之后线程进入休眠状态，直到被唤醒</p>
+<p>简单说就是idleHander是上条消息被执行,而下条消息时间还没到的时候,会处理idleHandler来执行.他的添加和删除是线程安全的.每次消息队列的一次next,但是消息的时间还不够的时候,都会执行一次遍历idleHander集合,执行所有idle</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">// This needs to be called from the main thread.</span><br><span class="line"> Looper.myQueue().addIdleHandler(new MessageQueue.IdleHandler() &#123;</span><br><span class="line">   @Override public boolean queueIdle() &#123;</span><br><span class="line">     postToBackgroundWithDelay(retryable, failedAttempts);</span><br><span class="line">     return false;</span><br><span class="line">   &#125;</span><br><span class="line"> &#125;);</span><br></pre></td></tr></table></figure>
+
+<p><a href="https://www.cnblogs.com/plokmju/p/handler_idleHandler.html" target="_blank" rel="noopener">https://www.cnblogs.com/plokmju/p/handler_idleHandler.html</a></p>
+<p><a href="https://wetest.qq.com/lab/view/352.html" target="_blank" rel="noopener">https://wetest.qq.com/lab/view/352.html</a> </p>
+<p>记一个名词</p>
+<p>单线程队列+异步线程</p>
+
+    </div>
+
+    
+    
+    
+        
+      
+
+      <footer class="post-footer">
+          
+            
+          
+          <div class="post-tags">
+            
+              <a href="/tags/android-工具源码/" rel="tag"># android 工具源码</a>
+            
+          </div>
+        
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+              
+                <a href="/2020/03/13/EventBus源码解析/" rel="next" title="EventBus源码解析">
+                  <i class="fa fa-chevron-left"></i> EventBus源码解析
+                </a>
+              
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+              
+                <a href="/2020/03/17/glide-源码解析/" rel="prev" title="glide-源码解析">
+                  glide-源码解析 <i class="fa fa-chevron-right"></i>
+                </a>
+              
+            </div>
+          </div>
+        
+      </footer>
+    
+  </div>
+  
+  
+  
+  </article>
+
+  </div>
+
+
+          </div>
+          
+
+        </div>
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">liujiakuo</p>
+  <div class="site-description motion-element" itemprop="description"></div>
+</div>
+  <nav class="site-state motion-element">
+      <div class="site-state-item site-state-posts">
+        
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">24</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-tags">
+        
+        
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+        <span class="site-state-item-count">7</span>
+        <span class="site-state-item-name">tags</span>
+        
+      </div>
+    
+  </nav>
+
+
+
+        </div>
+      </div>
+      <!--noindex-->
+        <div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+            
+            
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#基础知识"><span class="nav-text">基础知识</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#内存泄漏（Memory-Leak）"><span class="nav-text">内存泄漏（Memory Leak）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#可达性分析"><span class="nav-text">可达性分析</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#GC-Roots"><span class="nav-text">GC Roots</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#WeakReference"><span class="nav-text">WeakReference</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#基础原理"><span class="nav-text">基础原理</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#额外技能点"><span class="nav-text">额外技能点</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Executor"><span class="nav-text">Executor</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#IdleHandler"><span class="nav-text">IdleHandler</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </div>
+      <!--/noindex-->
+      
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2020</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">liujiakuo</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> v3.9.0</div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">Theme – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> v7.3.0</div>
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+      </div>
+
+    
+
+  </div>
+
+  
+  <script src="/lib/jquery/index.js?v=3.4.1"></script>
+  <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+<script src="/js/utils.js?v=7.3.0"></script>
+  <script src="/js/motion.js?v=7.3.0"></script>
+
+
+  <script src="/js/schemes/muse.js?v=7.3.0"></script>
+
+
+
+<script src="/js/next-boot.js?v=7.3.0"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+
+  
+  <script src="/js/scrollspy.js?v=7.3.0"></script>
+<script src="/js/post-details.js?v=7.3.0"></script>
+
+
+</body>
+</html>
