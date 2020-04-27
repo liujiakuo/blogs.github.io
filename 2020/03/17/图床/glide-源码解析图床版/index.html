@@ -58,23 +58,23 @@
   <meta name="description" content="123Glide.with(this)        .load(&amp;quot;http://p3.pstatp.com/origin/pgc-image/15220293999066398493c24&amp;quot;)        .into(imageView);">
 <meta name="keywords" content="android工具源码">
 <meta property="og:type" content="article">
-<meta property="og:title" content="glide-源码解析">
-<meta property="og:url" content="http://yoursite.com/2020/03/17/glide-源码解析图床版/index.html">
+<meta property="og:title" content="glide-源码解析-图床版">
+<meta property="og:url" content="http://yoursite.com/2020/03/17/图床/glide-源码解析图床版/index.html">
 <meta property="og:site_name" content="Hexo">
 <meta property="og:description" content="123Glide.with(this)        .load(&amp;quot;http://p3.pstatp.com/origin/pgc-image/15220293999066398493c24&amp;quot;)        .into(imageView);">
 <meta property="og:locale" content="en">
-<meta property="og:image" content="http://yoursite.com/2020/03/17/glide-源码解析图床版/image-20200324213130912.png">
-<meta property="og:image" content="http://yoursite.com/2020/03/17/glide-源码解析图床版/image-20200324223604817.png">
-<meta property="og:image" content="http://yoursite.com/2020/03/17/glide-源码解析图床版/image-20200324224438010.png">
-<meta property="og:image" content="http://yoursite.com/2020/03/17/glide-源码解析图床版/image-20200324225136996.png">
-<meta property="og:image" content="http://yoursite.com/2020/03/17/glide-源码解析图床版/image-20200325105633335.png">
-<meta property="og:image" content="http://yoursite.com/2020/03/17/glide-源码解析图床版/image-20200325111339778.png">
-<meta property="og:updated_time" content="2020-03-25T05:13:55.451Z">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/007S8ZIlly1ge83rkh8q6j30nt0dwwgb.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/007S8ZIlly1ge83rj5rq9j314t0aeq69.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/007S8ZIlly1ge83rjkzt1j30an06a3zd.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/007S8ZIlly1ge83rk1ajgj30de0blq55.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/007S8ZIlly1ge83rilyroj30e805qdgl.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/007S8ZIlly1ge83rhpvaqj30eq05p3zh.jpg">
+<meta property="og:updated_time" content="2020-04-27T02:12:26.647Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="glide-源码解析">
+<meta name="twitter:title" content="glide-源码解析-图床版">
 <meta name="twitter:description" content="123Glide.with(this)        .load(&amp;quot;http://p3.pstatp.com/origin/pgc-image/15220293999066398493c24&amp;quot;)        .into(imageView);">
-<meta name="twitter:image" content="http://yoursite.com/2020/03/17/glide-源码解析图床版/image-20200324213130912.png">
-  <link rel="canonical" href="http://yoursite.com/2020/03/17/glide-源码解析图床版/">
+<meta name="twitter:image" content="https://tva1.sinaimg.cn/large/007S8ZIlly1ge83rkh8q6j30nt0dwwgb.jpg">
+  <link rel="canonical" href="http://yoursite.com/2020/03/17/图床/glide-源码解析图床版/">
 
 
 <script id="page-configurations">
@@ -88,7 +88,7 @@
   };
 </script>
 
-  <title>glide-源码解析 | Hexo</title>
+  <title>glide-源码解析-图床版 | Hexo</title>
   
 
 
@@ -225,7 +225,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/03/17/glide-源码解析图床版/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/03/17/图床/glide-源码解析图床版/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="liujiakuo">
@@ -239,7 +239,7 @@
       <header class="post-header">
 
         
-          <h1 class="post-title" itemprop="name headline">glide-源码解析
+          <h1 class="post-title" itemprop="name headline">glide-源码解析-图床版
 
             
           </h1>
@@ -267,7 +267,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2020-03-25 13:13:55" itemprop="dateModified" datetime="2020-03-25T13:13:55+08:00">2020-03-25</time>
+                <time title="Modified: 2020-04-27 10:12:26" itemprop="dateModified" datetime="2020-04-27T10:12:26+08:00">2020-04-27</time>
               </span>
             
           
@@ -400,7 +400,7 @@
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">private final ModelLoaderRegistry modelLoaderRegistry;</span><br><span class="line">private final EncoderRegistry encoderRegistry;</span><br><span class="line">private final ResourceDecoderRegistry decoderRegistry;</span><br><span class="line">private final ResourceEncoderRegistry resourceEncoderRegistry;</span><br><span class="line">private final DataRewinderRegistry dataRewinderRegistry;</span><br><span class="line">private final TranscoderRegistry transcoderRegistry;</span><br><span class="line">private final ImageHeaderParserRegistry imageHeaderParserRegistry;</span><br><span class="line"></span><br><span class="line">private final ModelToResourceClassCache modelToResourceClassCache =</span><br><span class="line">    new ModelToResourceClassCache();</span><br><span class="line">private final LoadPathCache loadPathCache = new LoadPathCache();</span><br><span class="line">private final Pool&lt;List&lt;Throwable&gt;&gt; throwableListPool = FactoryPools.threadSafeList();</span><br></pre></td></tr></table></figure>
 
 <p>这个类里有大量的append.register.prepend.用来把各种模块追加到上边的各种注册器里边.</p>
-<p><img src="/2020/03/17/glide-源码解析图床版/image-20200324213130912.png" alt="image-20200324213130912"></p>
+<p><img src="https://tva1.sinaimg.cn/large/007S8ZIlly1ge83rkh8q6j30nt0dwwgb.jpg" alt="image-20200324213130912"></p>
 <p>这里的每个registry都是负责一个模块的功能的注册加载的.下边简单分别看看</p>
 <h2 id="ModelLoaderRegistry"><a href="#ModelLoaderRegistry" class="headerlink" title="ModelLoaderRegistry"></a>ModelLoaderRegistry</h2><p>负责注册 数据加载模块.重要属性是MultiModelLoaderFactory,注册的模块都是注册到MultiModelLoaderFactory中了.</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">private final MultiModelLoaderFactory multiModelLoaderFactory;</span><br><span class="line">  private final ModelLoaderCache cache = new ModelLoaderCache();</span><br><span class="line">public synchronized &lt;Model, Data&gt; void append(</span><br><span class="line">    @NonNull Class&lt;Model&gt; modelClass,</span><br><span class="line">    @NonNull Class&lt;Data&gt; dataClass,</span><br><span class="line">    @NonNull ModelLoaderFactory&lt;? extends Model, ? extends Data&gt; factory) &#123;</span><br><span class="line">  multiModelLoaderFactory.append(modelClass, dataClass, factory);</span><br><span class="line">  cache.clear();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
@@ -425,17 +425,17 @@
 <h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>ModelLoaderRegistry里注册了很多的ModelLoaderFactory.而ModelLoaderFactory的实现类又往往和一个ModelLoader的实现类绑定起来. ModelLoaderFactory就是工厂模式.他的build.就向往提供这个modelLoader.</p>
 <p>ModelLoader最重要的方法是buildLoadData,也就是根据参数返回一个loadData(加载的数据).不同的ModelLoader产生不同的loadData.但是最终都是由DataFetcher 来完成数据的真正获取.</p>
 <p>大概就是这么个关系. 其实就是个加载数据的模块.根据泛型来判断.但是使用了工厂模式.并进行了抽象</p>
-<p><img src="/2020/03/17/glide-源码解析图床版/image-20200324223604817.png" alt="image-20200324223604817"></p>
+<p><img src="https://tva1.sinaimg.cn/large/007S8ZIlly1ge83rj5rq9j314t0aeq69.jpg" alt="image-20200324223604817"></p>
 <h2 id="EncoderRegistry"><a href="#EncoderRegistry" class="headerlink" title="EncoderRegistry"></a>EncoderRegistry</h2><p>这是把数据编码保存到文件中的注册器. 工作就是把内存中的各种图片.保存到文件中.</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"> private final List&lt;Entry&lt;?&gt;&gt; encoders = new ArrayList&lt;&gt;();</span><br><span class="line">public synchronized &lt;T&gt; void append(@NonNull Class&lt;T&gt; dataClass, @NonNull Encoder&lt;T&gt; encoder) &#123;</span><br><span class="line">   encoders.add(new Entry&lt;&gt;(dataClass, encoder));</span><br><span class="line"> &#125;</span><br></pre></td></tr></table></figure>
 
 <p>可以看到添加的都是Encoder. 有如下几个子类. 主要方法是encode.这个比较简单.看下BitmapEncoder</p>
-<p><img src="/2020/03/17/glide-源码解析图床版/image-20200324224438010.png" alt="image-20200324224438010"></p>
+<p><img src="https://tva1.sinaimg.cn/large/007S8ZIlly1ge83rjkzt1j30an06a3zd.jpg" alt="image-20200324224438010"></p>
 <h3 id="BitmapEncoder"><a href="#BitmapEncoder" class="headerlink" title="BitmapEncoder"></a>BitmapEncoder</h3><p>很简单.就是通过流把bitmap保存.</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">public boolean encode( Resource&lt;Bitmap&gt; resource,  File file,Options options) &#123;</span><br><span class="line">    final Bitmap bitmap = resource.get();</span><br><span class="line">    Bitmap.CompressFormat format = getFormat(bitmap, options);</span><br><span class="line">      int quality = options.get(COMPRESSION_QUALITY);</span><br><span class="line">      OutputStream os = null;</span><br><span class="line">      try &#123;</span><br><span class="line">        os = new FileOutputStream(file);</span><br><span class="line">        bitmap.compress(format, quality, os);</span><br><span class="line">        os.close();</span><br><span class="line">        success = true;</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;</span><br><span class="line"></span><br><span class="line"> &#125;</span><br></pre></td></tr></table></figure>
 
 <h2 id="ResourceDecoderRegistry"><a href="#ResourceDecoderRegistry" class="headerlink" title="ResourceDecoderRegistry"></a>ResourceDecoderRegistry</h2><p>按名称.应该是从文件或者其他地方解码出图片到内存中. 所有的registry都是一个用来保存改功能的集合.主要还是看里边的实现. 这里主要是ResourceDecoder,有如下这些,主要的方法就是decode.返回一个resource资源.</p>
-<p><img src="/2020/03/17/glide-源码解析图床版/image-20200324225136996.png" alt="image-20200324225136996"></p>
+<p><img src="https://tva1.sinaimg.cn/large/007S8ZIlly1ge83rk1ajgj30de0blq55.jpg" alt="image-20200324225136996"></p>
 <p>看下 ByteBufferBitmapDecoder的处理.这个是比较复杂的</p>
 <h3 id="ByteBufferBitmapDecoder"><a href="#ByteBufferBitmapDecoder" class="headerlink" title="ByteBufferBitmapDecoder"></a>ByteBufferBitmapDecoder</h3><p>先把byteBuffer 包装成了ByteBufferStream. 又通过Downsampler 来decode</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">public Resource&lt;Bitmap&gt; decode(@NonNull ByteBuffer source, int width, int height,</span><br><span class="line">    @NonNull Options options)</span><br><span class="line">    throws IOException &#123;</span><br><span class="line">  InputStream is = ByteBufferUtil.toStream(source);</span><br><span class="line">  return downsampler.decode(is, width, height, options);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
@@ -451,7 +451,7 @@
 <h2 id="ResourceEncoderRegistry"><a href="#ResourceEncoderRegistry" class="headerlink" title="ResourceEncoderRegistry"></a>ResourceEncoderRegistry</h2><p>也是一个管理类.重要的是里边的ResourceEncoder.  他和之前的EncoderRegistry 是一样的. 都是encode方法吧资源保存到文件中.</p>
 <h2 id="DataRewinderRegistry"><a href="#DataRewinderRegistry" class="headerlink" title="DataRewinderRegistry"></a>DataRewinderRegistry</h2><p>这也是负责管理这模块的所有类的集合. 主要的类是DataRewinder,主要方法是rewindAndGet(),</p>
 <p>这个功能的翻译是 数据回卷器. 其实就是进行数据读取回到原位置..</p>
-<p><img src="/2020/03/17/glide-源码解析图床版/image-20200325105633335.png" alt="image-20200325105633335"></p>
+<p><img src="https://tva1.sinaimg.cn/large/007S8ZIlly1ge83rilyroj30e805qdgl.jpg" alt="image-20200325105633335"></p>
 <h3 id="InputStreamRewinder"><a href="#InputStreamRewinder" class="headerlink" title="InputStreamRewinder"></a>InputStreamRewinder</h3><p>对输入流的回卷操作. 可以看到 mark和reset 是对应的.也就是mark最大读取的字节数是5kb.然后回卷后可以重新读取这5kb的数据. 这是流的数据的复用.也就是可以重复读取这5kb的数据.</p>
 <p>这个mark保持有效。比如说mark(10)，那么在read()10个以内的字符时，reset（）操作后可以重新读取已经读出的数据，如果已经读取的数据超过10个，那reset()操作后，就不能正确读取以前的数据了，因为此时mark标记已经失效</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">  private static final int MARK_LIMIT = 5 * 1024 * 1024;</span><br><span class="line"></span><br><span class="line">@Synthetic</span><br><span class="line">  InputStreamRewinder(InputStream is, ArrayPool byteArrayPool) &#123;</span><br><span class="line">    bufferedStream = new RecyclableBufferedInputStream(is, byteArrayPool);</span><br><span class="line">    bufferedStream.mark(MARK_LIMIT);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  @NonNull</span><br><span class="line">  @Override</span><br><span class="line">  public InputStream rewindAndGet() throws IOException &#123;</span><br><span class="line">    bufferedStream.reset();</span><br><span class="line">    return bufferedStream;</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
@@ -461,7 +461,7 @@
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">private final Class&lt;Z&gt; fromClass;</span><br><span class="line">private final Class&lt;R&gt; toClass;</span><br><span class="line">@Synthetic final ResourceTranscoder&lt;Z, R&gt; transcoder;</span><br></pre></td></tr></table></figure>
 
 <p>ResourceTranscoder 只有一个transcode 方法.Resource<r> transcode(Resource<z> toTranscode,Options options); 就是把格式Z转换为格式R,实现类如下</z></r></p>
-<p><img src="/2020/03/17/glide-源码解析图床版/image-20200325111339778.png" alt="image-20200325111339778"></p>
+<p><img src="https://tva1.sinaimg.cn/large/007S8ZIlly1ge83rhpvaqj30eq05p3zh.jpg" alt="image-20200325111339778"></p>
 <h2 id="BitmapBytesTranscoder"><a href="#BitmapBytesTranscoder" class="headerlink" title="BitmapBytesTranscoder"></a>BitmapBytesTranscoder</h2><p>把一个bitmap 转成byte 数组返回. 其实是使用bitmap.compress 来实现.</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">public Resource&lt;byte[]&gt; transcode(@NonNull Resource&lt;Bitmap&gt; toTranscode,</span><br><span class="line">    @NonNull Options options) &#123;</span><br><span class="line">  ByteArrayOutputStream os = new ByteArrayOutputStream();</span><br><span class="line">  toTranscode.get().compress(compressFormat, quality, os);</span><br><span class="line">  toTranscode.recycle();</span><br><span class="line">  return new BytesResource(os.toByteArray());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
@@ -497,8 +497,8 @@
           <div class="post-nav">
             <div class="post-nav-next post-nav-item">
               
-                <a href="/2020/03/17/glide-源码解析/" rel="next" title="glide-源码解析">
-                  <i class="fa fa-chevron-left"></i> glide-源码解析
+                <a href="/2020/03/13/图床/lakecanary源码解析图床版/" rel="next" title="lakecanary源码解析-图床版">
+                  <i class="fa fa-chevron-left"></i> lakecanary源码解析-图床版
                 </a>
               
             </div>
@@ -507,8 +507,8 @@
 
             <div class="post-nav-prev post-nav-item">
               
-                <a href="/2020/03/25/okhttp源码解析/" rel="prev" title="okhttp源码解析">
-                  okhttp源码解析 <i class="fa fa-chevron-right"></i>
+                <a href="/2020/03/17/glide-源码解析/" rel="prev" title="glide-源码解析">
+                  glide-源码解析 <i class="fa fa-chevron-right"></i>
                 </a>
               
             </div>

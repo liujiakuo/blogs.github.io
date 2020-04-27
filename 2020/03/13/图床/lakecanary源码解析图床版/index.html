@@ -58,16 +58,18 @@
   <meta name="description" content="简单说.lakecanary 利用了java里的弱引用. 他把activity声明为弱引用.当一个引用对象只有弱引用时,会加入弱引用的ReferenceQueue中. lakecanary还有一个自己保存的所有要检测泄露的弱引用对象的队列. 两个队列想比较.都存在的对象.说名只有弱引用了.也就是可以被gc回收了.就排除掉. 同时通过开始HeapDumper(堆信息转储) 查看堆信息的引用链.找到内">
 <meta name="keywords" content="android 工具源码">
 <meta property="og:type" content="article">
-<meta property="og:title" content="lakecanary源码解析">
-<meta property="og:url" content="http://yoursite.com/2020/03/13/lakecanary源码解析图床版/index.html">
+<meta property="og:title" content="lakecanary源码解析-图床版">
+<meta property="og:url" content="http://yoursite.com/2020/03/13/图床/lakecanary源码解析图床版/index.html">
 <meta property="og:site_name" content="Hexo">
 <meta property="og:description" content="简单说.lakecanary 利用了java里的弱引用. 他把activity声明为弱引用.当一个引用对象只有弱引用时,会加入弱引用的ReferenceQueue中. lakecanary还有一个自己保存的所有要检测泄露的弱引用对象的队列. 两个队列想比较.都存在的对象.说名只有弱引用了.也就是可以被gc回收了.就排除掉. 同时通过开始HeapDumper(堆信息转储) 查看堆信息的引用链.找到内">
 <meta property="og:locale" content="en">
-<meta property="og:updated_time" content="2020-03-21T09:22:19.950Z">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/007S8ZIlly1ge83uelkl8j31770p7jtr.jpg">
+<meta property="og:updated_time" content="2020-04-27T02:14:51.133Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="lakecanary源码解析">
+<meta name="twitter:title" content="lakecanary源码解析-图床版">
 <meta name="twitter:description" content="简单说.lakecanary 利用了java里的弱引用. 他把activity声明为弱引用.当一个引用对象只有弱引用时,会加入弱引用的ReferenceQueue中. lakecanary还有一个自己保存的所有要检测泄露的弱引用对象的队列. 两个队列想比较.都存在的对象.说名只有弱引用了.也就是可以被gc回收了.就排除掉. 同时通过开始HeapDumper(堆信息转储) 查看堆信息的引用链.找到内">
-  <link rel="canonical" href="http://yoursite.com/2020/03/13/lakecanary源码解析图床版/">
+<meta name="twitter:image" content="https://tva1.sinaimg.cn/large/007S8ZIlly1ge83uelkl8j31770p7jtr.jpg">
+  <link rel="canonical" href="http://yoursite.com/2020/03/13/图床/lakecanary源码解析图床版/">
 
 
 <script id="page-configurations">
@@ -81,7 +83,7 @@
   };
 </script>
 
-  <title>lakecanary源码解析 | Hexo</title>
+  <title>lakecanary源码解析-图床版 | Hexo</title>
   
 
 
@@ -218,7 +220,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/03/13/lakecanary源码解析图床版/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/03/13/图床/lakecanary源码解析图床版/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="liujiakuo">
@@ -232,7 +234,7 @@
       <header class="post-header">
 
         
-          <h1 class="post-title" itemprop="name headline">lakecanary源码解析
+          <h1 class="post-title" itemprop="name headline">lakecanary源码解析-图床版
 
             
           </h1>
@@ -260,7 +262,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2020-03-21 17:22:19" itemprop="dateModified" datetime="2020-03-21T17:22:19+08:00">2020-03-21</time>
+                <time title="Modified: 2020-04-27 10:14:51" itemprop="dateModified" datetime="2020-04-27T10:14:51+08:00">2020-04-27</time>
               </span>
             
           
@@ -320,7 +322,7 @@
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">通过fileProvider暴露一个路径,在用debug生成堆信息转储文件.</span><br><span class="line">File heapDumpFile = leakDirectoryProvider.newHeapDumpFile();</span><br><span class="line">Debug.dumpHprofData(heapDumpFile.getAbsolutePath());</span><br><span class="line"></span><br><span class="line">因为这个分析过程比较费时.因此采用开启一个服务.并在单独的进程中启动.以防app进程造成影响.</span><br><span class="line"></span><br><span class="line"> heapdumpListener.analyze(</span><br><span class="line">          new HeapDump(heapDumpFile, reference.key, reference.name, excludedRefs, watchDurationMs,</span><br><span class="line">              gcDurationMs, heapDumpDurationMs));</span><br></pre></td></tr></table></figure>
 
 <p>别人写的新版.原理还都是一样的 <a href="https://www.jianshu.com/p/75f0e1fea3e0" target="_blank" rel="noopener">https://www.jianshu.com/p/75f0e1fea3e0</a></p>
-<p>![image-20200314230009507](/Users/liujiakuo/Library/Application Support/typora-user-images/image-20200314230009507.png)</p>
+<p><img src="https://tva1.sinaimg.cn/large/007S8ZIlly1ge83uelkl8j31770p7jtr.jpg" alt="image-20200314230009507"></p>
 <h1 id="额外技能点"><a href="#额外技能点" class="headerlink" title="额外技能点"></a>额外技能点</h1><h2 id="Executor"><a href="#Executor" class="headerlink" title="Executor"></a>Executor</h2><p>通过线程工程,创建一个已经配置好的线程池.</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Executors.newSingleThreadExecutor(new LeakCanarySingleThreadFactory(threadName));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
@@ -365,8 +367,8 @@
           <div class="post-nav">
             <div class="post-nav-next post-nav-item">
               
-                <a href="/2020/03/13/EventBus源码解析/" rel="next" title="EventBus源码解析">
-                  <i class="fa fa-chevron-left"></i> EventBus源码解析
+                <a href="/2020/03/13/图床/EventBus源码解析图床版/" rel="next" title="EventBus源码解析-图床版">
+                  <i class="fa fa-chevron-left"></i> EventBus源码解析-图床版
                 </a>
               
             </div>
@@ -375,8 +377,8 @@
 
             <div class="post-nav-prev post-nav-item">
               
-                <a href="/2020/03/17/glide-源码解析/" rel="prev" title="glide-源码解析">
-                  glide-源码解析 <i class="fa fa-chevron-right"></i>
+                <a href="/2020/03/17/图床/glide-源码解析图床版/" rel="prev" title="glide-源码解析-图床版">
+                  glide-源码解析-图床版 <i class="fa fa-chevron-right"></i>
                 </a>
               
             </div>

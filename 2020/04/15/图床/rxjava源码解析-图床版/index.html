@@ -58,20 +58,20 @@
   <meta name="description" content="总结rxjava 里广泛使用了 责任链模式.和观察者模式.只要抓住这个两个主线.理解起来就很容易了附一张网上的图.这里要明确的是,最简单的原理其实就是Observable.subscribe(observer),  然后.observable(被观察者) 就可以得到observer(观察者)对象.接着就是在subscribe里. 被观察者主动调用观察者的onNext.onComplete或onEr">
 <meta name="keywords" content="android工具源码">
 <meta property="og:type" content="article">
-<meta property="og:title" content="rxjava源码解析">
-<meta property="og:url" content="http://yoursite.com/2020/04/15/rxjava源码解析-图床版/index.html">
+<meta property="og:title" content="rxjava源码解析-图床版">
+<meta property="og:url" content="http://yoursite.com/2020/04/15/图床/rxjava源码解析-图床版/index.html">
 <meta property="og:site_name" content="Hexo">
 <meta property="og:description" content="总结rxjava 里广泛使用了 责任链模式.和观察者模式.只要抓住这个两个主线.理解起来就很容易了附一张网上的图.这里要明确的是,最简单的原理其实就是Observable.subscribe(observer),  然后.observable(被观察者) 就可以得到observer(观察者)对象.接着就是在subscribe里. 被观察者主动调用观察者的onNext.onComplete或onEr">
 <meta property="og:locale" content="en">
-<meta property="og:image" content="http://yoursite.com/2020/04/15/rxjava源码解析-图床版/image-20200415211539271.png">
-<meta property="og:image" content="http://yoursite.com/2020/04/15/rxjava源码解析-图床版/image-20200416113431424.png">
-<meta property="og:image" content="http://yoursite.com/2020/04/15/rxjava源码解析-图床版/5305830-5de7b5e046e10b91.png">
-<meta property="og:updated_time" content="2020-04-17T09:13:41.397Z">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/007S8ZIlly1ge83wqf8s5j30my07q0t5.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/007S8ZIlly1ge83wqzcxaj30lg0frdh1.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/007S8ZIlly1ge83wrbzfqj30qe0p8wia.jpg">
+<meta property="og:updated_time" content="2020-04-27T02:17:09.198Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="rxjava源码解析">
+<meta name="twitter:title" content="rxjava源码解析-图床版">
 <meta name="twitter:description" content="总结rxjava 里广泛使用了 责任链模式.和观察者模式.只要抓住这个两个主线.理解起来就很容易了附一张网上的图.这里要明确的是,最简单的原理其实就是Observable.subscribe(observer),  然后.observable(被观察者) 就可以得到observer(观察者)对象.接着就是在subscribe里. 被观察者主动调用观察者的onNext.onComplete或onEr">
-<meta name="twitter:image" content="http://yoursite.com/2020/04/15/rxjava源码解析-图床版/image-20200415211539271.png">
-  <link rel="canonical" href="http://yoursite.com/2020/04/15/rxjava源码解析-图床版/">
+<meta name="twitter:image" content="https://tva1.sinaimg.cn/large/007S8ZIlly1ge83wqf8s5j30my07q0t5.jpg">
+  <link rel="canonical" href="http://yoursite.com/2020/04/15/图床/rxjava源码解析-图床版/">
 
 
 <script id="page-configurations">
@@ -85,7 +85,7 @@
   };
 </script>
 
-  <title>rxjava源码解析 | Hexo</title>
+  <title>rxjava源码解析-图床版 | Hexo</title>
   
 
 
@@ -222,7 +222,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/04/15/rxjava源码解析-图床版/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/04/15/图床/rxjava源码解析-图床版/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="liujiakuo">
@@ -236,7 +236,7 @@
       <header class="post-header">
 
         
-          <h1 class="post-title" itemprop="name headline">rxjava源码解析
+          <h1 class="post-title" itemprop="name headline">rxjava源码解析-图床版
 
             
           </h1>
@@ -264,7 +264,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2020-04-17 17:13:41" itemprop="dateModified" datetime="2020-04-17T17:13:41+08:00">2020-04-17</time>
+                <time title="Modified: 2020-04-27 10:17:09" itemprop="dateModified" datetime="2020-04-27T10:17:09+08:00">2020-04-27</time>
               </span>
             
           
@@ -280,7 +280,7 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        <h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>rxjava 里广泛使用了 责任链模式.和观察者模式.只要抓住这个两个主线.理解起来就很容易了</p><p><img src="/2020/04/15/rxjava源码解析-图床版/image-20200415211539271.png" alt="image-20200415211539271"></p><p>附一张网上的图.这里要明确的是,最简单的原理其实就是</p><p>Observable.subscribe(observer),  然后.observable(被观察者) 就可以得到observer(观察者)对象.接着就是在subscribe里. 被观察者主动调用观察者的onNext.onComplete或onError.</p><a id="more"></a>
+        <h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>rxjava 里广泛使用了 责任链模式.和观察者模式.只要抓住这个两个主线.理解起来就很容易了</p><p><img src="https://tva1.sinaimg.cn/large/007S8ZIlly1ge83wqf8s5j30my07q0t5.jpg" alt="image-20200415211539271"></p><p>附一张网上的图.这里要明确的是,最简单的原理其实就是</p><p>Observable.subscribe(observer),  然后.observable(被观察者) 就可以得到observer(观察者)对象.接着就是在subscribe里. 被观察者主动调用观察者的onNext.onComplete或onError.</p><a id="more"></a>
 
 
 
@@ -289,7 +289,7 @@
 
 <p>可以看到.都是被观察者主动调用观察者的方法.然后被观察者同create方法.把要发送的数据抽象成一个类.ObservableOnSubscribe就是我们要实现来发送数据的被观察者.</p>
 <p>接下来的各种操作符的原理.和上边类似.总是每次的都返回了一个新的观察者ObserverB,和一个新的被观察者.ObservableB,对外返回新的的ObservableB,而内部则用观察者ObserverB去观察原有的被观察这.再把请求处理完转换给原有的观察者.这里就相当于 原有的观察者和被观察者都被代理了.</p>
-<p><img src="/2020/04/15/rxjava源码解析-图床版/image-20200416113431424.png" alt="image-20200416113431424"></p>
+<p><img src="https://tva1.sinaimg.cn/large/007S8ZIlly1ge83wqzcxaj30lg0frdh1.jpg" alt="image-20200416113431424"></p>
 <p>看图就比较清晰了.左下的被观察者ObservableB代理了原来的初始Observable的方法.然后在</p>
 <p>在总结下 .原有ObservableA 和原有的SubceriberA 关系是ObservableA.subscribe(SubceriberA )</p>
 <p>加一个操作符会产生新的ObservableB 和SubceriberB.同返回出去的是ObservableB.</p>
@@ -332,7 +332,7 @@
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">public final void subscribe(Observer&lt;? super T&gt; observer) &#123;</span><br><span class="line">        subscribeActual(observer);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <p>来一个网图.慢慢看就理解了.</p>
-<p><img src="/2020/04/15/rxjava源码解析-图床版/5305830-5de7b5e046e10b91.png" alt="img"></p>
+<p><img src="https://tva1.sinaimg.cn/large/007S8ZIlly1ge83wrbzfqj30qe0p8wia.jpg" alt="img"></p>
 <h2 id="线程调度"><a href="#线程调度" class="headerlink" title="线程调度"></a>线程调度</h2><p>上文通过Scheduler 来指定线程.这里有两个类Schedulers和Scheduler.</p>
 <p>Scheduler是真正的调度器. Schedulers则提供了各种实现好的调度器供选择.</p>
 <p>简单看下shecule源码.主要方法就是start.shundown.scheduleDirect.用来调度请求在指定线程.有三个内部类Worker,DisposeTask,PeriodicDirectTask配合调度.</p>
@@ -380,8 +380,8 @@
           <div class="post-nav">
             <div class="post-nav-next post-nav-item">
               
-                <a href="/2020/04/15/rxjava源码解析/" rel="next" title="rxjava源码解析">
-                  <i class="fa fa-chevron-left"></i> rxjava源码解析
+                <a href="/2020/03/25/图床/okhttp源码解析-图床版/" rel="next" title="okhttp源码解析-图床版">
+                  <i class="fa fa-chevron-left"></i> okhttp源码解析-图床版
                 </a>
               
             </div>
@@ -389,6 +389,10 @@
             <span class="post-nav-divider"></span>
 
             <div class="post-nav-prev post-nav-item">
+              
+                <a href="/2020/04/15/rxjava源码解析/" rel="prev" title="rxjava源码解析">
+                  rxjava源码解析 <i class="fa fa-chevron-right"></i>
+                </a>
               
             </div>
           </div>
