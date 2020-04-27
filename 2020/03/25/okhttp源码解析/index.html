@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+
+
+
+
+
+<html class="theme-next mist use-motion" lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="generator" content="Hexo 3.9.0">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=7.3.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=7.3.0">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=7.3.0">
+  <link rel="mask-icon" href="/images/logo.svg?v=7.3.0" color="#222">
+
+<link rel="stylesheet" href="/css/main.css?v=7.3.0">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.7.0">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '7.3.0',
+    exturl: false,
+    sidebar: {"position":"left","width":400,"display":"always","offset":12,"onmobile":false},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    save_scroll: false,
+    copycode: {"enable":false,"show_result":false,"style":null},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: '',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: 'Copy',
+      copy_success: 'Copied',
+      copy_failure: 'Copy failed'
+    }
+  };
+</script>
+
+  <meta name="description" content="1.总体流程okhttp的优点 支持HTTPS/HTTP2/WebSocket（在OkHttp3.7中已经剥离对Spdy的支持，转而大力支持HTTP2） 内部维护任务队列线程池，友好支持并发访问 内部维护连接池，支持多路复用，减少连接创建开销 socket创建支持最佳路由 提供拦截器链（InterceptorChain），实现request与response的分层处理(如透明GZIP压缩，logg">
+<meta name="keywords" content="android工具源码">
+<meta property="og:type" content="article">
+<meta property="og:title" content="okhttp源码解析">
+<meta property="og:url" content="http://yoursite.com/2020/03/25/okhttp源码解析/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="1.总体流程okhttp的优点 支持HTTPS/HTTP2/WebSocket（在OkHttp3.7中已经剥离对Spdy的支持，转而大力支持HTTP2） 内部维护任务队列线程池，友好支持并发访问 内部维护连接池，支持多路复用，减少连接创建开销 socket创建支持最佳路由 提供拦截器链（InterceptorChain），实现request与response的分层处理(如透明GZIP压缩，logg">
+<meta property="og:locale" content="en">
+<meta property="og:image" content="http://yoursite.com/2020/03/25/okhttp源码解析/f6e2ac304ee22891eca4ad1218602044.png">
+<meta property="og:image" content="http://yoursite.com/2020/03/25/okhttp源码解析/cache.png">
+<meta property="og:image" content="http://yoursite.com/2020/03/25/okhttp源码解析/5713484-c0e624fe441a861e.png">
+<meta property="og:image" content="http://yoursite.com/2020/03/25/okhttp源码解析/2f0f3fc564924a8354ecb3aa948d72e0.png">
+<meta property="og:image" content="http://yoursite.com/2020/03/25/okhttp源码解析/Center.png">
+<meta property="og:image" content="http://yoursite.com/2020/03/25/okhttp源码解析/1916953-fc6439af2bfefddc.jpg">
+<meta property="og:image" content="http://yoursite.com/2020/03/25/okhttp源码解析/1916953-1f3fe0ee98ff2c26.png">
+<meta property="og:updated_time" content="2020-04-17T09:53:37.607Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="okhttp源码解析">
+<meta name="twitter:description" content="1.总体流程okhttp的优点 支持HTTPS/HTTP2/WebSocket（在OkHttp3.7中已经剥离对Spdy的支持，转而大力支持HTTP2） 内部维护任务队列线程池，友好支持并发访问 内部维护连接池，支持多路复用，减少连接创建开销 socket创建支持最佳路由 提供拦截器链（InterceptorChain），实现request与response的分层处理(如透明GZIP压缩，logg">
+<meta name="twitter:image" content="http://yoursite.com/2020/03/25/okhttp源码解析/f6e2ac304ee22891eca4ad1218602044.png">
+  <link rel="canonical" href="http://yoursite.com/2020/03/25/okhttp源码解析/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+
+  <title>okhttp源码解析 | Hexo</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .motion-element,
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-title { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="en">
+
+  <div class="container sidebar-position-left">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta">
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Hexo</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="Toggle navigation bar">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+      
+      
+      
+        
+        <li class="menu-item menu-item-home">
+      
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>Home</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-about">
+      
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>About</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-tags">
+      
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>Tags</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-archives">
+      
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>Archives</a>
+
+  </li>
+  </ul>
+
+    
+
+</nav>
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content page-post-detail">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/03/25/okhttp源码解析/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="liujiakuo">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+    </span>
+      <header class="post-header">
+
+        
+          <h1 class="post-title" itemprop="name headline">okhttp源码解析
+
+            
+          </h1>
+        
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              
+                
+              
+
+              <time title="Created: 2020-03-25 21:42:36" itemprop="dateCreated datePublished" datetime="2020-03-25T21:42:36+08:00">2020-03-25</time>
+            </span>
+          
+            
+
+            
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2020-04-17 17:53:37" itemprop="dateModified" datetime="2020-04-17T17:53:37+08:00">2020-04-17</time>
+              </span>
+            
+          
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="1-总体流程"><a href="#1-总体流程" class="headerlink" title="1.总体流程"></a>1.总体流程</h1><h2 id="okhttp的优点"><a href="#okhttp的优点" class="headerlink" title="okhttp的优点"></a>okhttp的优点</h2><ul>
+<li>支持HTTPS/HTTP2/WebSocket（在OkHttp3.7中已经剥离对Spdy的支持，转而大力支持HTTP2）</li>
+<li>内部维护任务队列线程池，友好支持并发访问</li>
+<li>内部维护连接池，支持多路复用，减少连接创建开销</li>
+<li>socket创建支持最佳路由</li>
+<li>提供拦截器链（InterceptorChain），实现request与response的分层处理(如透明GZIP压缩，logging等)</li>
+</ul><a id="more"></a>
+<h2 id="okhttp的总体架构"><a href="#okhttp的总体架构" class="headerlink" title="okhttp的总体架构."></a>okhttp的总体架构.</h2><p><img src="/2020/03/25/okhttp源码解析/f6e2ac304ee22891eca4ad1218602044.png" alt="img"></p>
+<h2 id="HTTP知识点"><a href="#HTTP知识点" class="headerlink" title="HTTP知识点"></a>HTTP知识点</h2><p>100~199：指示信息，表示请求已接收，继续处理</p>
+<p>200~299：请求成功，表示请求已被成功接收、理解</p>
+<p>300~399：重定向，要完成请求必须进行更进一步的操作</p>
+<p>400~499：客户端错误，请求有语法错误或请求无法实现</p>
+<p>500~599：服务器端错误，服务器未能实现合法的请求</p>
+<h3 id="http缓存机制"><a href="#http缓存机制" class="headerlink" title="http缓存机制"></a>http缓存机制</h3><p>第一次请求的时候,肯定是没有缓存的. 但是响应的时候服务器可以指定响应头的一些属性.来让下次请求时可以使用缓存或者是请求服务器.因此总是上一次的响应头作为下一次请求头信息的来源.</p>
+<p>缓存的大概原理如下</p>
+<p><img src="/2020/03/25/okhttp源码解析/cache.png" alt="缓存"></p>
+<p>HTTP协议定义了几个可以用来控制浏览器缓存关键字，它们是：</p>
+<p>Expires, 服务器响应头返回的过期时间,但是是以服务器时间为标准.可能和客户端不同步,<br>Pragma: no-cache, 请求头里的.但不是标准请求头.可能不是都适用.<br>Cache-Control , 缓存控制头.请求头和响应头都有.有如下格式</p>
+<p>​    max-age  最长过期时间.有上次的响应提供给刻度端,通过这个客户端判断当前缓存是否过期.</p>
+<p>​    no-cache 设置成这个.每次客户端的请求都去服务端查缓存是否过期.也就是由服务端决定是否使用缓存</p>
+<p>​    no-store 客户端不使用缓存.</p>
+<p>Last-Modified ,    表示上次资源修改的时间.响应头内容.发现资源具有Last-Modified声明，<br>则再次向web服务器请求时带上头 If-Modified-Since，表示请求时间。<br>web服务器收到请求后发现有头If-Modified-Since 则与被请求资源的最后修改时间进行比对。<br>若最后修改时间较新，说明资源又被改动过，则响应整片资源内容（写在响应消息包体内），HTTP 200；</p>
+<p>若最后修改时间一致，说明资源无新修改，则响应HTTP 304 (无需包体，节省浏览)，<br>告知浏览器继续使用所保存的cache。<br>ETag。    资源的hash值.可以判断服务器资源是否修改过.也是为了提高效率的.由服务端产生.发给客户端.</p>
+<h2 id="使用方式"><a href="#使用方式" class="headerlink" title="使用方式"></a>使用方式</h2><p>使用的是4.0的okhttp源码.已经用kotlin改写了.kotlin我也不是很熟.所以编写边学了</p>
+<p>这个比较简单.就是构建一个request. 然后获得一个call.调用call.enqueue 来把这个call在异步线程执行.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">final Request request = new Request.Builder()</span><br><span class="line">        .url(&quot;https://www.jianshu.com/u/b4e69e85aef6&quot;)</span><br><span class="line">        .addHeader(&quot;user_agent&quot;,&quot;22222&quot;)</span><br><span class="line">        .build();</span><br><span class="line">Call call = mOkHttpClient.newCall(request);</span><br><span class="line">call.enqueue(new Callback() &#123;</span><br><span class="line">    @Override</span><br><span class="line">    public void onFailure(Call call, IOException e) &#123;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    @Override</span><br><span class="line">    public void onResponse(Call call, Response response) throws IOException &#123;</span><br><span class="line">        if(response != null )</span><br><span class="line">            Log.i(TAG, &quot;返回服务端数据:&quot;+ String.valueOf(response.body().string()));</span><br><span class="line">    &#125;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<p>从call.enqueue开始看. 这里的call 的真正类是RealCall.他代表一次真正的请求</p>
+<h2 id="执行请求流程"><a href="#执行请求流程" class="headerlink" title="执行请求流程"></a>执行请求流程</h2><h1 id="1-RealCall-enqueue-入栈请求"><a href="#1-RealCall-enqueue-入栈请求" class="headerlink" title="1.RealCall.enqueue 入栈请求"></a>1.RealCall.enqueue 入栈请求</h1><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">RealCall 类</span><br><span class="line"></span><br><span class="line">override fun enqueue(responseCallback: Callback) &#123;</span><br><span class="line">  synchronized(this) &#123;</span><br><span class="line">  //1.一个realCall只能执行一次.</span><br><span class="line">    check(!executed) &#123; &quot;Already Executed&quot; &#125;</span><br><span class="line">    executed = true</span><br><span class="line">  &#125;</span><br><span class="line">  //2.EventListener 的callStart方法.</span><br><span class="line">  callStart()</span><br><span class="line">  //3.这里最重要.把call包装成asyncCall.由dispatcher分发. dispatc是所有异步,同步请求的分派器.</span><br><span class="line">  client.dispatcher.enqueue(AsyncCall(responseCallback))</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里看到AsyncCall包装了callback. AsyncCall是一个继承Runnable的线程.他会在线程池中执行.</p>
+<p>看下他的 run</p>
+<h2 id="1-1-AsyncCall-run"><a href="#1-1-AsyncCall-run" class="headerlink" title="1.1 AsyncCall.run"></a>1.1 AsyncCall.run</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">override fun run() &#123;</span><br><span class="line">  threadName(&quot;OkHttp $&#123;redactedUrl()&#125;&quot;) &#123;</span><br><span class="line">    try &#123; //获得响应.这是RealCall的方法.然后用callback 来调用对应的方法.</span><br><span class="line">      val response = getResponseWithInterceptorChain()</span><br><span class="line">      responseCallback.onResponse(this@RealCall, response)</span><br><span class="line">    &#125; catch (e: IOException) &#123;</span><br><span class="line">        responseCallback.onFailure(this@RealCall, e)</span><br><span class="line">    &#125; catch (t: Throwable) &#123;</span><br><span class="line">        responseCallback.onFailure(this@RealCall, canceledException)</span><br><span class="line">    &#125; finally &#123;</span><br><span class="line">      client.dispatcher.finished(this)</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在回到1.看看dispatch的逻辑</p>
+<h1 id="2-disptach-enqueue-分发器把请求分发"><a href="#2-disptach-enqueue-分发器把请求分发" class="headerlink" title="2.disptach.enqueue 分发器把请求分发"></a>2.disptach.enqueue 分发器把请求分发</h1><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br></pre></td><td class="code"><pre><span class="line">1.这是dispatch 里三个队列 准备执行的call队列.正在执行的异步call队列.正在执行的同步call队列,所有的call都会加入这里边</span><br><span class="line">private val readyAsyncCalls = ArrayDeque&lt;AsyncCall&gt;()</span><br><span class="line">private val runningAsyncCalls = ArrayDeque&lt;AsyncCall&gt;()</span><br><span class="line">private val runningSyncCalls = ArrayDeque&lt;RealCall&gt;()</span><br><span class="line">2.最多同时支持64个并发请求, 每个host最多支持5个请求. </span><br><span class="line">get:Synchronized var maxRequests = 64</span><br><span class="line"> @get:Synchronized var maxRequestsPerHost = 5</span><br><span class="line">3.内部有一个 线程池来执行异步任务</span><br><span class="line"> constructor(executorService: ExecutorService) : this() &#123;</span><br><span class="line">    this.executorServiceOrNull = executorService</span><br><span class="line"> &#125;</span><br><span class="line"> 4.入队方法</span><br><span class="line">  internal fun enqueue(call: AsyncCall) &#123;</span><br><span class="line">    synchronized(this) &#123;</span><br><span class="line">    5.加入等待队列</span><br><span class="line">      readyAsyncCalls.add(call)</span><br><span class="line">      if (!call.call.forWebSocket) &#123;</span><br><span class="line">      //6.看这个AsyneCall的host是否有正在执行从call.如果有的话.就复用这个call.</span><br><span class="line">        val existingCall = findExistingCallWithHost(call.host)</span><br><span class="line">        if (existingCall != null) call.reuseCallsPerHostFrom(existingCall)</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    //这里会遍历等待队列.移到运行队列并开始执行</span><br><span class="line">    promoteAndExecute()</span><br><span class="line">  &#125;</span><br><span class="line"> </span><br><span class="line"> private fun promoteAndExecute(): Boolean &#123;</span><br><span class="line"> 		这是存储本次方法要执行的call的集合</span><br><span class="line">    val executableCalls = mutableListOf&lt;AsyncCall&gt;()</span><br><span class="line">    //遍历 等待队列readyAsyncCalls</span><br><span class="line">    synchronized(this) &#123;</span><br><span class="line">      val i = readyAsyncCalls.iterator()</span><br><span class="line">      while (i.hasNext()) &#123;</span><br><span class="line">        val asyncCall = i.next()</span><br><span class="line">        //如果当前运行的cal数目超过64就停止遍历 </span><br><span class="line">        if (runningAsyncCalls.size &gt;= this.maxRequests) break // Max capacity.</span><br><span class="line">        //同一个host上执行的call超过5个.就跳过这个call</span><br><span class="line">        if (asyncCall.callsPerHost.get() &gt;= this.maxRequestsPerHost) continue // Host max capacity.</span><br><span class="line">        i.remove()</span><br><span class="line">        //这里就递增同一个host执行的call数目</span><br><span class="line">        asyncCall.callsPerHost.incrementAndGet()</span><br><span class="line">        //加入到要执行的队列中.</span><br><span class="line">        executableCalls.add(asyncCall)</span><br><span class="line">        runningAsyncCalls.add(asyncCall)</span><br><span class="line">      &#125;</span><br><span class="line">      isRunning = runningCallsCount() &gt; 0</span><br><span class="line">    &#125;</span><br><span class="line">		//遍历.然后通过dispatch构造函数的线程值来执行.这里就会执行上边1.1的run方法</span><br><span class="line">    for (i in 0 until executableCalls.size) &#123;</span><br><span class="line">      val asyncCall = executableCalls[i]</span><br><span class="line">      asyncCall.executeOn(executorService)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    return isRunning</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+
+<p>到这里.就是把 请求call 封装成asyncCall,交给disptach分发器分发.通过线程池异步执行,而执行的方法是AsyneCall.run. 同步的和这类似.并且更简单. </p>
+<h1 id="3-RealCall-getResponseWithInterceptorChain"><a href="#3-RealCall-getResponseWithInterceptorChain" class="headerlink" title="3.RealCall.getResponseWithInterceptorChain"></a>3.RealCall.getResponseWithInterceptorChain</h1><p>AsyneCall是RealCall的内部类.他的run方法就是调用Real.getResponseWithInterceptorChain 来获得响应</p>
+<p>这个方法就是有名的调用链.先看看结果图.</p>
+<p><img src="/2020/03/25/okhttp源码解析/5713484-c0e624fe441a861e.png" alt="img"></p>
+<p>这里就是把所有拦截器组成一个集合.每个拦截器按顺序拦截请求并处理.然后交给chian 去调用下一个拦截器.然后层层递进到最里边的拦截器处理请求.得到相应.然后在层层向往返回响应.每层拦截器在对响应进行处理.这里默认了几个拦截器.同时我们可以加入自定义的应用拦截器和网络拦截器.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line">RealCall类</span><br><span class="line">internal fun getResponseWithInterceptorChain(): Response &#123;</span><br><span class="line">  // 1.拦截器集合,这里的添加顺序就是请求调用的顺序.要特别注意</span><br><span class="line">  val interceptors = mutableListOf&lt;Interceptor&gt;()</span><br><span class="line">  interceptors += client.interceptors 2.应用拦截器.我们可以添加自己的到这个集合.</span><br><span class="line">  interceptors += RetryAndFollowUpInterceptor(client) 3.重试及重定向拦截器.</span><br><span class="line">  interceptors += BridgeInterceptor(client.cookieJar)4.封装请求响应头</span><br><span class="line">  interceptors += CacheInterceptor(client.cache)5.根据请求响应头决定是否使用缓存</span><br><span class="line">  interceptors += ConnectInterceptor 6.拿到合适的连接,这里使用了连接处</span><br><span class="line">  if (!forWebSocket) &#123;7.网络拦截器.我们可以添加自己的.</span><br><span class="line">    interceptors += client.networkInterceptors</span><br><span class="line">  &#125;</span><br><span class="line">  interceptors += CallServerInterceptor(forWebSocket)8.与服务器交互的拦截器,获取真正网络请求</span><br><span class="line"></span><br><span class="line">  val chain = RealInterceptorChain(9,生成一个调用链注意index=0,调用链与拦截器交替操作.</span><br><span class="line">      call = this,</span><br><span class="line">      interceptors = interceptors,</span><br><span class="line">      index = 0,</span><br><span class="line">      exchange = null,</span><br><span class="line">      request = originalRequest,</span><br><span class="line">      connectTimeoutMillis = client.connectTimeoutMillis,</span><br><span class="line">      readTimeoutMillis = client.readTimeoutMillis,</span><br><span class="line">      writeTimeoutMillis = client.writeTimeoutMillis</span><br><span class="line">  )</span><br><span class="line"></span><br><span class="line">  var calledNoMoreExchanges = false</span><br><span class="line">  try &#123;</span><br><span class="line">    val response = chain.proceed(originalRequest)10.从调用链开始执行,最后获得响应</span><br><span class="line">    if (isCanceled()) &#123;</span><br><span class="line">      response.closeQuietly()</span><br><span class="line">      throw IOException(&quot;Canceled&quot;)</span><br><span class="line">    &#125;</span><br><span class="line">    return response</span><br><span class="line">  &#125; catch (e: IOException) &#123;</span><br><span class="line">    calledNoMoreExchanges = true</span><br><span class="line">    throw noMoreExchanges(e) as Throwable</span><br><span class="line">  &#125; finally &#123;</span><br><span class="line">    if (!calledNoMoreExchanges) &#123;</span><br><span class="line">      noMoreExchanges(null) //释放连接</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>可以看到.主要就是为这个realcall对象创建了一系列的拦截器对象.在一个list中.然后通过调用链chain来执行.获得response.最后释放连接connection. connection连接这部分以后再讲.</p>
+<p>这里看下chain责任链的proseed方法,chain是Interceptor的内部类.所有实现是RealInterceptorChain类</p>
+<p>这里要注意.所有责任链chain和拦截器的方法.返回的都是response.</p>
+<p><img src="/2020/03/25/okhttp源码解析/2f0f3fc564924a8354ecb3aa948d72e0.png" alt="img"></p>
+<h2 id="3-1-拦截器链执行"><a href="#3-1-拦截器链执行" class="headerlink" title="3.1 拦截器链执行"></a>3.1 拦截器链执行</h2><p>RealInterceptorChain.process</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">RealInterceptorChain类</span><br><span class="line">1.重要变量.请求call, 拦截器集合, 当前拦截器索引, Exchange是执行数据交换的类.以后再看.最后是请求.</span><br><span class="line"> internal val call: RealCall,</span><br><span class="line">  private val interceptors: List&lt;Interceptor&gt;,</span><br><span class="line">  private val index: Int,</span><br><span class="line">  internal val exchange: Exchange?,</span><br><span class="line">  internal val request: Request,</span><br><span class="line">  </span><br><span class="line">override fun proceed(request: Request): Response &#123;</span><br><span class="line">	2.创建一个新的chain.注意此时index+1了.也就是要指向下一个拦截器</span><br><span class="line">  val next = copy(index = index + 1, request = request)</span><br><span class="line">  3. 拿到index索引对应的拦截器. 最开始肯定index 是0 然后依次递增</span><br><span class="line">  val interceptor = interceptors[index]</span><br><span class="line">	4.执行拦截器的intercept方法.并传入刚才新建的chain. 拦截器里又会调用chain.proceed来执行下一个拦截.</span><br><span class="line">	val response = interceptor.intercept(next) ?: throw NullPointerException(</span><br><span class="line">      &quot;interceptor $interceptor returned null&quot;)</span><br><span class="line">	//获得响应.返回</span><br><span class="line">  return response</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>可以看到调用链chain主要通过index来拿到不同的拦截器.然后chain调用interceptor. interceptor.又调用chain.不断递增index.就实现了拦截器集合中所有拦截器的链式调用.</p>
+<p>看下步骤3中第一个拦截器RetryAndFollowUpInterceptor</p>
+<h2 id="3-2-重试拦截器RetryAndFollowUpInterceptor"><a href="#3-2-重试拦截器RetryAndFollowUpInterceptor" class="headerlink" title="3.2 重试拦截器RetryAndFollowUpInterceptor"></a>3.2 重试拦截器RetryAndFollowUpInterceptor</h2><p>RetryAndFollowUpInterceptor.intercept</p>
+<p>这是关于 请求重试及请求重定向的拦截器. 里边又会调用response = realChain.proceed(request).来吧请求向下一个chain传递.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br></pre></td><td class="code"><pre><span class="line">RetryAndFollowUpInterceptor类</span><br><span class="line">override fun intercept(chain: Interceptor.Chain): Response &#123;</span><br><span class="line">    val realChain = chain as RealInterceptorChain</span><br><span class="line">    var priorResponse: Response? = null</span><br><span class="line">    while (true) &#123; 这里是while 循环.</span><br><span class="line">    //1.产生一个ExchangeFinder.用来之后进行连接时找到合适的连接线路.</span><br><span class="line">      call.enterNetworkInterceptorExchange(request, newExchangeFinder)</span><br><span class="line"></span><br><span class="line">      var response: Response</span><br><span class="line">        try &#123;</span><br><span class="line">        2.又调用chain 的proceed. 执行其他拦截器的方法.获取响应</span><br><span class="line">          response = realChain.proceed(request)</span><br><span class="line">          newExchangeFinder = true</span><br><span class="line">        &#125; catch (e: RouteException) &#123;</span><br><span class="line">        //3.连接失败.继续重试</span><br><span class="line">          newExchangeFinder = false</span><br><span class="line">          continue</span><br><span class="line">        &#125; catch (e: IOException) &#123;</span><br><span class="line">       4.已连上服务器.但是io出错,常识恢复request.如果可以就重试.否则报错.</span><br><span class="line">          if (!recover(e, call, request, requestSendStarted = e !is ConnectionShutdownException)) &#123;</span><br><span class="line">            throw e</span><br><span class="line">          &#125;</span><br><span class="line">          newExchangeFinder = false</span><br><span class="line">          continue</span><br><span class="line">        &#125;</span><br><span class="line">看看上次是否有响应.有就把上次响应绑定到这次的.第一次进来是肯定没有.只有重试才会有</span><br><span class="line">        if (priorResponse != null) &#123;</span><br><span class="line">          response = response.newBuilder()</span><br><span class="line">              .priorResponse(priorResponse.newBuilder()</span><br><span class="line">                  .body(null)</span><br><span class="line">                  .build())</span><br><span class="line">              .build()</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        val exchange = call.interceptorScopedExchange</span><br><span class="line">        //得到需要重试的request. 这里是根据response的响应来的code判断.比如300的需要重定向,408的超时重试,500的服务器有错误. 重定向请求只有get方式可以.这个新的request是根据response的参数生成的</span><br><span class="line">        val followUp = followUpRequest(response, exchange)</span><br><span class="line">			//不需要重试.那就使用调用链产生的响应</span><br><span class="line">        if (followUp == null) &#123;</span><br><span class="line">          closeActiveExchange = false</span><br><span class="line">          return response</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        response.body?.closeQuietly()</span><br><span class="line">			最大重试次数20次.超过就异常</span><br><span class="line">        if (++followUpCount &gt; MAX_FOLLOW_UPS) &#123;</span><br><span class="line">          throw ProtocolException(&quot;Too many follow-up requests: $followUpCount&quot;)</span><br><span class="line">        &#125;</span><br><span class="line">	可以看到.本次的重试request和response又成了下次循环的请求和之前的响应.</span><br><span class="line">        request = followUp</span><br><span class="line">        priorResponse = response</span><br><span class="line">      &#125; finally &#123;</span><br><span class="line">        call.exitNetworkInterceptorExchange(closeActiveExchange)</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+
+<p>可以看到.重试拦截器主要是 拿到深层拦截器产生的响应.在根据响应response的code 分成30<del>.40</del>.5-~来决定是否要重试.如果重试就产生重试的request再次交给深层拦截器处理.得到重试响应.知道返回合适的response.</p>
+<h2 id="3-3桥接拦截器-BridgeInterceptor"><a href="#3-3桥接拦截器-BridgeInterceptor" class="headerlink" title="3.3桥接拦截器-BridgeInterceptor"></a>3.3桥接拦截器-BridgeInterceptor</h2><p>接下来是BridgeInterceptor.intercept,注意是把我们穿件的请求转换成网络请求request. 也就是添加各种请求头.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br></pre></td><td class="code"><pre><span class="line">override fun intercept(chain: Interceptor.Chain): Response &#123;</span><br><span class="line">  val userRequest = chain.request()</span><br><span class="line">  val requestBuilder = userRequest.newBuilder()</span><br><span class="line"></span><br><span class="line">  val body = userRequest.body</span><br><span class="line">  if (body != null) &#123;</span><br><span class="line">    val contentType = body.contentType()</span><br><span class="line">    if (contentType != null) &#123;</span><br><span class="line">      requestBuilder.header(&quot;Content-Type&quot;, contentType.toString())</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    val contentLength = body.contentLength()</span><br><span class="line">    if (contentLength != -1L) &#123;</span><br><span class="line">      requestBuilder.header(&quot;Content-Length&quot;, contentLength.toString())</span><br><span class="line">      requestBuilder.removeHeader(&quot;Transfer-Encoding&quot;)</span><br><span class="line">    &#125; else &#123;</span><br><span class="line">      requestBuilder.header(&quot;Transfer-Encoding&quot;, &quot;chunked&quot;)</span><br><span class="line">      requestBuilder.removeHeader(&quot;Content-Length&quot;)</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">	host 是 ip:端口 的模式</span><br><span class="line">  if (userRequest.header(&quot;Host&quot;) == null) &#123;</span><br><span class="line">    requestBuilder.header(&quot;Host&quot;, userRequest.url.toHostHeader())</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  if (userRequest.header(&quot;Connection&quot;) == null) &#123;</span><br><span class="line">    requestBuilder.header(&quot;Connection&quot;, &quot;Keep-Alive&quot;)</span><br><span class="line">  &#125;</span><br><span class="line">	压缩方式的头. 如果请求有压缩.响应也需要解压</span><br><span class="line">  var transparentGzip = false</span><br><span class="line">  if (userRequest.header(&quot;Accept-Encoding&quot;) == null &amp;&amp; userRequest.header(&quot;Range&quot;) == null) &#123;</span><br><span class="line">    transparentGzip = true</span><br><span class="line">    requestBuilder.header(&quot;Accept-Encoding&quot;, &quot;gzip&quot;)</span><br><span class="line">  &#125;</span><br><span class="line">	通过url 拿到cookie.加入cookie头 ,session 在服务器端，cookie 在客户端, cookie就是用来标识这个用户的id.</span><br><span class="line">	由服务端产生sessionid,交给客户端保存.客户端下次请求要上送这个sessionId</span><br><span class="line">  val cookies = cookieJar.loadForRequest(userRequest.url)</span><br><span class="line">  if (cookies.isNotEmpty()) &#123;</span><br><span class="line">    requestBuilder.header(&quot;Cookie&quot;, cookieHeader(cookies))</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  if (userRequest.header(&quot;User-Agent&quot;) == null) &#123;</span><br><span class="line">    requestBuilder.header(&quot;User-Agent&quot;, userAgent)</span><br><span class="line">  &#125;</span><br><span class="line">	通过调用链继续执行上层拦截器.拿到响应的response</span><br><span class="line">  val networkResponse = chain.proceed(requestBuilder.build())</span><br><span class="line">	更新刻度端cookie 的信息.</span><br><span class="line">  cookieJar.receiveHeaders(userRequest.url, networkResponse.headers)</span><br><span class="line">	这里看到.得到的响应和 发出的请求绑定起来了.</span><br><span class="line">  val responseBuilder = networkResponse.newBuilder()</span><br><span class="line">      .request(userRequest)</span><br><span class="line">	//这里对应上班的gzip压缩头.如果请求有压缩,那么响应到来后会进行解压.然后在组成响应.</span><br><span class="line">  if (transparentGzip &amp;&amp;</span><br><span class="line">      &quot;gzip&quot;.equals(networkResponse.header(&quot;Content-Encoding&quot;), ignoreCase = true) &amp;&amp;</span><br><span class="line">      networkResponse.promisesBody()) &#123;</span><br><span class="line">    val responseBody = networkResponse.body</span><br><span class="line">    if (responseBody != null) &#123;</span><br><span class="line">      val gzipSource = GzipSource(responseBody.source())</span><br><span class="line">      val strippedHeaders = networkResponse.headers.newBuilder()</span><br><span class="line">          .removeAll(&quot;Content-Encoding&quot;)</span><br><span class="line">          .removeAll(&quot;Content-Length&quot;)</span><br><span class="line">          .build()</span><br><span class="line">      responseBuilder.headers(strippedHeaders)</span><br><span class="line">      val contentType = networkResponse.header(&quot;Content-Type&quot;)</span><br><span class="line">      responseBuilder.body(RealResponseBody(contentType, -1L, gzipSource.buffer()))</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">	//返回响应</span><br><span class="line">  return responseBuilder.build()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里也比较好理解.就是生成各种请求头.然后交给上层调用链得到响应.并绑定请求和响应.如果请求时使用了压缩.响应也需要进行解压.这里还使用了cookie</p>
+<p><a href="https://segmentfault.com/a/1190000006689767" target="_blank" rel="noopener">https://segmentfault.com/a/1190000006689767</a> 请求头响应头的总结.</p>
+<h2 id="3-4缓存拦截器-CacheInterceptor"><a href="#3-4缓存拦截器-CacheInterceptor" class="headerlink" title="3.4缓存拦截器 CacheInterceptor"></a>3.4缓存拦截器 CacheInterceptor</h2><p>再次看下缓存的逻辑</p>
+<p><img src="/2020/03/25/okhttp源码解析/Center.png" alt="img"></p>
+<p>缓存这里涉及到了缓存策略CacheStrategy,缓存 Cache.文件缓存工具类DiskLruCache.CacheStrategy决定使用网络还是使用缓存.Cache是缓存的操作类,DiskLruCache是Cache的内部属性.cache会统计请求网络的数量.缓存名字数量.</p>
+<p>这里可以看到.当本地有缓存却过期时,会请求服务器.服务器返回200就是最新的响应,而如果返回304则是使用本地原有缓存</p>
+<p>可以看到.缓存的逻辑.就是根据请求时候的请求头来判断的. 第一次请求肯定是没有缓存的.下次请求同一url.则会使用上次的响应头的参数来判断.缓存的逻辑</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br></pre></td><td class="code"><pre><span class="line">override fun intercept(chain: Interceptor.Chain): Response &#123;</span><br><span class="line">	1.根据请求拿到缓存的response.这个响应不一定有用,还需要经过缓存策略的判断.</span><br><span class="line">  val cacheCandidate = cache?.get(chain.request())</span><br><span class="line"></span><br><span class="line">	2.获取缓存策略,缓存策略觉得拿缓存还是走网络请求.</span><br><span class="line">  val strategy = CacheStrategy.Factory(now, chain.request(), cacheCandidate).compute()</span><br><span class="line">  val networkRequest = strategy.networkRequest 决定是否请求网络</span><br><span class="line">  val cacheResponse = strategy.cacheResponse	决定是否使用缓存</span><br><span class="line">	</span><br><span class="line">	3.当前缓存不符合要求.关闭缓存	</span><br><span class="line">  if (cacheCandidate != null &amp;&amp; cacheResponse == null) &#123;</span><br><span class="line">    cacheCandidate.body?.closeQuietly()</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  既不使用网络请求,也不使用缓存,那么久返回一个504的响应</span><br><span class="line">  if (networkRequest == null &amp;&amp; cacheResponse == null) &#123;</span><br><span class="line">    return Response.Builder()</span><br><span class="line">        .request(chain.request())</span><br><span class="line">        .protocol(Protocol.HTTP_1_1)</span><br><span class="line">        .code(HTTP_GATEWAY_TIMEOUT)</span><br><span class="line">        .message(&quot;Unsatisfiable Request (only-if-cached)&quot;)</span><br><span class="line">        .body(EMPTY_RESPONSE)</span><br><span class="line">        .sentRequestAtMillis(-1L)</span><br><span class="line">        .receivedResponseAtMillis(System.currentTimeMillis())</span><br><span class="line">        .build()</span><br><span class="line">  &#125;</span><br><span class="line">	不使用网络请求,那么就使用缓存的响应</span><br><span class="line">  if (networkRequest == null) &#123;</span><br><span class="line">    return cacheResponse!!.newBuilder()</span><br><span class="line">        .cacheResponse(stripBody(cacheResponse))</span><br><span class="line">        .build()</span><br><span class="line">  &#125;</span><br><span class="line">	到这里说明需要使用网络请求获取服务器的响应.进一步让下个拦截器获取响应</span><br><span class="line">  var networkResponse: Response? = null</span><br><span class="line">  try &#123;</span><br><span class="line">    networkResponse = chain.proceed(networkRequest)</span><br><span class="line">  &#125; finally &#123;</span><br><span class="line">  	//及时关闭资源.</span><br><span class="line">    if (networkResponse == null &amp;&amp; cacheCandidate != null) &#123;</span><br><span class="line">      cacheCandidate.body?.closeQuietly()</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">	如果既有缓存的响应.又拿到了网络响应.就需要把二者结合.用网络响应的头更新缓存响应,然后在保存起来.</span><br><span class="line">	说明此时是一个Conditional Get请求</span><br><span class="line">	这里查了下服务器.服务器可能返回304表示缓存继续使用.或者是新的响应.都要把新的响应更新为最新的缓存</span><br><span class="line">  if (cacheResponse != null) &#123;</span><br><span class="line">  //服务器返回304.就把缓存响应和网络响应合并,更新到缓存</span><br><span class="line">    if (networkResponse?.code == HTTP_NOT_MODIFIED) &#123;</span><br><span class="line">      val response = cacheResponse.newBuilder()</span><br><span class="line">          .headers(combine(cacheResponse.headers, networkResponse.headers))</span><br><span class="line">          .sentRequestAtMillis(networkResponse.sentRequestAtMillis)</span><br><span class="line">          .receivedResponseAtMillis(networkResponse.receivedResponseAtMillis)</span><br><span class="line">          .cacheResponse(stripBody(cacheResponse))</span><br><span class="line">          .networkResponse(stripBody(networkResponse))</span><br><span class="line">          .build()</span><br><span class="line"></span><br><span class="line">      networkResponse.body!!.close()</span><br><span class="line">      cache.update(cacheResponse, response)</span><br><span class="line">      return response</span><br><span class="line">    &#125; else &#123;</span><br><span class="line">    关闭原有缓存的资源,这里是关闭流</span><br><span class="line">      cacheResponse.body?.closeQuietly()</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">//网络响应和缓存响应封装在一起.stripBody是把响应的body置空</span><br><span class="line">  val response = networkResponse!!.newBuilder()</span><br><span class="line">      .cacheResponse(stripBody(cacheResponse))</span><br><span class="line">      .networkResponse(stripBody(networkResponse))</span><br><span class="line">      .build()</span><br><span class="line">保存缓存.但是只能是get请求才可以有缓存,同时还要判断响应的code.这里的逻辑就是http缓存的逻辑.</span><br><span class="line">  if (cache != null) &#123;</span><br><span class="line">    if (response.promisesBody() &amp;&amp; CacheStrategy.isCacheable(response, networkRequest)) &#123;</span><br><span class="line">      // Offer this request to the cache.</span><br><span class="line">      val cacheRequest = cache.put(response)</span><br><span class="line">      return cacheWritingResponse(cacheRequest, response)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    if (HttpMethod.invalidatesCache(networkRequest.method)) &#123;</span><br><span class="line">      try &#123;</span><br><span class="line">        cache.remove(networkRequest)</span><br><span class="line">      &#125; catch (_: IOException) &#123;</span><br><span class="line">        // The cache cannot be written.</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  return response</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>.可以看到.主要是根据CacheStrategy缓存策略的networkRequest和cacheResponse来判断是请求网络还是使用本地缓存.然后如果是请求网络.调用拦截器链得到networkResponse后又根据网络响应的头来决定如何更新本地缓存.只有get请求可以被缓存.</p>
+<h3 id="3-4-1CacheStrategy-缓存策略"><a href="#3-4-1CacheStrategy-缓存策略" class="headerlink" title="3.4.1CacheStrategy 缓存策略"></a>3.4.1CacheStrategy 缓存策略</h3><p>通过给定的请求和缓存响应.来决定是使用网络还是使用缓存还是都使用.</p>
+<p>CacheInterceptor里调用缓存策略的方式,注意.缓存策略里的response是从cache缓存里取的.缓存策略是在负责判断缓存是否有用,是否应该请求网络</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">val strategy = CacheStrategy.Factory(now, chain.request(), cacheCandidate).compute()</span><br><span class="line">val networkRequest = strategy.networkRequest</span><br><span class="line">val cacheResponse = strategy.cacheResponse</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br></pre></td><td class="code"><pre><span class="line">CacheStrategy 这里主要是根据请求头和缓存响应的头来判断</span><br><span class="line">private fun computeCandidate(): CacheStrategy &#123;</span><br><span class="line">  // 没有缓存响应</span><br><span class="line">  if (cacheResponse == null) &#123;</span><br><span class="line">    return CacheStrategy(request, null)</span><br><span class="line">  &#125;</span><br><span class="line">	//https请求.缓存响应却没有tls握手</span><br><span class="line">  if (request.isHttps &amp;&amp; cacheResponse.handshake == null) &#123;</span><br><span class="line">    return CacheStrategy(request, null)</span><br><span class="line">  &#125;</span><br><span class="line">	//不可缓存,根据request的code.如302,500,</span><br><span class="line">  if (!isCacheable(cacheResponse, request)) &#123;</span><br><span class="line">    return CacheStrategy(request, null)</span><br><span class="line">  &#125;</span><br><span class="line">cacheControl 是nocache 或者.header里有If-Modified-Since或If-None-Match,就不缓存</span><br><span class="line">If-Modified-Since是上传响应返回的Last-Modified最后修改时间.下次请求带上来让服务器判断本地缓存是否可以用</span><br><span class="line">If-None-Match是上次响应返回的etag.下次请求带上让服务器判断缓存etag是否过期</span><br><span class="line">  val requestCaching = request.cacheControl</span><br><span class="line">  if (requestCaching.noCache || hasConditions(request)) &#123;</span><br><span class="line">    return CacheStrategy(request, null)</span><br><span class="line">  &#125;</span><br><span class="line">这里是用缓存响应来判断.通过过期时间来判断</span><br><span class="line">  val responseCaching = cacheResponse.cacheControl</span><br><span class="line">  val ageMillis = cacheResponseAge()</span><br><span class="line">  var freshMillis = computeFreshnessLifetime()</span><br><span class="line">  if (requestCaching.maxAgeSeconds != -1) &#123;</span><br><span class="line">    freshMillis = minOf(freshMillis, SECONDS.toMillis(requestCaching.maxAgeSeconds.toLong()))</span><br><span class="line">  &#125;</span><br><span class="line">如果 age + min-fresh &gt;= max-age &amp;&amp; age + min-fresh &lt; max-age + max-stale，则虽然缓存过期了，     //但是缓存继续可以使用，只是在头部添加 110 警告码</span><br><span class="line">  if (!responseCaching.noCache &amp;&amp; ageMillis + minFreshMillis &lt; freshMillis + maxStaleMillis) &#123;</span><br><span class="line">    val builder = cacheResponse.newBuilder()</span><br><span class="line">    if (ageMillis + minFreshMillis &gt;= freshMillis) &#123;</span><br><span class="line">      builder.addHeader(&quot;Warning&quot;, &quot;110 HttpURLConnection \&quot;Response is stale\&quot;&quot;)</span><br><span class="line">    &#125;</span><br><span class="line">    val oneDayMillis = 24 * 60 * 60 * 1000L</span><br><span class="line">    if (ageMillis &gt; oneDayMillis &amp;&amp; isFreshnessLifetimeHeuristic()) &#123;</span><br><span class="line">      builder.addHeader(&quot;Warning&quot;, &quot;113 HttpURLConnection \&quot;Heuristic expiration\&quot;&quot;)</span><br><span class="line">    &#125;</span><br><span class="line">    return CacheStrategy(null, builder.build())</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  到这里就是有说明提供的缓存响应可以使用.然后对请求略加修改,编程网络请求networkrequest</span><br><span class="line">  val conditionName: String</span><br><span class="line">  val conditionValue: String?</span><br><span class="line">  when &#123;</span><br><span class="line">    etag != null -&gt; &#123;</span><br><span class="line">      conditionName = &quot;If-None-Match&quot;</span><br><span class="line">      conditionValue = etag</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    lastModified != null -&gt; &#123;</span><br><span class="line">      conditionName = &quot;If-Modified-Since&quot;</span><br><span class="line">      conditionValue = lastModifiedString</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    servedDate != null -&gt; &#123;</span><br><span class="line">      conditionName = &quot;If-Modified-Since&quot;</span><br><span class="line">      conditionValue = servedDateString</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    else -&gt; return CacheStrategy(request, null) // No condition! Make a regular request.</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  val conditionalRequestHeaders = request.headers.newBuilder()</span><br><span class="line">  conditionalRequestHeaders.addLenient(conditionName, conditionValue!!)</span><br><span class="line">	返回缓存响应和网络请求.</span><br><span class="line">  val conditionalRequest = request.newBuilder()</span><br><span class="line">      .headers(conditionalRequestHeaders.build())</span><br><span class="line">      .build()</span><br><span class="line">  return CacheStrategy(conditionalRequest, cacheResponse)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>逻辑其实比较好理解.就是根据传入的请求的header和缓存响应的header. 根据http协议的缓存逻辑.判断哪些情况下不能缓存.做到最后说明是可以缓存的.修改请求头.返回出去.</p>
+<h3 id="3-4-2-DiskLruCache"><a href="#3-4-2-DiskLruCache" class="headerlink" title="3.4.2 DiskLruCache"></a>3.4.2 DiskLruCache</h3><p>文件缓存管理类.他负责对缓存响应的增删改查.同时控制日志梳理的大小.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">class DiskLruCache internal constructor(</span><br><span class="line">	操作文件的类</span><br><span class="line">  internal val fileSystem: FileSystem,</span><br><span class="line">  日志目录</span><br><span class="line">  val directory: File,</span><br><span class="line">  日志最大数量</span><br><span class="line">  maxSize: Long): Closeable, Flushable &#123;</span><br><span class="line">  //记录每次操作的日志记录文件及备份文件</span><br><span class="line">  private val journalFile: File</span><br><span class="line">  private val journalFileTmp: File</span><br><span class="line">  private val journalFileBackup: File</span><br><span class="line">  //保存所有缓存的集合.</span><br><span class="line">  internal val lruEntries = LinkedHashMap&lt;String, Entry&gt;(0, 0.75f, true)</span><br></pre></td></tr></table></figure>
+
+<p>journalFile</p>
+<p>DiskLruCache内部日志文件，对cache的每一次读写都对应一条日志记录,格式如下</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"> libcore.io.DiskLruCache</span><br><span class="line">      1</span><br><span class="line">      100</span><br><span class="line">      2</span><br><span class="line">前5行固定不变，分别为：常量：libcore.io.DiskLruCache；diskCache版本；应用程序版本；valueCount(后文介绍)，空行</span><br><span class="line">      CLEAN 3400330d1dfc7f3f7f4b8d4d803dfcf6 832 21054</span><br><span class="line">      DIRTY 335c4c6028171cfddfbaae1a9c313c52</span><br><span class="line">      CLEAN 335c4c6028171cfddfbaae1a9c313c52 3934 2342</span><br><span class="line">      REMOVE 335c4c6028171cfddfbaae1a9c313c52</span><br><span class="line">      DIRTY 1ab96a171faeeee38496d8b330771a7a</span><br><span class="line">      CLEAN 1ab96a171faeeee38496d8b330771a7a 1600 234</span><br><span class="line">      READ 335c4c6028171cfddfbaae1a9c313c52</span><br><span class="line">      READ 3400330d1dfc7f3f7f4b8d4d803dfcf6    </span><br><span class="line">     </span><br><span class="line">     接下来每一行对应一个cache entry的一次状态记录，其格式为：[状态（DIRTY,CLEAN,READ,REMOVE），key，状态相关value(可选)]:</span><br><span class="line">     - DIRTY:表明一个cache entry正在被创建或更新，每一个成功的DIRTY记录都应该对应一个CLEAN或REMOVE操作。如果一个DIRTY缺少预期匹配的CLEAN/REMOVE，则对应entry操作失败，需要将其从lruEntries中删除</span><br><span class="line">     - CLEAN:说明cache已经被成功操作，当前可以被正常读取。每一个CLEAN行还需要记录其每一个value的长度</span><br><span class="line">     - READ: 记录一次cache读取操作</span><br><span class="line">     - REMOVE:记录一次cache清除</span><br></pre></td></tr></table></figure>
+
+<p>这里需要明确的是. 每个缓存数据.是一个entry. 而上边记录的是对 缓存entry 的每次操作.开始写入和创建时都是dirty.写入完成提交后成功的话就会生成clean,失败的话就生成remove记录.然后读取缓存entry时会生成read记录.</p>
+<p>这只是一个操作日志的记录文件.并不是 缓存entry的保存文件.</p>
+<ul>
+<li>DiskCacheLru初始化时通过读取日志文件创建cache容器：lruEntries。同时通过日志过滤操作不成功的cache项。相关逻辑在DiskLruCache.readJournalLine,DiskLruCache.processJournal</li>
+<li>初始化完成后，为避免日志文件不断膨胀，对日志进行重建精简，具体逻辑在DiskLruCache.rebuildJournal</li>
+<li>每当有cache操作时将其记录入日志文件中以备下次初始化时使用</li>
+<li>当冗余日志过多时，通过调用cleanUpRunnable线程重建日志</li>
+</ul>
+<p>DiskLruCache.Entry</p>
+<p>每个entry是一个缓存记录,这是一个内部类</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">internal inner class Entry internal constructor(</span><br><span class="line">   internal val key: String</span><br><span class="line"> ) &#123;</span><br><span class="line"> 	编辑entry的编辑器</span><br><span class="line">   internal var currentEditor: Editor? = null</span><br><span class="line"> 	valueCount 默认是2</span><br><span class="line">   internal val lengths: LongArray = LongArray(valueCount)</span><br><span class="line">   //保存cleanFiles的集合</span><br><span class="line">   internal val cleanFiles = mutableListOf&lt;File&gt;()</span><br><span class="line">   //保存dirtyFiles的集合</span><br><span class="line">   internal val dirtyFiles = mutableListOf&lt;File&gt;()</span><br><span class="line">   &#125;</span><br></pre></td></tr></table></figure>
+
+<p>key：每个cache都有一个key作为其标识符。当前cache的key为其对应URL的MD5字符串</p>
+<p>cleanFiles/dirtyFiles：每个cache对应2个cleanFiles，2个dirtyFiles。其中第一个cleanFiles/dirtyFiles记录cache的meta数据（如URL,创建时间，SSL握手记录等等），第二个文件记录cache的真正内容。cleanFiles记录处于稳定状态的cache结果，dirtyFiles记录处于创建或更新状态的cache</p>
+<p>currentEditor：entry编辑器，对entry的所有操作都是通过其编辑器完成。编辑器内部添加了同步锁</p>
+<p>SnapShot</p>
+<p>cache快照，记录了特定cache在某一个特定时刻的内容。每次向DiskLruCache请求时返回的都是目标cache的一个快照,相关逻辑在DiskLruCache.get中</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">inner class Snapshot internal constructor(</span><br><span class="line">    private val key: String,</span><br><span class="line">    private val sequenceNumber: Long,</span><br><span class="line">    private val sources: List&lt;Source&gt;,</span><br><span class="line">    private val lengths: LongArray</span><br><span class="line">  )</span><br></pre></td></tr></table></figure>
+
+<p>DiskLruCache.edit</p>
+<p>DiskLruCache可以看成是Cache在文件系统层的具体实现，所以其基本操作接口存在一一对应的关系：</p>
+<ul>
+<li>Cache.get() —&gt;DiskLruCache.get()</li>
+<li>Cache.put()—&gt;DiskLruCache.edit() //cache插入</li>
+<li>Cache.remove()—&gt;DiskLruCache.remove()</li>
+<li>Cache.update()—&gt;DiskLruCache.edit()//cache更新</li>
+</ul>
+<p>看下DiskLruCache的初始化方法,里边主要是readJurnal</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br></pre></td><td class="code"><pre><span class="line">private fun readJournal() &#123;</span><br><span class="line">  fileSystem.source(journalFile).buffer().use &#123; source -&gt;</span><br><span class="line">    val magic = source.readUtf8LineStrict()</span><br><span class="line">    val version = source.readUtf8LineStrict()</span><br><span class="line">    val appVersionString = source.readUtf8LineStrict()</span><br><span class="line">    val valueCountString = source.readUtf8LineStrict()</span><br><span class="line">    val blank = source.readUtf8LineStrict()</span><br><span class="line"></span><br><span class="line">    while (true) &#123;</span><br><span class="line">      try &#123;</span><br><span class="line">      //最重要是这里 一次读取一行数据</span><br><span class="line">        readJournalLine(source.readUtf8LineStrict())</span><br><span class="line">        lineCount++</span><br><span class="line">      &#125; catch (_: EOFException) &#123;</span><br><span class="line">        break // End of journal.</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line">//CLEAN 3400330d1dfc7f3f7f4b8d4d803dfcf6 832 21054 列出一行记录</span><br><span class="line">private fun readJournalLine(line: String) &#123;</span><br><span class="line">    val firstSpace = line.indexOf(&apos; &apos;) 第一个空格</span><br><span class="line">    val keyBegin = firstSpace + 1</span><br><span class="line">    val secondSpace = line.indexOf(&apos; &apos;, keyBegin) 第二个空格</span><br><span class="line">    val key: String</span><br><span class="line">    if (secondSpace == -1) &#123;</span><br><span class="line">      key = line.substring(keyBegin) //如果是remove的 就删除这个key对应entry</span><br><span class="line">      if (firstSpace == REMOVE.length &amp;&amp; line.startsWith(REMOVE)) &#123;</span><br><span class="line">        lruEntries.remove(key)</span><br><span class="line">        return</span><br><span class="line">      &#125;</span><br><span class="line">    &#125; else &#123; 拿到key</span><br><span class="line">      key = line.substring(keyBegin, secondSpace)</span><br><span class="line">    &#125;</span><br><span class="line">		通过key创建 entry. 加入到lruEntries中</span><br><span class="line">    var entry: Entry? = lruEntries[key]</span><br><span class="line">    if (entry == null) &#123;</span><br><span class="line">      entry = Entry(key)</span><br><span class="line">      lruEntries[key] = entry</span><br><span class="line">    &#125;</span><br><span class="line">    when &#123;</span><br><span class="line">      secondSpace != -1 &amp;&amp; firstSpace == CLEAN.length &amp;&amp; line.startsWith(CLEAN) -&gt; &#123;</span><br><span class="line">        val parts = line.substring(secondSpace + 1).split(&apos; &apos;)</span><br><span class="line">        entry.readable = true   对clean型entry的处理.clean是只读的.不需要editor</span><br><span class="line">        entry.currentEditor = null</span><br><span class="line">        entry.setLengths(parts)</span><br><span class="line">      &#125;</span><br><span class="line">			对dirty型entry的处理,创建一个editor</span><br><span class="line">      secondSpace == -1 &amp;&amp; firstSpace == DIRTY.length &amp;&amp; line.startsWith(DIRTY) -&gt; &#123;</span><br><span class="line">        entry.currentEditor = Editor(entry)</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+
+<p>可以看到就是遍历操作日志, 把dirty和clean的entry记录.删除remove的entry.给dirty的entry创建编辑器editor</p>
+<p>readJurnal 后还跟着 processJournal</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">private fun processJournal() &#123;</span><br><span class="line"></span><br><span class="line">  val i = lruEntries.values.iterator()</span><br><span class="line">  while (i.hasNext()) &#123;</span><br><span class="line">    val entry = i.next()</span><br><span class="line">    	对clean型entry的editor是null</span><br><span class="line">    if (entry.currentEditor == null) &#123;</span><br><span class="line">      for (t in 0 until valueCount) &#123;</span><br><span class="line">        size += entry.lengths[t]</span><br><span class="line">      &#125;</span><br><span class="line">    &#125; else &#123; dirty型的entry不是null.这里是把这个entry 给删除了.文件和entry都删除</span><br><span class="line">      entry.currentEditor = null</span><br><span class="line">      for (t in 0 until valueCount) &#123;</span><br><span class="line">        fileSystem.delete(entry.cleanFiles[t])</span><br><span class="line">        fileSystem.delete(entry.dirtyFiles[t])</span><br><span class="line">      &#125;</span><br><span class="line">      i.remove()</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>到这里.lruEntries里就剩下所有clean型的entry了.entry创建的时候.会生成2个clean文件.2个dirty文件.</p>
+<p>看看DiskLruCache的get方法</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">operator fun get(key: String): Snapshot? &#123;</span><br><span class="line">  initialize() //还是先初始lruentry.得到所有clean类型</span><br><span class="line">  拿到entry,拿到对应的 snapshot.返回</span><br><span class="line">  val entry = lruEntries[key] ?: return null</span><br><span class="line">  if (!entry.readable) return null</span><br><span class="line">  val snapshot = entry.snapshot() ?: return null</span><br><span class="line">	//写一条读取的操作记录</span><br><span class="line">  journalWriter!!.writeUtf8(READ)</span><br><span class="line">      .writeByte(&apos; &apos;.toInt())</span><br><span class="line">      .writeUtf8(key)</span><br><span class="line">      .writeByte(&apos;\n&apos;.toInt())</span><br><span class="line">      </span><br><span class="line">  return snapshot</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在看看删除</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">internal fun removeEntry(entry: Entry): Boolean &#123;</span><br><span class="line">editor 的detect 会删除这个entry的所有dirty文件</span><br><span class="line">  entry.currentEditor?.detach() </span><br><span class="line">	在删除这个entry的所有clean文件</span><br><span class="line">  for (i in 0 until valueCount) &#123;</span><br><span class="line">    fileSystem.delete(entry.cleanFiles[i])</span><br><span class="line">    size -= entry.lengths[i]</span><br><span class="line">    entry.lengths[i] = 0</span><br><span class="line">  &#125;</span><br><span class="line">	写入删除日志</span><br><span class="line">  journalWriter!!.writeUtf8(REMOVE)</span><br><span class="line">      .writeByte(&apos; &apos;.toInt())</span><br><span class="line">      .writeUtf8(entry.key)</span><br><span class="line">      .writeByte(&apos;\n&apos;.toInt())</span><br><span class="line">   删除这个entry</span><br><span class="line">  lruEntries.remove(entry.key)</span><br><span class="line">	清理日志</span><br><span class="line">  if (journalRebuildRequired()) &#123;</span><br><span class="line">    cleanupQueue.schedule(cleanupTask)</span><br><span class="line">  &#125;</span><br><span class="line">  return true</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>缓存的加入在cache类里.看看Cache.put</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br></pre></td><td class="code"><pre><span class="line">internal fun put(response: Response): CacheRequest? &#123;</span><br><span class="line">  val requestMethod = response.request.method</span><br><span class="line"> </span><br><span class="line">	这个entry是cache中国的.</span><br><span class="line">  val entry = Entry(response)</span><br><span class="line">  var editor: DiskLruCache.Editor? = null</span><br><span class="line">  try &#123;</span><br><span class="line">  //拿到url 对应的diskLruCache的editor</span><br><span class="line">    editor = cache.edit(key(response.request.url)) ?: return null</span><br><span class="line">    entry.writeTo(editor) //这里最重要.同流的方式.写入到editor的dirty文件中</span><br><span class="line">    return RealCacheRequest(editor)</span><br><span class="line">  &#125; catch (_: IOException) &#123;</span><br><span class="line">    return null</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line">	</span><br><span class="line">fun writeTo(editor: DiskLruCache.Editor) &#123;</span><br><span class="line">      editor.newSink(ENTRY_METADATA).buffer().use &#123; sink -&gt;</span><br><span class="line">        sink.writeUtf8(url).writeByte(&apos;\n&apos;.toInt())</span><br><span class="line">        sink.writeUtf8(requestMethod).writeByte(&apos;\n&apos;.toInt())</span><br><span class="line">        sink.writeDecimalLong(varyHeaders.size.toLong()).writeByte(&apos;\n&apos;.toInt())</span><br><span class="line">        写入所有的请求header.</span><br><span class="line">        for (i in 0 until varyHeaders.size) &#123;</span><br><span class="line">          sink.writeUtf8(varyHeaders.name(i))</span><br><span class="line">              .writeUtf8(&quot;: &quot;)</span><br><span class="line">              .writeUtf8(varyHeaders.value(i))</span><br><span class="line">              .writeByte(&apos;\n&apos;.toInt())</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        sink.writeUtf8(StatusLine(protocol, code, message).toString()).writeByte(&apos;\n&apos;.toInt())</span><br><span class="line">        写入所有响应头</span><br><span class="line">        sink.writeDecimalLong((responseHeaders.size + 2).toLong()).writeByte(&apos;\n&apos;.toInt())</span><br><span class="line">        for (i in 0 until responseHeaders.size) &#123;</span><br><span class="line">          sink.writeUtf8(responseHeaders.name(i))</span><br><span class="line">              .writeUtf8(&quot;: &quot;)</span><br><span class="line">              .writeUtf8(responseHeaders.value(i))</span><br><span class="line">              .writeByte(&apos;\n&apos;.toInt())</span><br><span class="line">        &#125;</span><br><span class="line">        </span><br><span class="line">			写入https的数据</span><br><span class="line">        if (isHttps) &#123;</span><br><span class="line">          sink.writeByte(&apos;\n&apos;.toInt())</span><br><span class="line">          sink.writeUtf8(handshake!!.cipherSuite.javaName).writeByte(&apos;\n&apos;.toInt())</span><br><span class="line">          writeCertList(sink, handshake.peerCertificates)</span><br><span class="line">          writeCertList(sink, handshake.localCertificates)</span><br><span class="line">          sink.writeUtf8(handshake.tlsVersion.javaName).writeByte(&apos;\n&apos;.toInt())</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<p>DiskLruCache的commitEdit 方法.就是对把entry记录由dirty转为clean的方法.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line">internal fun completeEdit(editor: Editor, success: Boolean) &#123;</span><br><span class="line">  val entry = editor.entry</span><br><span class="line">  </span><br><span class="line">dirtyfile转为cleanfile.同时更新尺寸.用于 lrucache计算</span><br><span class="line">  for (i in 0 until valueCount) &#123;</span><br><span class="line">    val dirty = entry.dirtyFiles[i]</span><br><span class="line">    if (success) &#123;</span><br><span class="line">      if (fileSystem.exists(dirty)) &#123;</span><br><span class="line">        val clean = entry.cleanFiles[i]</span><br><span class="line">        fileSystem.rename(dirty, clean)</span><br><span class="line">        val oldLength = entry.lengths[i]</span><br><span class="line">        val newLength = fileSystem.size(clean)</span><br><span class="line">        entry.lengths[i] = newLength</span><br><span class="line">        size = size - oldLength + newLength</span><br><span class="line">      &#125;</span><br><span class="line">    &#125; else &#123;</span><br><span class="line">      fileSystem.delete(dirty)</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">	写一条clean记录.如果不可读,就移除这entry.并写一个remove记录.</span><br><span class="line">  journalWriter!!.apply &#123;</span><br><span class="line">    if (entry.readable || success) &#123;</span><br><span class="line">      entry.readable = true</span><br><span class="line">      writeUtf8(CLEAN).writeByte(&apos; &apos;.toInt())</span><br><span class="line">      writeUtf8(entry.key)</span><br><span class="line">      entry.writeLengths(this)</span><br><span class="line">      writeByte(&apos;\n&apos;.toInt())</span><br><span class="line">      if (success) &#123;</span><br><span class="line">        entry.sequenceNumber = nextSequenceNumber++</span><br><span class="line">      &#125;</span><br><span class="line">    &#125; else &#123;</span><br><span class="line">      lruEntries.remove(entry.key)</span><br><span class="line">      writeUtf8(REMOVE).writeByte(&apos; &apos;.toInt())</span><br><span class="line">      writeUtf8(entry.key)</span><br><span class="line">      writeByte(&apos;\n&apos;.toInt())</span><br><span class="line">    &#125;</span><br><span class="line">    flush()</span><br><span class="line">  &#125;</span><br><span class="line">	进行lrucache的清理.</span><br><span class="line">  if (size &gt; maxSize || journalRebuildRequired()) &#123;</span><br><span class="line">    cleanupQueue.schedule(cleanupTask)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里看到.diskLruCache 管理entry 集合.而entry中文件的读写则是由 editor来完成.</p>
+<p>附一个比较好的讲解<a href="https://yq.aliyun.com/articles/78102?spm=a2c4e.11153940.0.0.6e5f5246b6YrkM" target="_blank" rel="noopener">https://yq.aliyun.com/articles/78102?spm=a2c4e.11153940.0.0.6e5f5246b6YrkM</a></p>
+<h2 id="3-5-连接器拦截器-ConnectInterceptor"><a href="#3-5-连接器拦截器-ConnectInterceptor" class="headerlink" title="3.5 连接器拦截器 ConnectInterceptor"></a>3.5 连接器拦截器 ConnectInterceptor</h2><p>这里是为了和服务器建立链接的拦截器</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">override fun intercept(chain: Interceptor.Chain): Response &#123;</span><br><span class="line">  val realChain = chain as RealInterceptorChain</span><br><span class="line">  得到Exchange,这是数据发送接收的交换类</span><br><span class="line">  val exchange = realChain.call.initExchange(chain)</span><br><span class="line">  val connectedChain = realChain.copy(exchange = exchange)</span><br><span class="line">  return connectedChain.proceed(realChain.request)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>看起来很简单.但是内容很多.一步步看</p>
+<p>  val exchange = realChain.call.initExchange(chain) 调用RealCall.initExchange</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">internal fun initExchange(chain: RealInterceptorChain): Exchange &#123;</span><br><span class="line">	1.codec是 ExchangeCodec类,实现是Http1ExchangeCodec和Http2ExchangeCodec分别对应HTTP1.1和http2.0的协议.主要写出request.读取response</span><br><span class="line">	找到合适的codec</span><br><span class="line">  val codec = exchangeFinder!!.find(client, chain)</span><br><span class="line">  2.exchange是对codec的封装,同时实现了EventListener事件的发送</span><br><span class="line">  val result = Exchange(this, eventListener, exchangeFinder!!, codec)</span><br><span class="line">  this.interceptorScopedExchange = result</span><br><span class="line"></span><br><span class="line">  synchronized(connectionPool) &#123;</span><br><span class="line">    this.exchange = result</span><br><span class="line">    this.exchangeRequestDone = false</span><br><span class="line">    this.exchangeResponseDone = false</span><br><span class="line">    return result</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="3-5-1ExchangeFinder-find-找到合适的数据交换类"><a href="#3-5-1ExchangeFinder-find-找到合适的数据交换类" class="headerlink" title="3.5.1ExchangeFinder.find 找到合适的数据交换类"></a>3.5.1ExchangeFinder.find 找到合适的数据交换类</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">ExchangeFinder</span><br><span class="line">fun find(client: OkHttpClient,chain: RealInterceptorChain  ): ExchangeCodec &#123;</span><br><span class="line">     val resultConnection = findHealthyConnection(</span><br><span class="line">         connectTimeout = chain.connectTimeoutMillis,</span><br><span class="line">         readTimeout = chain.readTimeoutMillis,</span><br><span class="line">         writeTimeout = chain.writeTimeoutMillis,</span><br><span class="line">         pingIntervalMillis = client.pingIntervalMillis,</span><br><span class="line">         connectionRetryEnabled = client.retryOnConnectionFailure,</span><br><span class="line">         doExtensiveHealthChecks = chain.request.method != &quot;GET&quot;</span><br><span class="line">     )</span><br><span class="line">     return resultConnection.newCodec(client, chain)</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="3-5-2-findConnection建立合适的连接"><a href="#3-5-2-findConnection建立合适的连接" class="headerlink" title="3.5.2 findConnection建立合适的连接"></a>3.5.2 findConnection建立合适的连接</h3><pre><code>ExchangeFinder类 主要功能在findConnection里
+   private fun findConnection(connectTimeout: Int,readTimeout: Int,writeTimeout: Int,pingIntervalMillis: Int,connectionRetryEnabled: Boolean): RealConnection {
+    var foundPooledConnection = false
+    var result: RealConnection? = null
+    var selectedRoute: Route? = null
+    var releasedConnection: RealConnection?
+    val toClose: Socket?
+    synchronized(connectionPool) {
+    1.如果call原有链接.但是不支持这次的请求地址.就把原有的关掉
+      releasedConnection = call.connection
+      toClose = if (call.connection != null &amp;&amp;
+          (call.connection!!.noNewExchanges || !call.connection!!.supportsUrl(address.url))) {
+        call.releaseConnectionNoEvents()
+      } else {
+        null
+      }
+            2.复用原有连接
+      if (call.connection != null) {
+        // We had an already-allocated connection and it&apos;s good.
+        result = call.connection
+        releasedConnection = null
+      }
+            3.从连接池中获取一个连接
+      if (result == null) {
+        if (connectionPool.callAcquirePooledConnection(address, call, null, false)) {
+          foundPooledConnection = true
+          result = call.connection
+        } else if (nextRouteToTry != null) {
+          selectedRoute = nextRouteToTry
+          nextRouteToTry = null
+        }
+      }
+    }
+        4.创造一个路由选择器,路由就是地址和代理的组合        
+      if (localRouteSelector == null) {
+        localRouteSelector = RouteSelector(address, call.client.routeDatabase, call, eventListener)
+      }
+var routes: List&lt;Route&gt;? = null
+synchronized(connectionPool) {
+
+  if (newRouteSelection) {
+  5.通过路由再次尝试获取连接.这里会比较路由的dns 代理.port.协议等等.
+    if (connectionPool.callAcquirePooledConnection(address, call, routes, false)) {
+      foundPooledConnection = true
+      result = call.connection
+    }
+  }
+  6.如果没有找到已存在的合适的连接,就新建一个连接
+   if (!foundPooledConnection) {
+    result = RealConnection(connectionPool, selectedRoute!!)
+    connectingConnection = result
+  }
+}
+    7.执行TCP + TLS握手.建立连接.这是阻塞的操作.这里是建立socket连接.
+// Do TCP + TLS handshakes. This is a blocking operation.
+result!!.connect(
+    connectTimeout,
+    readTimeout,
+    writeTimeout,
+    pingIntervalMillis,
+    connectionRetryEnabled,
+    call,
+    eventListener
+)
+8合并连接(如果我们是建立大量并发连接到同一个host)如果不是.就把这个链接加入到连接池中.
+synchronized(connectionPool) {
+  connectingConnection = null
+  if (connectionPool.callAcquirePooledConnection(address, call, routes, true)) {
+    result!!.noNewExchanges = true
+    socket = result!!.socket()
+    result = call.connection
+  } else {
+    connectionPool.put(result!!)
+    call.acquireConnectionNoEvents(result!!)
+  }
+}
+最后返回这个链接.
+return result!!}</code></pre><ul>
+<li>查看当前是否有之前已经分配过的连接，有则直接使用</li>
+<li>从连接池中查找可复用的连接，有则返回该连接</li>
+<li>配置路由，配置后再次从连接池中查找是否有可复用连接，有则直接返回</li>
+<li>新建一个连接，其实是建立了soceket连接</li>
+<li>查看连接池是否有重复的多路复用连接，有则清除,没有就加入连接池</li>
+</ul>
+<h3 id="3-5-2Http2ExchangeCodec-数据交换类"><a href="#3-5-2Http2ExchangeCodec-数据交换类" class="headerlink" title="3.5.2Http2ExchangeCodec 数据交换类"></a>3.5.2Http2ExchangeCodec 数据交换类</h3><p>这是对http2.0协议的数据交换类简单来说HTTP/2主要解决了以下问题：</p>
+<ul>
+<li>报头压缩：HTTP/2使用HPACK压缩格式压缩请求和响应报头数据，减少不必要流量开销</li>
+<li>请求与响应复用：HTTP/2通过引入新的二进制分帧层实现了完整的请求和响应复用，客户端和服务器可以将HTTP消息分解为互不依赖的帧，然后交错发送，最后再在另一端将其重新组装</li>
+<li>指定数据流优先级：将 HTTP 消息分解为很多独立的帧之后，我们就可以复用多个数据流中的帧，客户端和服务器交错发送和传输这些帧的顺序就成为关键的性能决定因素。为了做到这一点，HTTP/2 标准允许每个数据流都有一个关联的权重和依赖关系</li>
+<li>流控制：HTTP/2 提供了一组简单的构建块，这些构建块允许客户端和服务器实现其自己的数据流和连接级流控制</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">class Http2ExchangeCodec(</span><br><span class="line">  client: OkHttpClient,</span><br><span class="line">  override val connection: RealConnection, //使用的连接</span><br><span class="line">  private val chain: RealInterceptorChain, //调用链</span><br><span class="line">  private val http2Connection: Http2Connection</span><br><span class="line">) : ExchangeCodec &#123;</span><br><span class="line">private var stream: Http2Stream? = null</span><br><span class="line">	拿到request的body </span><br><span class="line"> override fun createRequestBody(request: Request, contentLength: Long): Sink &#123;</span><br><span class="line">    return stream!!.getSink()</span><br><span class="line">  &#125;</span><br><span class="line">	写出request的header,可以看到.就是把参数封装到stream里了</span><br><span class="line">  override fun writeRequestHeaders(request: Request) &#123;</span><br><span class="line">		header组成集合		</span><br><span class="line">    val requestHeaders = http2HeadersList(request)</span><br><span class="line">    </span><br><span class="line">    stream = http2Connection.newStream(requestHeaders, hasRequestBody)</span><br><span class="line">    stream!!.readTimeout().timeout(chain.readTimeoutMillis.toLong(), TimeUnit.MILLISECONDS)</span><br><span class="line">    stream!!.writeTimeout().timeout(chain.writeTimeoutMillis.toLong(),TimeUnit.MILLISECONDS)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  override fun flushRequest() &#123;</span><br><span class="line">    http2Connection.flush()</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里看到.主要功能都是在http2Connection中.这个看了下.比较难.现在看不太懂.大概意思就是不同的请求都做成帧,使用一个连接来发送.并且请求的头和请求提是分开发送的.</p>
+<p>可以看到这个拦截器.主要是找到合适的连接.并创建数据交换类. 这里我们要知道.可能一个连接会发送多个请求.所以连接由连接池管理.产生连接是socket连接.这里就产生了两个流,对于http1.1来说.是Http1ExchangeCodec里的source: BufferedSource(读取缓存)和sink: BufferedSink(写出缓存),通过这两个流来负责与服务器交互.</p>
+<h2 id="3-6-CallServerInterceptor"><a href="#3-6-CallServerInterceptor" class="headerlink" title="3.6 CallServerInterceptor"></a>3.6 CallServerInterceptor</h2><p>这是最后一个拦截器.(不算自己提供的).他用来产生一个网络call给服务器.到这里时.与服务器的连接已经有了.读取写入的流也有了.这里就是发送数据.然后获取返回的数据.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br></pre></td><td class="code"><pre><span class="line">override fun intercept(chain: Interceptor.Chain): Response &#123;</span><br><span class="line">  val realChain = chain as RealInterceptorChain</span><br><span class="line">  1.这个exchange 的实现是Http1ExchangeCodec或者Http2ExchangeCodec,这是数据写出读入的真正交换器</span><br><span class="line">  val exchange = realChain.exchange!!</span><br><span class="line">  2. 层层封装后的请求</span><br><span class="line">  val request = realChain.request</span><br><span class="line">  val requestBody = request.body</span><br><span class="line"> 3.先把header写入到输出流中.</span><br><span class="line">  exchange.writeRequestHeaders(request)</span><br><span class="line"></span><br><span class="line">  var responseBuilder: Response.Builder? = null</span><br><span class="line">  4.这里表示request允许发送body .如果是get请求就没有body</span><br><span class="line">  if (HttpMethod.permitsRequestBody(request.method) &amp;&amp; requestBody != null) &#123;</span><br><span class="line">  如果请求有100-continue.表示是上次响应的100.户端应当继续发送请求.这个临时响应是用来通知客户端它的部分请求已经被服务器接收,且仍未被拒绝.客户端应当继续发送请求的剩余部分,或者如果请求已经完成,忽略这个响应.服务器必须在请求完成后向客户端发送一个最终响应.</span><br><span class="line">    if (&quot;100-continue&quot;.equals(request.header(&quot;Expect&quot;), ignoreCase = true)) &#123;</span><br><span class="line">    发送请求.读取响应. flushRequest就是输出流刷新缓存.输出内容到socket服务器</span><br><span class="line">      exchange.flushRequest()</span><br><span class="line">      读取响应头,如果响应头的code是100系列的.那么就返回空,也就是还要继续发送请求体</span><br><span class="line">      responseBuilder = exchange.readResponseHeaders(expectContinue = true)</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    if (responseBuilder == null) &#123;</span><br><span class="line">        5.为请求的body创建一个写出缓存sink.用来写出body</span><br><span class="line">        val bufferedRequestBody = exchange.createRequestBody(request, true).buffer()</span><br><span class="line">        body写出到缓冲buffer中</span><br><span class="line">        requestBody.writeTo(bufferedRequestBody)</span><br><span class="line">      &#125;</span><br><span class="line">    &#125; else &#123;</span><br><span class="line">    //这里表示响应头不是100.</span><br><span class="line">      exchange.noRequestBody()</span><br><span class="line">      if (!exchange.connection.isMultiplexed) &#123;</span><br><span class="line">        exchange.noNewExchangesOnConnection()</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125; </span><br><span class="line">	6.刷新缓存.写出请求的内容.这里就会把请求头和body一起写出去.</span><br><span class="line">  if (requestBody == null || !requestBody.isDuplex()) &#123;</span><br><span class="line">    exchange.finishRequest()</span><br><span class="line">  &#125;</span><br><span class="line">  if (responseBuilder == null) &#123;</span><br><span class="line">  7.读取响应头,从BufferedSource中读取.</span><br><span class="line">    responseBuilder = exchange.readResponseHeaders(expectContinue = false)!!</span><br><span class="line">  &#125;</span><br><span class="line">  8.由响应头构建响应.这里的body是空的.下边在根据响应code 来决定如何构建响应body</span><br><span class="line">  var response = responseBuilder</span><br><span class="line">      .request(request)</span><br><span class="line">      .handshake(exchange.connection.handshake())</span><br><span class="line">      .sentRequestAtMillis(sentRequestMillis)</span><br><span class="line">      .receivedResponseAtMillis(System.currentTimeMillis())</span><br><span class="line">      .build()</span><br><span class="line">  var code = response.code</span><br><span class="line">  if (code == 100) &#123; 9.表示响应未完成,仍需重试,构建一个要重试的响应</span><br><span class="line">    responseBuilder = exchange.readResponseHeaders(expectContinue = false)!!</span><br><span class="line">    response = responseBuilder</span><br><span class="line">        .request(request)</span><br><span class="line">        .handshake(exchange.connection.handshake())</span><br><span class="line">        .sentRequestAtMillis(sentRequestMillis)</span><br><span class="line">        .receivedResponseAtMillis(System.currentTimeMillis())</span><br><span class="line">        .build()</span><br><span class="line">    code = response.code</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  response = if (forWebSocket &amp;&amp; code == 101) &#123;</span><br><span class="line">    response.newBuilder()  构建空响应</span><br><span class="line">        .body(EMPTY_RESPONSE)</span><br><span class="line">        .build()</span><br><span class="line">  &#125; else &#123;</span><br><span class="line">    response.newBuilder() 构建一个含有响应body的source的响应返回.这里是含有响应body的</span><br><span class="line">        .body(exchange.openResponseBody(response))</span><br><span class="line">        .build()</span><br><span class="line">  &#125;</span><br><span class="line">  if (&quot;close&quot;.equals(response.request.header(&quot;Connection&quot;), ignoreCase = true) ||</span><br><span class="line">      &quot;close&quot;.equals(response.header(&quot;Connection&quot;), ignoreCase = true)) &#123;</span><br><span class="line">    exchange.noNewExchangesOnConnection()</span><br><span class="line">  &#125;</span><br><span class="line">  return response</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>可以看到.这里把请求和响应的头和body都分开处理了. 底层是交给Http1ExchangeCodec或者Http2ExchangeCodec对应http1.1和http2.0的数据交换.然后又把写出的数据封装成BufferedSink写出流和BufferedSource读取流. 这两个流带有缓冲. 并且有多个实现.这里就不细看了.</p>
+<p>大概逻辑是先写出请求头.在写出请求体. 然后获得响应头.根据code在决定响应体.然后返回给上层.</p>
+<p>附一个很好的讲解的.okhttp对网络的处理是很丰富的.考虑了各种网络情况.</p>
+<p><a href="https://yq.aliyun.com/articles/78101?spm=a2c4e.11153940.0.0.54d72e38d4OLgg" target="_blank" rel="noopener">https://yq.aliyun.com/articles/78101?spm=a2c4e.11153940.0.0.54d72e38d4OLgg</a></p>
+<p>HTTP网络响应码<a href="https://www.cnblogs.com/isykw/p/6115469.html" target="_blank" rel="noopener">https://www.cnblogs.com/isykw/p/6115469.html</a></p>
+<p>http2.0详解 <a href="https://juejin.im/post/5a4dfb2ef265da43305ee2d0" target="_blank" rel="noopener">https://juejin.im/post/5a4dfb2ef265da43305ee2d0</a></p>
+<p>附一张晚上别人的图</p>
+<p><img src="/2020/03/25/okhttp源码解析/1916953-fc6439af2bfefddc.jpg" alt="img"></p>
+<p><img src="/2020/03/25/okhttp源码解析/1916953-1f3fe0ee98ff2c26.png" alt="img"></p>
+
+    </div>
+
+    
+    
+    
+        
+      
+
+      <footer class="post-footer">
+          
+            
+          
+          <div class="post-tags">
+            
+              <a href="/tags/android工具源码/" rel="tag"># android工具源码</a>
+            
+          </div>
+        
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+              
+                <a href="/2020/03/17/glide-源码解析/" rel="next" title="glide-源码解析">
+                  <i class="fa fa-chevron-left"></i> glide-源码解析
+                </a>
+              
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+              
+                <a href="/2020/04/15/rxjava源码解析/" rel="prev" title="rxjava源码解析">
+                  rxjava源码解析 <i class="fa fa-chevron-right"></i>
+                </a>
+              
+            </div>
+          </div>
+        
+      </footer>
+    
+  </div>
+  
+  
+  
+  </article>
+
+  </div>
+
+
+          </div>
+          
+
+        </div>
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">liujiakuo</p>
+  <div class="site-description motion-element" itemprop="description"></div>
+</div>
+  <nav class="site-state motion-element">
+      <div class="site-state-item site-state-posts">
+        
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">19</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-tags">
+        
+        
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+        <span class="site-state-item-count">7</span>
+        <span class="site-state-item-name">tags</span>
+        
+      </div>
+    
+  </nav>
+
+
+
+        </div>
+      </div>
+      <!--noindex-->
+        <div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+            
+            
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-总体流程"><span class="nav-text">1.总体流程</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#okhttp的优点"><span class="nav-text">okhttp的优点</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#okhttp的总体架构"><span class="nav-text">okhttp的总体架构.</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#HTTP知识点"><span class="nav-text">HTTP知识点</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#http缓存机制"><span class="nav-text">http缓存机制</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#使用方式"><span class="nav-text">使用方式</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#执行请求流程"><span class="nav-text">执行请求流程</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#1-RealCall-enqueue-入栈请求"><span class="nav-text">1.RealCall.enqueue 入栈请求</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-1-AsyncCall-run"><span class="nav-text">1.1 AsyncCall.run</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-disptach-enqueue-分发器把请求分发"><span class="nav-text">2.disptach.enqueue 分发器把请求分发</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-RealCall-getResponseWithInterceptorChain"><span class="nav-text">3.RealCall.getResponseWithInterceptorChain</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#3-1-拦截器链执行"><span class="nav-text">3.1 拦截器链执行</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-2-重试拦截器RetryAndFollowUpInterceptor"><span class="nav-text">3.2 重试拦截器RetryAndFollowUpInterceptor</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-3桥接拦截器-BridgeInterceptor"><span class="nav-text">3.3桥接拦截器-BridgeInterceptor</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-4缓存拦截器-CacheInterceptor"><span class="nav-text">3.4缓存拦截器 CacheInterceptor</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#3-4-1CacheStrategy-缓存策略"><span class="nav-text">3.4.1CacheStrategy 缓存策略</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-4-2-DiskLruCache"><span class="nav-text">3.4.2 DiskLruCache</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-5-连接器拦截器-ConnectInterceptor"><span class="nav-text">3.5 连接器拦截器 ConnectInterceptor</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#3-5-1ExchangeFinder-find-找到合适的数据交换类"><span class="nav-text">3.5.1ExchangeFinder.find 找到合适的数据交换类</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-5-2-findConnection建立合适的连接"><span class="nav-text">3.5.2 findConnection建立合适的连接</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-5-2Http2ExchangeCodec-数据交换类"><span class="nav-text">3.5.2Http2ExchangeCodec 数据交换类</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-6-CallServerInterceptor"><span class="nav-text">3.6 CallServerInterceptor</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </div>
+      <!--/noindex-->
+      
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2020</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">liujiakuo</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> v3.9.0</div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">Theme – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> v7.3.0</div>
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+      </div>
+
+    
+
+  </div>
+
+  
+  <script src="/lib/jquery/index.js?v=3.4.1"></script>
+  <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+<script src="/js/utils.js?v=7.3.0"></script>
+  <script src="/js/motion.js?v=7.3.0"></script>
+
+
+  <script src="/js/schemes/muse.js?v=7.3.0"></script>
+
+
+
+<script src="/js/next-boot.js?v=7.3.0"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+
+  
+  <script src="/js/scrollspy.js?v=7.3.0"></script>
+<script src="/js/post-details.js?v=7.3.0"></script>
+
+
+</body>
+</html>
