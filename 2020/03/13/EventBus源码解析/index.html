@@ -65,7 +65,7 @@
 <meta property="og:locale" content="en">
 <meta property="og:image" content="http://yoursite.com/2020/03/13/EventBus源码解析/image-20200317111831057.png">
 <meta property="og:image" content="http://yoursite.com/2020/03/13/EventBus源码解析/image-20200317112854191.png">
-<meta property="og:updated_time" content="2020-03-17T12:45:43.741Z">
+<meta property="og:updated_time" content="2020-04-27T03:06:01.222Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="EventBus源码解析">
 <meta name="twitter:description" content="概述eventBus 的目的就是简化时间的传递.并且是以对象作为数据传递. 还加入了监听者可以选择在哪个线程监听.其实也是监听者模式.那么就有.发送信息方, 接受信息方,和信息. 同时由于接收方可以选择线程,并且一个接收者可以接收多中消息.发送者也可以发送种消息.就有常驻的后台线程,并且发送的线程都有消息队列.支持不断的添加消息.">
@@ -263,7 +263,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2020-03-17 20:45:43" itemprop="dateModified" datetime="2020-03-17T20:45:43+08:00">2020-03-17</time>
+                <time title="Modified: 2020-04-27 11:06:01" itemprop="dateModified" datetime="2020-04-27T11:06:01+08:00">2020-04-27</time>
               </span>
             
           
@@ -279,7 +279,7 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        <h1 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h1><p>eventBus 的目的就是简化时间的传递.并且是以对象作为数据传递. 还加入了监听者可以选择在哪个线程监听.</p><p>其实也是监听者模式.那么就有.发送信息方, 接受信息方,和信息. 同时由于接收方可以选择线程,并且一个接收者可以接收多中消息.发送者也可以发送种消息.就有常驻的后台线程,并且发送的线程都有消息队列.支持不断的添加消息.</p><a id="more"></a>
+        <h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><p>eventBus 的目的就是简化时间的传递.并且是以对象作为数据传递. 还加入了监听者可以选择在哪个线程监听.</p><p>其实也是监听者模式.那么就有.发送信息方, 接受信息方,和信息. 同时由于接收方可以选择线程,并且一个接收者可以接收多中消息.发送者也可以发送种消息.就有常驻的后台线程,并且发送的线程都有消息队列.支持不断的添加消息.</p><a id="more"></a>
 
 <p>简单看下使用过程</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line">public class EventBusAActivity extends AppCompatActivity &#123;</span><br><span class="line"></span><br><span class="line">    @Override</span><br><span class="line">    protected void onCreate(Bundle savedInstanceState) &#123;</span><br><span class="line">        super.onCreate(savedInstanceState);</span><br><span class="line">        setContentView(R.layout.activity_event_bus_a);</span><br><span class="line">        EventBus.getDefault().register(this); //注册为监听者.</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    @Override</span><br><span class="line">    protected void onDestroy() &#123;</span><br><span class="line">        super.onDestroy();</span><br><span class="line">        EventBus.getDefault().unregister(this); //销毁时取消注册.取消监听.</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public void onEvent(B b) &#123; //监听B对象的到来,方法名都是onEvent开头.通过参数来确定要监听什么对象</span><br><span class="line">        Toast.makeText(this, b.toString(), Toast.LENGTH_SHORT).show();</span><br><span class="line">    &#125;</span><br><span class="line">    public void postEvent(View view) &#123;//发送消息.</span><br><span class="line">        new Publish().postEvent();</span><br><span class="line">    &#125;</span><br><span class="line">    class B &#123; 被发送的对象</span><br><span class="line">         String  name;</span><br><span class="line">        public B(String name) &#123;</span><br><span class="line">            this.name = name;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public class Publish &#123;</span><br><span class="line">        void postEvent() &#123; </span><br><span class="line">        		发送消息.所有监听 B的监听者.都会收到消息.</span><br><span class="line">            EventBus.getDefault().post(new B(&quot;eventb&quot;));</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
@@ -423,8 +423,8 @@
 
             <div class="post-nav-prev post-nav-item">
               
-                <a href="/2020/03/13/图床/EventBus源码解析图床版/" rel="prev" title="EventBus源码解析-图床版">
-                  EventBus源码解析-图床版 <i class="fa fa-chevron-right"></i>
+                <a href="/2020/03/17/glide-源码解析/" rel="prev" title="glide-源码解析">
+                  glide-源码解析 <i class="fa fa-chevron-right"></i>
                 </a>
               
             </div>
@@ -479,7 +479,7 @@
         
           <a href="/archives/">
         
-          <span class="site-state-item-count">24</span>
+          <span class="site-state-item-count">12</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
@@ -502,9 +502,7 @@
         
           
         
-          
-        
-        <span class="site-state-item-count">7</span>
+        <span class="site-state-item-count">6</span>
         <span class="site-state-item-name">tags</span>
         
       </div>
@@ -525,7 +523,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#概述"><span class="nav-text">概述</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#事件订阅者"><span class="nav-text">事件订阅者</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#消息重载"><span class="nav-text">消息重载</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#线程切换"><span class="nav-text">线程切换</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#main线程消息"><span class="nav-text">main线程消息</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#后台线程消息"><span class="nav-text">后台线程消息</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#异步消息"><span class="nav-text">异步消息</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#消息处理对象池"><span class="nav-text">消息处理对象池</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#消息最终处理"><span class="nav-text">消息最终处理</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#发现事件订阅者"><span class="nav-text">发现事件订阅者</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#绑定订阅者和订阅消息"><span class="nav-text">绑定订阅者和订阅消息</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#取消订阅者绑定"><span class="nav-text">取消订阅者绑定</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#发送消息"><span class="nav-text">发送消息</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#消息加入队列"><span class="nav-text">消息加入队列</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#拿到所有消息类型"><span class="nav-text">拿到所有消息类型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#消息及订阅者封装"><span class="nav-text">消息及订阅者封装</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#分发消息到不同线程"><span class="nav-text">分发消息到不同线程</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#eventBus-流程概述"><span class="nav-text">eventBus 流程概述</span></a></li></ol></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#概述"><span class="nav-text">概述</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#事件订阅者"><span class="nav-text">事件订阅者</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#消息重载"><span class="nav-text">消息重载</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#线程切换"><span class="nav-text">线程切换</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#main线程消息"><span class="nav-text">main线程消息</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#后台线程消息"><span class="nav-text">后台线程消息</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#异步消息"><span class="nav-text">异步消息</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#消息处理对象池"><span class="nav-text">消息处理对象池</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#消息最终处理"><span class="nav-text">消息最终处理</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#发现事件订阅者"><span class="nav-text">发现事件订阅者</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#绑定订阅者和订阅消息"><span class="nav-text">绑定订阅者和订阅消息</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#取消订阅者绑定"><span class="nav-text">取消订阅者绑定</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#发送消息"><span class="nav-text">发送消息</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#消息加入队列"><span class="nav-text">消息加入队列</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#拿到所有消息类型"><span class="nav-text">拿到所有消息类型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#消息及订阅者封装"><span class="nav-text">消息及订阅者封装</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#分发消息到不同线程"><span class="nav-text">分发消息到不同线程</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#eventBus-流程概述"><span class="nav-text">eventBus 流程概述</span></a></li></ol></div>
             
 
           </div>

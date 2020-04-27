@@ -69,7 +69,7 @@
 <meta property="og:image" content="http://yoursite.com/2020/03/17/glide-源码解析/image-20200324225136996.png">
 <meta property="og:image" content="http://yoursite.com/2020/03/17/glide-源码解析/image-20200325105633335.png">
 <meta property="og:image" content="http://yoursite.com/2020/03/17/glide-源码解析/image-20200325111339778.png">
-<meta property="og:updated_time" content="2020-03-25T05:13:55.451Z">
+<meta property="og:updated_time" content="2020-04-27T03:04:21.329Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="glide-源码解析">
 <meta name="twitter:description" content="123Glide.with(this)        .load(&amp;quot;http://p3.pstatp.com/origin/pgc-image/15220293999066398493c24&amp;quot;)        .into(imageView);">
@@ -267,7 +267,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2020-03-25 13:13:55" itemprop="dateModified" datetime="2020-03-25T13:13:55+08:00">2020-03-25</time>
+                <time title="Modified: 2020-04-27 11:04:21" itemprop="dateModified" datetime="2020-04-27T11:04:21+08:00">2020-04-27</time>
               </span>
             
           
@@ -285,9 +285,12 @@
       
         <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Glide.with(this)</span><br><span class="line">        .load(&quot;http://p3.pstatp.com/origin/pgc-image/15220293999066398493c24&quot;)</span><br><span class="line">        .into(imageView);</span><br></pre></td></tr></table></figure><a id="more"></a>
 
-<h2 id="With"><a href="#With" class="headerlink" title="With"></a>With</h2><p> 主要工作.给activity 创建了一个SupportRequestManagerFragment,这是个fragment.但是没有view显示.并且给这个fragment 绑定了一个RequestManager 和一个lifecycle. lifecycle 是用来观察fragment的生命周期的.他会回调所有注册的LifecycleListener. 而这个RequestManager也是一个LifecycleListener. 也就是说使RequestManager可以检测到声明周期的变化.</p>
-<h2 id="load"><a href="#load" class="headerlink" title="load"></a>load</h2><p>主要是创建RequestBuilder.并把url赋值给他.</p>
-<h2 id="into"><a href="#into" class="headerlink" title="into"></a>into</h2><p>请求会抽象成 SingleRequest . 而目标对象抽象成target, 定义配置抽象成BaseRequestOptions.</p>
+<p>With</p>
+<p> 主要工作.给activity 创建了一个SupportRequestManagerFragment,这是个fragment.但是没有view显示.并且给这个fragment 绑定了一个RequestManager 和一个lifecycle. lifecycle 是用来观察fragment的生命周期的.他会回调所有注册的LifecycleListener. 而这个RequestManager也是一个LifecycleListener. 也就是说使RequestManager可以检测到声明周期的变化.</p>
+<p>load</p>
+<p>主要是创建RequestBuilder.并把url赋值给他.</p>
+<p>into</p>
+<p>请求会抽象成 SingleRequest . 而目标对象抽象成target, 定义配置抽象成BaseRequestOptions.</p>
 <p>Engine 是最后执行的引擎. RequestManager 负责管理发出请求.</p>
 <p>获取的资源抽象为 EngineResource</p>
 <p>加载任务是DecodeJob和 EngineJob</p>
@@ -497,8 +500,8 @@
           <div class="post-nav">
             <div class="post-nav-next post-nav-item">
               
-                <a href="/2020/03/17/图床/glide-源码解析图床版/" rel="next" title="glide-源码解析-图床版">
-                  <i class="fa fa-chevron-left"></i> glide-源码解析-图床版
+                <a href="/2020/03/13/EventBus源码解析/" rel="next" title="EventBus源码解析">
+                  <i class="fa fa-chevron-left"></i> EventBus源码解析
                 </a>
               
             </div>
@@ -563,7 +566,7 @@
         
           <a href="/archives/">
         
-          <span class="site-state-item-count">24</span>
+          <span class="site-state-item-count">12</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
@@ -586,9 +589,7 @@
         
           
         
-          
-        
-        <span class="site-state-item-count">7</span>
+        <span class="site-state-item-count">6</span>
         <span class="site-state-item-name">tags</span>
         
       </div>
@@ -609,7 +610,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#With"><span class="nav-text">With</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#load"><span class="nav-text">load</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#into"><span class="nav-text">into</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#内存缓存原理"><span class="nav-text">内存缓存原理</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#弱引用管理ActiveResources"><span class="nav-text">弱引用管理ActiveResources</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#弱引用添加"><span class="nav-text">弱引用添加</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#弱引用获取"><span class="nav-text">弱引用获取</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#清理弱引用"><span class="nav-text">清理弱引用</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#取图片内存缓存"><span class="nav-text">取图片内存缓存</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#LruResourceCache"><span class="nav-text">LruResourceCache</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#添加数据"><span class="nav-text">添加数据</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#优化容量"><span class="nav-text">优化容量</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#bitmap对象池"><span class="nav-text">bitmap对象池</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#SizeConfigStrategy"><span class="nav-text">SizeConfigStrategy</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#添加"><span class="nav-text">添加</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#查找"><span class="nav-text">查找</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#删除"><span class="nav-text">删除</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#LruBitmapPool"><span class="nav-text">LruBitmapPool</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#添加-1"><span class="nav-text">添加</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#获取"><span class="nav-text">获取</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#容量控制"><span class="nav-text">容量控制</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#bitmap-采样"><span class="nav-text">bitmap 采样</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Registry"><span class="nav-text">Registry</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#ModelLoaderRegistry"><span class="nav-text">ModelLoaderRegistry</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#MultiModelLoaderFactory"><span class="nav-text">MultiModelLoaderFactory</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#HttpGlideUrlLoader"><span class="nav-text">HttpGlideUrlLoader</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#HttpUrlFetcher"><span class="nav-text">HttpUrlFetcher</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#总结"><span class="nav-text">总结</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#EncoderRegistry"><span class="nav-text">EncoderRegistry</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#BitmapEncoder"><span class="nav-text">BitmapEncoder</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ResourceDecoderRegistry"><span class="nav-text">ResourceDecoderRegistry</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#ByteBufferBitmapDecoder"><span class="nav-text">ByteBufferBitmapDecoder</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Downsampler"><span class="nav-text">Downsampler</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#总结-1"><span class="nav-text">总结</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ResourceEncoderRegistry"><span class="nav-text">ResourceEncoderRegistry</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#DataRewinderRegistry"><span class="nav-text">DataRewinderRegistry</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#InputStreamRewinder"><span class="nav-text">InputStreamRewinder</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#TranscoderRegistry"><span class="nav-text">TranscoderRegistry</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#BitmapBytesTranscoder"><span class="nav-text">BitmapBytesTranscoder</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#总结-2"><span class="nav-text">总结</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#内存缓存原理"><span class="nav-text">内存缓存原理</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#弱引用管理ActiveResources"><span class="nav-text">弱引用管理ActiveResources</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#弱引用添加"><span class="nav-text">弱引用添加</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#弱引用获取"><span class="nav-text">弱引用获取</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#清理弱引用"><span class="nav-text">清理弱引用</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#取图片内存缓存"><span class="nav-text">取图片内存缓存</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#LruResourceCache"><span class="nav-text">LruResourceCache</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#添加数据"><span class="nav-text">添加数据</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#优化容量"><span class="nav-text">优化容量</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#bitmap对象池"><span class="nav-text">bitmap对象池</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#SizeConfigStrategy"><span class="nav-text">SizeConfigStrategy</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#添加"><span class="nav-text">添加</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#查找"><span class="nav-text">查找</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#删除"><span class="nav-text">删除</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#LruBitmapPool"><span class="nav-text">LruBitmapPool</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#添加-1"><span class="nav-text">添加</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#获取"><span class="nav-text">获取</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#容量控制"><span class="nav-text">容量控制</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#bitmap-采样"><span class="nav-text">bitmap 采样</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Registry"><span class="nav-text">Registry</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#ModelLoaderRegistry"><span class="nav-text">ModelLoaderRegistry</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#MultiModelLoaderFactory"><span class="nav-text">MultiModelLoaderFactory</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#HttpGlideUrlLoader"><span class="nav-text">HttpGlideUrlLoader</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#HttpUrlFetcher"><span class="nav-text">HttpUrlFetcher</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#总结"><span class="nav-text">总结</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#EncoderRegistry"><span class="nav-text">EncoderRegistry</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#BitmapEncoder"><span class="nav-text">BitmapEncoder</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ResourceDecoderRegistry"><span class="nav-text">ResourceDecoderRegistry</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#ByteBufferBitmapDecoder"><span class="nav-text">ByteBufferBitmapDecoder</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Downsampler"><span class="nav-text">Downsampler</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#总结-1"><span class="nav-text">总结</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ResourceEncoderRegistry"><span class="nav-text">ResourceEncoderRegistry</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#DataRewinderRegistry"><span class="nav-text">DataRewinderRegistry</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#InputStreamRewinder"><span class="nav-text">InputStreamRewinder</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#TranscoderRegistry"><span class="nav-text">TranscoderRegistry</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#BitmapBytesTranscoder"><span class="nav-text">BitmapBytesTranscoder</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#总结-2"><span class="nav-text">总结</span></a></li></ol></li></ol></div>
             
 
           </div>

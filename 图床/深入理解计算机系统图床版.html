@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+
+
+
+
+
+<html class="theme-next mist use-motion" lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="generator" content="Hexo 3.9.0">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=7.3.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=7.3.0">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=7.3.0">
+  <link rel="mask-icon" href="/images/logo.svg?v=7.3.0" color="#222">
+
+<link rel="stylesheet" href="/css/main.css?v=7.3.0">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.7.0">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '7.3.0',
+    exturl: false,
+    sidebar: {"position":"left","width":400,"display":"always","offset":12,"onmobile":false},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    save_scroll: false,
+    copycode: {"enable":false,"show_result":false,"style":null},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: '',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: 'Copy',
+      copy_success: 'Copied',
+      copy_failure: 'Copy failed'
+    }
+  };
+</script>
+
+  <meta name="description" content="本笔记内容来自,深入理解计本笔记内容来自,深入理解计算机系统,现代操作系统,操作系统精髓与设计原理程序的机器级表示编译的过程如图所示 首先,c预处理器把源文件中的#include指定的文件都插入源文件,并扩展替换#define声明的宏.然后编译器把源文件转成汇编文件(里边都是汇编指令),然后由汇编器转成可重定位目标程序(也就是机器码,但还缺少一些东西,如全局地址),最后由连接器把目标文件和库函数合">
+<meta name="keywords" content="计算机基础,操作系统">
+<meta property="og:type" content="website">
+<meta property="og:title" content="深入理解计算机系统图床版">
+<meta property="og:url" content="http://yoursite.com/图床/深入理解计算机系统图床版.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="本笔记内容来自,深入理解计本笔记内容来自,深入理解计算机系统,现代操作系统,操作系统精髓与设计原理程序的机器级表示编译的过程如图所示 首先,c预处理器把源文件中的#include指定的文件都插入源文件,并扩展替换#define声明的宏.然后编译器把源文件转成汇编文件(里边都是汇编指令),然后由汇编器转成可重定位目标程序(也就是机器码,但还缺少一些东西,如全局地址),最后由连接器把目标文件和库函数合">
+<meta property="og:locale" content="en">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006tNbRwly1ga01ztkndsj30km03r3yw.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006tNbRwly1ga020qehm3j30ir0le0vz.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006tNbRwly1ga021be7dzj30lb09qq4h.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006tNbRwly1ga020stiw2j30re06fta6.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006tNbRwly1ga01zrbw6xj30cn0bhjs9.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006tNbRwly1ga020pfd8gj30kd0eb41g.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006tNbRwly1ga020iybwyj30gp06zglw.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006tNbRwly1ga021a5y4cj30dg08f3yr.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006tNbRwly1ga020tmawqj30ox0bkabi.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006tNbRwly1ga01znxvtpj30ok07baby.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006tNbRwly1ga020hype8j30pm0f5taq.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006tNbRwly1ga020pxahkj30lt09gjs0.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006tNbRwly1ga01zovv8jj30f00g70u2.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006tNbRwly1ga0214gyg0j30nn06ata0.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006tNbRwly1ga021cu8kzj30ac0bwt99.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006tNbRwly1ga01ztkndsj30km03r3yw.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006tNbRwly1ga020lncarj30o408jt9x.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006tNbRwly1ga020fazjoj30l301uaa6.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006tNbRwly1ga01zs4qvjj30rv06wdho.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006tNbRwly1ga01zjuasnj30rl0cbn1a.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006tNbRwly1ga020js9hhj30ll0cuabc.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006tNbRwly1ga020ulpxjj30m00h2wga.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006tNbRwly1ga020e7jdcj30ec0ahdgn.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006tNbRwly1ga020id1emj30k006dt95.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006tNbRwly1ga01zsotebj30ow07c3zv.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006tNbRwly1ga01zuh5e8j30dp06v74k.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006tNbRwly1ga020u54kmj30n507ewfz.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006tNbRwly1ga01zwd33wj30fw093dgq.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006tNbRwly1ga020vl6wpj30pj0ozgq0.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006tNbRwly1ga020n1zgrj30or08ujs8.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006tNbRwly1ga020gkksmj30mc072taa.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006tNbRwly1ga01zzmgoyj30mi02gt8w.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006tNbRwly1ga0214048nj30qk04bab5.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006tNbRwly1ga020t9ezej30r10b0tam.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006tNbRwly1ga01zpu5fuj30ap05xjrx.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006tNbRwly1ga02188wjfj30h104vdga.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006tNbRwly1ga01zrqsfaj30jv06u3zk.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006tNbRwly1ga021dqyqmj30i30afdh6.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006tNbRwly1ga020v17ajj30c007njrv.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006tNbRwly1ga020rpvyfj30hj08zwfb.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006tNbRwly1ga020m44drj30nl094dhx.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006tNbRwly1ga020ox7jfj30mb05k750.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006tNbRwly1ga01zlp9mhj30n502kaak.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006tNbRwly1ga020kqyehj30mw02tjs2.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006tNbRwly1ga020njhe8j30jy0f240l.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006tNbRwly1ga01zvxskgj30n7051wfv.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006tNbRwly1ga01zl6o4lj30n309sq5p.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006tNbRwly1ga021dbe29j30lh0jb778.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006tNbRwly1ga02005pp9j30n70dywho.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006tNbRwly1ga021cc87ij30lt0su43j.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006tNbRwly1ga020emc0cj30nd0j2whw.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006tNbRwly1ga0216s6obj30id06xmxp.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006tNbRwly1ga021aqe1zj30ag09hq3q.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006tNbRwly1ga02191p0uj30my01zt90.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006tNbRwly1ga01zodoutj30an06dmxj.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006tNbRwly1ga020vzzx1j30l6095gmy.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006tNbRwly1ga020hk3xsj30mn01f74h.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006tNbRwly1ga020dcu2uj30940agq3o.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006tNbRwly1ga01zys429j30kj0ma77p.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006tNbRwly1ga020kdq4cj30n10mpgpr.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006tNbRwly1ga021bw3nvj30ve0epjvb.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006tNbRwly1ga0213f8tbj30h90ca3zr.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006tNbRwly1ga020rav5bj30i208p75q.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006tNbRwly1ga01zmznnvj30nb0af760.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006tNbRwly1ga01zngqtgj30h50890tx.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006tNbRwly1ga0214vy82j30fp0gu76i.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006tNbRwly1ga020sfwfsj30gv04f74r.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006tNbRwly1ga020gydp3j30c50bamxx.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006tNbRwly1ga01zk7lt0j30s003rjsl.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006tNbRwly1ga01zy9ctcj30i509kmy5.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006tNbRwly1ga020mmhgij30dr0dsgmo.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006tNbRwly1ga01zz7ol3j30fu09u75a.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006tNbRwly1ga021695o9j30as096t9p.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006tNbRwly1ga020frocoj30hm0e6dhm.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006tNbRwly1ga020o1oxfj30n40c1779.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006tNbRwly1ga01zuydeuj30nt0boq3o.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006tNbRwly1ga0217u8inj30qy04y75a.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006tNbRwly1ga0218o2a4j30fe0ci3zk.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006tNbRwly1ga01zmia8nj30dz08it9j.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006tNbRwly1ga01zu0vcxj30kq0s078k.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006tNbRwly1ga020g5ph4j30b006v74l.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006tNbRwly1ga020dpmmyj30jo0azjs4.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006tNbRwly1ga0219ny0zj30l60qdq6b.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006tNbRwly1ga0200m7ykj30j402waak.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006tNbRwly1ga020je5uqj30l30dggnl.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006tNbRwly1ga020qt6wxj30ht0ayq3u.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006tNbRwly1ga01zm4x80j30f508cwev.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006tNbRwly1ga01zqeucuj30a20dgab8.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006tNbRwly1ga0212y7qpj30i10deq44.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006tNbRwly1ga01zt3n9dj30jr04zwf8.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006tNbRwly1ga01zpc1tqj30j90a7t9m.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006tNbRwly1ga01zxty0rj30ku0h5gpe.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006tNbRwly1ga01zxboa8j30gz0c10u5.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006tNbRwly1ga020l63wvj30f80eldhu.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006tNbRwly1ga0215trmvj30jx08gmy2.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006tNbRwly1ga01zvhttxj30a90bowf4.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006tNbRwly1ga020ofqbtj30b90c2my1.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006tNbRwly1ga02176xqvj30is0bajsl.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006tNbRwly1ga01zqwgtuj30d307f74u.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006tNbRwly1ga0215fdkuj30cy07y3yw.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/006tNbRwly1ga01zkn0oxj30kw09ngmu.jpg">
+<meta property="og:updated_time" content="2019-12-17T13:55:33.222Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="深入理解计算机系统图床版">
+<meta name="twitter:description" content="本笔记内容来自,深入理解计本笔记内容来自,深入理解计算机系统,现代操作系统,操作系统精髓与设计原理程序的机器级表示编译的过程如图所示 首先,c预处理器把源文件中的#include指定的文件都插入源文件,并扩展替换#define声明的宏.然后编译器把源文件转成汇编文件(里边都是汇编指令),然后由汇编器转成可重定位目标程序(也就是机器码,但还缺少一些东西,如全局地址),最后由连接器把目标文件和库函数合">
+<meta name="twitter:image" content="https://tva1.sinaimg.cn/large/006tNbRwly1ga01ztkndsj30km03r3yw.jpg">
+  <link rel="canonical" href="http://yoursite.com/图床/深入理解计算机系统图床版">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: false,
+    isPage: true,
+    isArchive: false
+  };
+</script>
+
+  <title>深入理解计算机系统图床版 | Hexo</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .motion-element,
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-title { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="en">
+
+  <div class="container sidebar-position-left">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta">
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Hexo</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="Toggle navigation bar">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+      
+      
+      
+        
+        <li class="menu-item menu-item-home">
+      
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>Home</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-about">
+      
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>About</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-tags">
+      
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>Tags</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-archives">
+      
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>Archives</a>
+
+  </li>
+  </ul>
+
+    
+
+    
+    
+      
+      
+    
+      
+      
+    
+      
+      
+    
+      
+      
+    
+    
+
+  
+
+</nav>
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content page-post-detail">
+            
+
+  <div id="posts" class="posts-expand">
+    
+    
+    
+    <div class="post-block page">
+      <header class="post-header">
+
+<h1 class="post-title" itemprop="name headline">深入理解计算机系统图床版
+
+</h1>
+
+<div class="post-meta">
+  
+
+</div>
+
+</header>
+
+      
+      
+      
+      <div class="post-body">
+        
+          <p>本笔记内容来自,深入理解计本笔记内容来自,深入理解计算机系统,现代操作系统,操作系统精髓与设计原理</p><h1 id="程序的机器级表示"><a href="#程序的机器级表示" class="headerlink" title="程序的机器级表示"></a>程序的机器级表示</h1><h2 id="编译的过程"><a href="#编译的过程" class="headerlink" title="编译的过程"></a>编译的过程</h2><p>如图所示</p><p><img src="https://tva1.sinaimg.cn/large/006tNbRwly1ga01ztkndsj30km03r3yw.jpg" alt> </p><p>首先,c预处理器把源文件中的#include指定的文件都插入源文件,并扩展替换#define声明的宏.然后编译器把源文件转成汇编文件(里边都是汇编指令),然后由汇编器转成可重定位目标程序(也就是机器码,但还缺少一些东西,如全局地址),最后由连接器把目标文件和库函数合并,并产生全局地址.生产最终可执行程序.</p><a id="more"></a>
+
+
+
+<h2 id="汇编代码常用寄存器"><a href="#汇编代码常用寄存器" class="headerlink" title="汇编代码常用寄存器"></a>汇编代码常用寄存器</h2><p>pc 指向要执行的指令的地址</p>
+<p>sp 程序的栈指针,通过移动rsp来实现栈的pop和push</p>
+<p>其他寄存器,不同的CPU架构是不同的,这是x86-64的指令,可以看到同一个地址,如果先代表不同位数的数据,可以用不同名的寄存器,如 rax,eax,ax,al 都是一个寄存器地址,只是用不同长度来装某个数据.这是因为CPU的寻址位数在增加.而又要兼容原来的程序.</p>
+<p><img src="https://tva1.sinaimg.cn/large/006tNbRwly1ga020qehm3j30ir0le0vz.jpg" alt="image-20191210210938841"></p>
+<h2 id="寻址方式"><a href="#寻址方式" class="headerlink" title="寻址方式"></a>寻址方式</h2><p>寻址方式就是指令执行时选择从哪个地址或数据进行操作.这个地址由操作数提供</p>
+<ul>
+<li>立即数寻址    立即数就是要操作的值.这里不需要寻址.直接得到了操作要操作的值</li>
+</ul>
+<p>movl $0x1234,%eax      //把1234的值赋给 eax寄存器        %eax= 0x1234</p>
+<ul>
+<li>寄存器寻址    从一个寄存器中读取数据或者写入一个数据</li>
+</ul>
+<p>mov    %bp ,%sp    //把%bp 的内容写出到 %sp中        %sp=%bp</p>
+<ul>
+<li>绝对寻址    就是直接把一个数值作为内存地址进行使用</li>
+</ul>
+<p>mov    %bp ,1213    //把%bp的值移动到地址1213处</p>
+<ul>
+<li>间接寻址    操作数是一个寄存器,而这个寄存器的值才是真正要操作的地址,因此要先通过操作数找到改寄存器,在读出寄存器的值作为地址</li>
+</ul>
+<p>mov %bp, (%sp)    //把寄存器sp的值,作为一个地址,然后把寄存器%bp的值存入这个地址中</p>
+<ul>
+<li>基地址+偏移量寻址    给出一个基地址,并加上一个位移,得到的新地址用来操作</li>
+</ul>
+<p>mov %bp, 3(%sp)    //把sp的值作为基地址,在加上3个地址位移得到新地址,把bp的值写到这个新地址 </p>
+<p>下图中,imm表示是数字,ra,rb表示寄存器, R[ra]表示ra寄存器的值,M[addr] 表示addr元素的地址.</p>
+<p><img src="https://tva1.sinaimg.cn/large/006tNbRwly1ga021be7dzj30lb09qq4h.jpg" alt="image-20191210214831260"></p>
+<h2 id="条件码"><a href="#条件码" class="headerlink" title="条件码"></a>条件码</h2><p>有一个寄存器,专门保存指令执行过程中的状态.每条指令执行时会在更新这个寄存器的某个位,来进行跳转.</p>
+<p><img src="https://tva1.sinaimg.cn/large/006tNbRwly1ga020stiw2j30re06fta6.jpg" alt="image-20191211193450004"></p>
+<p>之后的跳转指令,就直接可以使用这个标记位.如 jump指令中的 jne 表示不等时跳转(jump not equal)</p>
+<h2 id="过程"><a href="#过程" class="headerlink" title="过程"></a>过程</h2><p>软件执行时,要在内存中分配空间,内存是连续的存储数据.他并不区分代码和程序,是人为把代码和程序放到不同地方产生不同的做用.</p>
+<p><img src="https://tva1.sinaimg.cn/large/006tNbRwly1ga01zrbw6xj30cn0bhjs9.jpg" alt="image-20191211200327550"></p>
+<p>每个进程的大概空间分布都是类似的.在不同的函数中进行跳转时.其实就是pc寄存器指向了不同的地址.比如由p进函数换到q函数.就需要把p函数的数据先暂时保存起来.然后为q分配空间.然后执行q.在q执行完成后.要把q保存的数据返回并释放.再把p函数的数据加载回来.继续执行p.</p>
+<p><img src="https://tva1.sinaimg.cn/large/006tNbRwly1ga020pfd8gj30kd0eb41g.jpg" alt="image-20191211200718155"></p>
+<h1 id="存储器层次"><a href="#存储器层次" class="headerlink" title="存储器层次"></a>存储器层次</h1><h2 id="存储设备"><a href="#存储设备" class="headerlink" title="存储设备"></a>存储设备</h2><p>静态RAM(SRAM)    通电后可以保持稳定的数据状态</p>
+<p>动态RAM(DRAM)    通电后数据状态只能保存100毫秒内,因此需要反复读出,重写回去来刷新数据.</p>
+<p>DRAM比SRAM慢10多倍,但是容量更大.</p>
+<p>这两种存储器需要通电才能有数据.因此只能做内存.叫做易失性存储.</p>
+<p>磁盘和固态硬盘是非易失性存储.但是读取速度慢.硬盘还需要寻道寻址.读取数据,更慢.而固态硬盘在多次读写后会损坏,失去存储的能力.</p>
+<p>寄存器是读写最快的存储结构,但是容量有限.因此和alu计算单元封装到一起.构成CPU</p>
+<p><img src="https://tva1.sinaimg.cn/large/006tNbRwly1ga020iybwyj30gp06zglw.jpg" alt="image-20191211202637990"></p>
+<h2 id="传输过程"><a href="#传输过程" class="headerlink" title="传输过程"></a>传输过程</h2><p>数据通过总线在CPU和内存之间传输.CPU把要读取的数据的内存地址放在总线上.传输给内存.内存得到地址后,找到对应的数据.放在总线上传输给CPU.</p>
+<p><img src="https://tva1.sinaimg.cn/large/006tNbRwly1ga021a5y4cj30dg08f3yr.jpg" alt="image-20191211203052699"></p>
+<p>所有的硬件通过一层控制器来连接到总线,使CPU可以忽略硬件的差异.内存中有专门为硬件保留的内存地址,找个地址专门给硬件保留.这叫内存映射io.每个控制器会有几个寄存器与CPU进行通信.</p>
+<p>硬件有块设备和字符设备.字符设备就是通过流来交流信息.而块设备是以块为单位可以单独的读写.每个块有自己的地址.流设备就只能从头读到尾了. 硬件设备通话还有缓冲区.等数据达到一定大小在进行传送.</p>
+<p>DMA    直接内存访问.就是数据不经过CPU.直接由内存和硬盘或者内存和硬件进行数据通信的方式.这种过程总.又CPU发出命令告诉哪些数据从内存中读写到那里.然后内存通过总线执行,数据传输完成够通知CPU.CPU只参与传输的开头和结尾.</p>
+<p><img src="https://tva1.sinaimg.cn/large/006tNbRwly1ga020tmawqj30ox0bkabi.jpg" alt="image-20191211204333468"></p>
+<p>硬盘中读写数据,一般是以页作为最小单位.页大小通常为512字节-4KB, 通常固态需要在写之前擦除旧数据.才能后写入新内容.而擦除是以块为单位,1块=32-128页.写的时候则是以页为单位写.有事块中有碎片.为了写入数据,可能要把整个块读取.在从新写入.(为了写4kb的数据,读出512kb的块在写回.称为写入放大效应)</p>
+<h2 id="局部性原理"><a href="#局部性原理" class="headerlink" title="局部性原理"></a>局部性原理</h2><p>通常代码和数据总是连贯的进行处理和执行的.这就是局部性原理.就是在内从中.指令通常在一个局部控件执行.这可以提高执行性能.</p>
+<p><img src="https://tva1.sinaimg.cn/large/006tNbRwly1ga01znxvtpj30ok07baby.jpg" alt="image-20191211205414559"></p>
+<h2 id="存储器金字塔"><a href="#存储器金字塔" class="headerlink" title="存储器金字塔"></a>存储器金字塔</h2><p><img src="https://tva1.sinaimg.cn/large/006tNbRwly1ga020hype8j30pm0f5taq.jpg" alt="image-20191211205443747"></p>
+<p>不同的存储器是一种取舍的关系.在结合局部性原理.就产生了优化的控件.简单来说就是把一个小局部内的代码和数据放到告诉缓存中执行.其他放在外边低速存储中.随着指令的不断执行.不断有新的数据和代码被从低速存储移动到高速缓存.而执行完的数据和代码在写回到低速存储.这就使得好像是整个程序都在高速缓存中执行.提高了性能,节省了成本.</p>
+<h2 id="执行流程"><a href="#执行流程" class="headerlink" title="执行流程"></a>执行流程</h2><p>程序执行的过程其实就是pc指向一个指令的地址,把这个指令读取进来,然后把操作数也读取进来,把结果传给alu计算单元处理.再把结果写出去,pc指向下一个指令.在重复上述的过程.</p>
+<p>而引入缓存之后,pc先从缓存总读取指令(通过地址来知道读取什么指令),缓存中保存一个动态的映射表,通过CPU的地址得到正确的数据.如果读到了.就按照之前的步骤执行,把结果在写到缓存中(通常数据和指令的缓存是分开的),如果缓存中没有要执行的指令,就会产生一个缺页异常,交给CPU中的MMU单元去处理,这个过程比较耗时,CPU可以切换到别的进程处理别的工作.MMU会从低速存储中把这个地址对应的指令或者他前后的一片数据都读取到内存中(因为总是一条指令一条指令的读,可能就产生很多的缺页异常),同时更新缓存的映射表.然后在发起一个中断指令通知CPU,数据已经有缓存了.CPU在切会改进程继续从缓存中执行.</p>
+<p>这里可以看到,cpu总是和缓存直接打交道.CPU和内存或硬盘并不直接沟通.总是把数据读取到缓存中在进行处理.(就像董事长和干活的小弟之间总是有很多层领导.小弟是见不到领导的..)</p>
+<p>如果缓存满了.就把比较不常用的页写回到内存或者硬盘中,这个页交牺牲页面.</p>
+<p><img src="https://tva1.sinaimg.cn/large/006tNbRwly1ga020pxahkj30lt09gjs0.jpg" alt="image-20191211211208087"></p>
+<p>这里有个要点,是缓存的内容总是经常变动的.他的索引经常变动.他返回的数据也经常变动.这里使用了一个类似hashlist的解构,这样加快的寻找的方式.当然组成方式也有好几种.这里大概</p>
+<p><img src="https://tva1.sinaimg.cn/large/006tNbRwly1ga01zovv8jj30f00g70u2.jpg" alt="image-20191211212109772"></p>
+<p>地址被解析.先查租索引,在查t表示找到哪一行,最后查b块便宜..这种三级查找会比较快.因为一行缓存的内容总是远多于一个指令或者一个数据的大小的.</p>
+<h1 id="链接"><a href="#链接" class="headerlink" title="链接"></a>链接</h1><p>所有的程序在最终执行时都会转变成二进制的机器码来执行,二汇编代码其实是和机器码等价的类似 1 和一的关系,汇编码就是对人友好写.并且机器码和汇编码这一层,是不存在数据结构和对象这类东西的.他们只有栈和寄存器和内存中的地址,因此机器码操作数据需要通过地址(栈的移动或是特定寄存器或是特定内存)来进行增删改查,因此机器码中,一定会对有内存地址的这一部分.而程序从不是孤单的运行的.他总会调用别人的库.调用系统的函数.而这些函数并不是我们自己写的.隐藏肯定存在一个把我们的程序和库函数系统函数整合起来的过程.</p>
+<h2 id="目标文件"><a href="#目标文件" class="headerlink" title="目标文件"></a>目标文件</h2><p><img src="https://tva1.sinaimg.cn/large/006tNbRwly1ga0214gyg0j30nn06ata0.jpg" alt="image-20191212185804307"></p>
+<p>这个很好理解.自己的代码经过编译器和汇编器形成可重定位文件.在经过连接器就变成可执行目标文件.共享目标文件就是系统的调用函数或者共享库.</p>
+<p><img src="https://tva1.sinaimg.cn/large/006tNbRwly1ga021cu8kzj30ac0bwt99.jpg" alt="image-20191212204056051"></p>
+<p>这是linux的elf可重定位目标文件常用格式.下面做些描述</p>
+<ul>
+<li><p>ELF头         这里描述的文件的一些基本信息,如文件大小,文件类型,机器类型,等</p>
+</li>
+<li><p>text    这里是已编译的程序的机器代码(二进制数据)</p>
+</li>
+<li><p>rodata  只读数据</p>
+</li>
+<li><p>data  已经初始化的全局变量和静态变量(static 变量),局部变量保存在运行时的栈上,</p>
+</li>
+<li><p>bss  未初始化的或者初始化为0的全局变量和静态变量.这时bss不占用空间,在运行时bss在占用空间</p>
+</li>
+<li><p>symtab  符号表,是程序中函数和全局变量的一种符号表示的集合,</p>
+</li>
+<li><p>rel.text  是text节中位置的表,用来存放代码重定位条目,就是记录代码中引用和符号映射关系的表</p>
+</li>
+<li><p>rel.data  是data中位置的记录,用来存放全局变量的重定位条目,就是记录全局变量和静态变量引用和符号映射关系的表</p>
+</li>
+<li><p>line  原始c程序的行号和text指令直接的映射表</p>
+</li>
+<li><p>strtab  字符串表,保存所有程序中的字符串,包含函数名,和全局变量名</p>
+</li>
+</ul>
+<h2 id="链接过程"><a href="#链接过程" class="headerlink" title="链接过程"></a>链接过程</h2><p><img src="https://tva1.sinaimg.cn/large/006tNbRwly1ga01ztkndsj30km03r3yw.jpg" alt></p>
+<p>在机器指令和汇编层面.是不存在函数和全局变量的.因此在编译的某一部会把这些函数和全局变量的引用转化为具体的地址.这是在链接过程实现.</p>
+<p>链接分为两个步骤.符号解析和重定位.</p>
+<h2 id="符号和符号表"><a href="#符号和符号表" class="headerlink" title="符号和符号表"></a>符号和符号表</h2><p> 符号对应于一个函数,一个全局变量或者一个静态变量(局部变量在运行时由栈上产生,因此不需要进行处理)</p>
+<p>符号解析就是遍历汇编器产生的可重定位文件.把里边的所有对函数和全局变量,生成对应的符号,这里还会区分是本文件内的符号(本地符号)还是引用的外部定义的符号(全局符号).</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">int f()&#123;</span><br><span class="line">	static int b =5;</span><br><span class="line">	return &quot;hello&quot;;</span><br><span class="line">&#125;</span><br><span class="line">这段代码.在汇编器中就把 f作为一个函数符号.b作为静态变量保存在符号表中,符号表会记录他们的类型和他们的名称和位置.</span><br></pre></td></tr></table></figure>
+
+<p>符号表就是程序中所有符号的集合,符号结构如下</p>
+<p><img src="https://tva1.sinaimg.cn/large/006tNbRwly1ga020lncarj30o408jt9x.jpg" alt="image-20191212205953428"></p>
+<p>包括符号名name,符号地址 value,符号大小 size, 符号类型(变量还是函数)type,本地变量还是全局变量 binding</p>
+<p>通过符号,就把程序中的 方法名和全局变量进行了抽象话.最后符号都会转化为一个地址.</p>
+<p><img src="https://tva1.sinaimg.cn/large/006tNbRwly1ga020fazjoj30l301uaa6.jpg" alt="image-20191212210241121"></p>
+<p>上边表示 main函数的符号,是全局符号(global),是一个方法(func),大小是24字节,</p>
+<h2 id="符号解析"><a href="#符号解析" class="headerlink" title="符号解析"></a>符号解析</h2><p>符号解析就是把程序中的引用(引用就是对方法的调用,对变量的调用)同符号表中的某个符号关联起来,生成一个重定位条目,这就建立了一个 引用–符号 的映射表.这个表叫做重定位表.代码的重定位表在elf结构的rel.text里.全局变量和静态变量的重定位表在elf结构的rel.data里.对于外部定义的全局变量,生成重定位条目比较麻烦.有一下规则</p>
+<p><img src="https://tva1.sinaimg.cn/large/006tNbRwly1ga01zs4qvjj30rv06wdho.jpg" alt="image-20191212211554394"></p>
+<h2 id="静态库连接"><a href="#静态库连接" class="headerlink" title="静态库连接"></a>静态库连接</h2><p>程序在开发中,不可避免的要引入第三方库和系统库的函数.而这些函数在生成可执行文件时,需要一同打进来.但是这些函数也经常需要开发迭代.因此引入了静态库连接的方式.把所有的库函数的可重定位目标文件打包成单独的一个文件.在链接过程中,连接器把程序需要的可重定位目标文件加载到我们自己的文件中,把没有引用到的都抛弃掉.</p>
+<p><img src="https://tva1.sinaimg.cn/large/006tNbRwly1ga01zjuasnj30rl0cbn1a.jpg" alt="image-20191212212008054"></p>
+<p>最终就是使 未解析的符号集合U变为空,然后E就是我们的程序生成的可执行文件.</p>
+<h2 id="重定位"><a href="#重定位" class="headerlink" title="重定位"></a>重定位</h2><p>因为符号解析阶段已经建立了符号条目和程序引用的映射关系.这里通过一系列措施,使引用指向真正的指令执行的地址.这里由两部组成</p>
+<ul>
+<li>合并可执行文件的所有同类型的节.就是把几个可重定位文件文件的data节合并到一起,把text节合并到一起等等.此时就形成了一个可重定位文件.它的所有节都是统一的.然后把符号表中的符号赋值真正运行时的地址.</li>
+<li>通过遍历rel.data和rel.text 重定位条目表,把对符号的引用替换成真正的运行时地址.大概操作是通过引用找到符号,此时符号是真正地址,通过计算得到引用的真正地址.</li>
+</ul>
+<p>这样.所有的引用都转成了真正的地址.此时就成了可执行文件了.]</p>
+<h2 id="可执行文件"><a href="#可执行文件" class="headerlink" title="可执行文件"></a>可执行文件</h2><p><img src="https://tva1.sinaimg.cn/large/006tNbRwly1ga020js9hhj30ll0cuabc.jpg" alt="image-20191212213241216"></p>
+<p>此时text 和data和rodata这些节已经保存了要运行时的地址了.在执行时,代码和数据会分别加载到内存中连续的内存段.因此段头部表保存这个映射关系. 这里涉及到了内存映射和虚拟内存的知识.下边是进程在内存中的映像,每个进程都是这样</p>
+<p><img src="https://tva1.sinaimg.cn/large/006tNbRwly1ga020ulpxjj30m00h2wga.jpg" alt="image-20191212214232583"></p>
+<p>程序执行时,系统把可执行文件的代码和数据复制到代码段和读写段中,然后调用main函数开始执行.堆和栈会在运行时变化.</p>
+<h2 id="动态连接"><a href="#动态连接" class="headerlink" title="动态连接"></a>动态连接</h2><p>动态连接就是在运行时或者加载时,可以加载到任意的内存地址,并和一个在内存中的程序连接起来.也就是在运行时进行进行连接.系统中的库函数就通过动态连接,分享给不同的进程,这样节省空间.</p>
+<p>动态连接不会在链接过程合并到程序中,而是保持在一个.interp的节里,在运行时,把动态库的指令和数据重定向到某个内存段,然后修改上文的符号表,给符号以正确的地址,在通过重定位表使引用找到正确的地址.</p>
+<h2 id="加载连接场景"><a href="#加载连接场景" class="headerlink" title="加载连接场景"></a>加载连接场景</h2><p><img src="https://tva1.sinaimg.cn/large/006tNbRwly1ga020e7jdcj30ec0ahdgn.jpg" alt="image-20191217212424738"></p>
+<h1 id="跳转控制"><a href="#跳转控制" class="headerlink" title="跳转控制"></a>跳转控制</h1><p><img src="https://tva1.sinaimg.cn/large/006tNbRwly1ga020id1emj30k006dt95.jpg" alt="image-20191214113723294"></p>
+<p>异常发生过程,在应用程序执行到某个地方时,触发异常,产生一个特定的异常号.由这个异常号去查系统内部的遗产表,找到对应异常处理程序,然后保存应用程序的数据状态,跳转到异常处理程序执行.异常处理程序运行在内核状态下.可以操控所以资源.异常处理完成后.返回原来的程序继续执行.或者终止程序执行.</p>
+<p>异常表是操纵系统中对所有异常处理程序的索引表.通过异常号可以找到对应的异常处理程序.异常执行时.从用户态转向内核态,源程序的数据压入到内核态的栈上.</p>
+<p>异常的类别</p>
+<p><img src="https://tva1.sinaimg.cn/large/006tNbRwly1ga01zsotebj30ow07c3zv.jpg" alt="image-20191214113955381"></p>
+<ul>
+<li>中断来自于io信号.是异步发送,异步中断是通知CPU有外界信息需要交互了.要进行处理.CPU执行完中断程序后.继续执行原来的程序</li>
+<li>陷阱就是系统调用,就是程序调用系统的服务,比如创建进程,然后把运行权限交给系统执行,系统执行晚餐后返回</li>
+<li>故障是代码执行错误,CPU会把故障交个故障处理程序执行,如果能解决,就返回源程序的指令.如果不能返回就终止.</li>
+<li>终止就会结束程序.由不可恢复的错误导致.</li>
+</ul>
+<p>## </p>
+<h1 id="进程"><a href="#进程" class="headerlink" title="进程"></a>进程</h1><p>进程就是运行中的代码和数据和程序运行所需要的状态信息的集合.这个状态包括栈,寄存器的内容.程序计数器,环境变量和打开的文件描述符.</p>
+<p><img src="https://tva1.sinaimg.cn/large/006tNbRwly1ga01zuh5e8j30dp06v74k.jpg" alt="image-20191214115102541"></p>
+<p>操作系统的机制使我们以为我们的程序在独占CPU进行执行,而其实他们是并发执行的.在大的时间尺度上并行执行,而在时间片上则是轮流执行.</p>
+<p>为了使系统更安全.处理器要对不同的程序作出限制,这就产生了内核模式和用户模式.</p>
+<p>内核模式的进程可以执行指令集中的任何指令,并访问内存中的任何位置</p>
+<p>用户模式的进程只能访问一部分指令,不允许访问内核的代码和数据.用户模式的进程只能通过跳转控制来间接的访问内核代码和数据.</p>
+<p>内核进程和用户进程,由某个控制进存器的一个模式位来指定的.</p>
+<p>进程在概念上完整的拥有自己的CPU.而每个CPU只能真正一次运行一个进程.通过在不同进程进行切换,达到了多进程执行的假象.</p>
+<h2 id="进程的创建"><a href="#进程的创建" class="headerlink" title="进程的创建"></a>进程的创建</h2><p>进程总是由一个已知的正在运行的进程,通过一个系统调用,通知操作系统来创建.</p>
+<p>linux中通过fork创建进程,子进程和父进程共享内存影映像,环境字符串和打开的文件. windows使用creattProcess创建进程,可以指定新进程的各种属性</p>
+<p>子进程和父进程具有不同的地址空间,其中发送对数据的修改.都导致对其他进程不可见.意思是,只读的内存区是共享的,可写的内存区通过写时复制,映射到新的地址,因此写的内存是进程独自享有.</p>
+<h2 id="进程的状态"><a href="#进程的状态" class="headerlink" title="进程的状态"></a>进程的状态</h2><p><img src="https://tva1.sinaimg.cn/large/006tNbRwly1ga020u54kmj30n507ewfz.jpg" alt="image-20191214180844044"></p>
+<p>进程的状态切换由进程调度程序控制,进程调度程序是操作系统的一部分,对进程不可见.</p>
+<p>操作系统维护一个进程表,每个进程占表格的一项,保存进程的所有相关信息.如下</p>
+<p><img src="https://tva1.sinaimg.cn/large/006tNbRwly1ga01zwd33wj30fw093dgq.jpg" alt="image-20191214181252945"></p>
+<p>详细的进程状态切换,进程被换出内存.就变成了挂起态.换回内存是就绪态.</p>
+<p><img src="https://tva1.sinaimg.cn/large/006tNbRwly1ga020vl6wpj30pj0ozgq0.jpg" alt="image-20191217204928478"></p>
+<h2 id="上下文切换"><a href="#上下文切换" class="headerlink" title="上下文切换"></a>上下文切换</h2><p>上下文就是一个进程在运行时需要的全部资料.包括栈,寄存器的内容.程序计数器,环境变量和打开的文件描述符.每个进程的上下文都是不一样的.</p>
+<p>进程切换时,要由内核中的调度器的程序执行.1.他把原来进程的上下文进行保存,2.在恢复或加载另外进程的上下文,3.将控制传递给这个新回复的进程. 因此上下文切换总会先进入内核态的调度器.</p>
+<p><img src="https://tva1.sinaimg.cn/large/006tNbRwly1ga020n1zgrj30or08ujs8.jpg" alt="image-20191214120211399"></p>
+<p>进程切换的大概步骤</p>
+<p><img src="https://tva1.sinaimg.cn/large/006tNbRwly1ga020gkksmj30mc072taa.jpg" alt="image-20191217205740228"></p>
+<p><img src="https://tva1.sinaimg.cn/large/006tNbRwly1ga01zzmgoyj30mi02gt8w.jpg" alt="image-20191217205751080"></p>
+<h2 id="信号"><a href="#信号" class="headerlink" title="信号"></a>信号</h2><p>信号就是一个小消息,通知进程发生了某种类型的事件.信号提供了一种机制,内核用来通知用户进程发生了异常.</p>
+<p><img src="https://tva1.sinaimg.cn/large/006tNbRwly1ga0214048nj30qk04bab5.jpg" alt="image-20191214120931563"></p>
+<p>信号通常由内核发送,因为它才能更新不同上下文进程的状态.</p>
+<p>接受信号的进程通过信号处理程序来捕获这个信号.(这就应该是我们代码的try..catch捕获异常)</p>
+<p><img src="https://tva1.sinaimg.cn/large/006tNbRwly1ga020t9ezej30r10b0tam.jpg" alt="image-20191214121126451"></p>
+<p>中断发生的大概逻辑如下,简单说就说保存原进程的信息,加载新进程的信息,然后执行.中断向量包含中断服务程序的入口地址</p>
+<p><img src="https://tva1.sinaimg.cn/large/006tNbRwly1ga01zpu5fuj30ap05xjrx.jpg" alt="image-20191214181627452"></p>
+<h1 id="线程"><a href="#线程" class="headerlink" title="线程"></a>线程</h1><h2 id="进程和线程的区别"><a href="#进程和线程的区别" class="headerlink" title="进程和线程的区别"></a>进程和线程的区别</h2><p>线程可以共享地址空间和数据.而进程独享地址空间和数据.</p>
+<p>线程比进程更轻量.所以他的切换和创建销毁更快速.</p>
+<p>多个线程可以共享公共内存.因此更容易进行通信</p>
+<p>线程必须在进程中运行,但是进程和线程是不同的东西,线程拥有自己的程序计数器,寄存器,和一个堆栈.</p>
+<p>进程是资源的聚合体.而线程则是CPU上被调度的实体.线程可以访问进程地址空间中的每一个内存地址,甚至可以访问其他线程的堆栈,因此线程之间是没有保护的.</p>
+<p><img src="https://tva1.sinaimg.cn/large/006tNbRwly1ga02188wjfj30h104vdga.jpg" alt="image-20191214182627084"></p>
+<h2 id="线程的抽象"><a href="#线程的抽象" class="headerlink" title="线程的抽象"></a>线程的抽象</h2><p>这是所有线程都具有的抽象的功能</p>
+<p><img src="https://tva1.sinaimg.cn/large/006tNbRwly1ga01zrqsfaj30jv06u3zk.jpg" alt="image-20191214183313525"></p>
+<h2 id="线程的实现方式"><a href="#线程的实现方式" class="headerlink" title="线程的实现方式"></a>线程的实现方式</h2><p>有两种.在用户态实现和在内核态实现</p>
+<p><img src="https://tva1.sinaimg.cn/large/006tNbRwly1ga021dqyqmj30i30afdh6.jpg" alt="image-20191214184032401"></p>
+<h3 id="用户态线程"><a href="#用户态线程" class="headerlink" title="用户态线程"></a>用户态线程</h3><p>把线程放在用户空间中,内核对线程一无所知.优点是可以再不支持线程的操作系统中在用户空间实现线程机制</p>
+<p>此时线程的调度都有用户程序控制,因此每个进程都要有专门的线程表,用来跟踪控制线程.由运行时系统管理.</p>
+<p>线程的切换只在用户进程中完成,十分迅速.还可以对每个进程指定不同的线程切换调度算法.</p>
+<p>缺点是在执行系统调用如io或中断时,一个线程的操作可能导致整个进程被阻塞了.影响改进程的全部线程.</p>
+<p>还有就是针对进程的调度算法对线程不可用(因为进程的调度在内核态,而内核不知道有线程),线程间的调度需要进程来自己控制.防止被某线程独占.</p>
+<h3 id="内核态线程"><a href="#内核态线程" class="headerlink" title="内核态线程"></a>内核态线程</h3><p>此时不需要运行时系统,进程也不管理线程表.线程表由内核来管理.内核通过管理进程表和线程表来管理调度进程和线程.</p>
+<p>优点是当一个线程进行io操作被阻塞,内核可以选择改进程的其他线程继续执行.</p>
+<p>缺点是开销大.线程的切换也需要陷入内核中在跳回用户进程.</p>
+<h3 id="混合实现"><a href="#混合实现" class="headerlink" title="混合实现"></a>混合实现</h3><p>还有一种优化是混合实现,内核只识别调度内核级线程,内核线程可能绑定多个用户态线程.</p>
+<p><img src="https://tva1.sinaimg.cn/large/006tNbRwly1ga020v17ajj30c007njrv.jpg" alt="image-20191214184945522"></p>
+<h3 id="线程切换模型"><a href="#线程切换模型" class="headerlink" title="线程切换模型"></a>线程切换模型</h3><h1 id="进程间通信"><a href="#进程间通信" class="headerlink" title="进程间通信"></a>进程间通信</h1><p>竞争条件(race condition 翻译真烂,应该叫竞争的情况)    当两个或多个进程读取相同的数据,如果因为不同进程执行的实际不同,导致结果不同,称为竞争条件.也就是相同多进程的代码执行多次,可能结果并不相同.</p>
+<p>临界区(critical region )    对共享内存的进行访问的代码称为临界区.使多个进程不能同时处于临界区,就可以避免竞争条件的发生.</p>
+<p>通过临界区的互斥,保证执行结果唯一,下边介绍几种方式</p>
+<p><img src="https://tva1.sinaimg.cn/large/006tNbRwly1ga020rpvyfj30hj08zwfb.jpg" alt="image-20191214190002197"></p>
+<h2 id="常用的并发机制"><a href="#常用的并发机制" class="headerlink" title="常用的并发机制"></a>常用的并发机制</h2><p><img src="https://tva1.sinaimg.cn/large/006tNbRwly1ga020m44drj30nl094dhx.jpg" alt="image-20191217210743030"></p>
+<h2 id="忙等待的互斥"><a href="#忙等待的互斥" class="headerlink" title="忙等待的互斥"></a>忙等待的互斥</h2><p><img src="https://tva1.sinaimg.cn/large/006tNbRwly1ga020ox7jfj30mb05k750.jpg" alt="image-20191214190609061"></p>
+<p>通过不断的循环,测试一个变量的值知道他出现为止,称为忙等待,这种方法很浪费CPU,且需要另外进程改变这个变量才行.这要求必须是abab 这样交替执行.</p>
+<p>另一种方式 TSL 测试并加锁,这是一种硬件设施 如  TSL RX, LOCK</p>
+<p><img src="https://tva1.sinaimg.cn/large/006tNbRwly1ga01zlp9mhj30n502kaak.jpg" alt="image-20191214191109455"></p>
+<p>这就保证当lock 为0时,任何进程都可以执行TSL指令,但是只会有1个进程a执行成功,然后lock变为非零.这个进程a就可以访问共享内存.其他进程只能等待TSL变为0,进程a执行完成后用move指令把lock 变为0 ,其他进程就再次抢夺执行TSL指令.</p>
+<p>忙等待的缺点是等待的进程一直等在这里空转.浪费资源. 还好产生优先级反转问题.</p>
+<p><img src="https://tva1.sinaimg.cn/large/006tNbRwly1ga020kqyehj30mw02tjs2.jpg" alt="image-20191214191740280"></p>
+<p>生产者消费者问题就是用了忙等待的互斥方法</p>
+<p><img src="https://tva1.sinaimg.cn/large/006tNbRwly1ga020njhe8j30jy0f240l.jpg" alt="image-20191214192118134"></p>
+<p><img src="https://tva1.sinaimg.cn/large/006tNbRwly1ga01zvxskgj30n7051wfv.jpg" alt="image-20191214192327641"></p>
+<h2 id="信号量"><a href="#信号量" class="headerlink" title="信号量"></a>信号量</h2><p><img src="https://tva1.sinaimg.cn/large/006tNbRwly1ga01zl6o4lj30n309sq5p.jpg" alt="image-20191214192957339"></p>
+<p>down和睡眠是原子性的.up和唤醒也是原子性的. 睡眠后和唤醒后.信号量都被释放可供其他进程执行.</p>
+<p>down可能会导致睡眠. up可能会导致唤醒.</p>
+<p>可以看下面代码.对缓冲区数据的操作前后肯定是要对mutex信号量进行排他的.而生产者还需要执行down(&amp;empty)是为了确保有空槽.完成后up(&amp;full)通知消费者又有了一个产品.消费者执行的过程同理,确保有满槽,然后对 mutex执行前后排他.消费完成后通知生产者又有了空槽.这里是用empty和full两个信号量来控制缓冲区是否有数目</p>
+<p><img src="https://tva1.sinaimg.cn/large/006tNbRwly1ga021dbe29j30lh0jb778.jpg" alt="image-20191214193453401"></p>
+<h2 id="互斥量"><a href="#互斥量" class="headerlink" title="互斥量"></a>互斥量</h2><p>互斥量就是简化的信号量.他只有两个状态.加锁和解锁.0表示解锁.非零表示加锁,只有一个线程可以加锁.其他进程在调用加锁就会被阻塞,等到加锁的进程调用解锁后.从阻塞的所有进程里取一个进行恢复,在执行</p>
+<p><img src="https://tva1.sinaimg.cn/large/006tNbRwly1ga02005pp9j30n70dywho.jpg" alt="image-20191214195607614"></p>
+<p>互斥量比忙等待的优点就是.阻塞的进程会放弃CPU的只用权,转而执行其他进程.当阻塞的进程恢复时在执行.这提高了CPU的执行效率.</p>
+<h2 id="管程"><a href="#管程" class="headerlink" title="管程"></a>管程</h2><p>信号量的缺点就是有时需要多个信号量来保证临界区的唯一性.如上文的生产者消费者. 这里的信号量的顺序不可以改变.否则会死锁.这种方式不友好.因此提出了管程.</p>
+<p>管程在任意时候只能有一个活跃进程.管程的互斥性由编译器实现.原理其实还是信号量.</p>
+<p>管程可以有多个条件变量.进程可以阻塞在某个条件变量处.然后让出管程的所有权.让其他进程进入管程执行.也就是管程总是只有一个活动的进程.但可以有多个阻塞在条件变量上的进程.当执行的进程退出时,会唤醒其中一个阻塞的进程,该阻塞的进程从被阻塞出继续执行.</p>
+<p>通过wait阻塞在某个条件.通过signl被唤醒. wait操作必须在signl之前.且signl最好作为管程过程的最好一个语句.</p>
+<p>在java语言中,wait和notify等价于上文的wait和signl. 而synchronize则提供了管程的概念.下边看下java语言的管程实现的生产者消费者</p>
+<p>管程的缺点是依赖于语言来实现.有的语言没有.</p>
+<p><img src="https://tva1.sinaimg.cn/large/006tNbRwly1ga021cc87ij30lt0su43j.jpg" alt="image-20191214201024704"></p>
+<h2 id="消息传递"><a href="#消息传递" class="headerlink" title="消息传递"></a>消息传递</h2><p>消息传递通过send(destination,&amp;msg) 和recevie(source,*msg)来实现,接收方会一直等待消息到达.这种方式通常用于网络通信.</p>
+<p>消息中采用一个信箱.对一定数据进行缓存.生产者接受到一个空消息,就发送一个有用消息.注意下边代码里双方都使用receive 和send.也就是双方双向等待消息.</p>
+<p><img src="https://tva1.sinaimg.cn/large/006tNbRwly1ga020emc0cj30nd0j2whw.jpg" alt="image-20191214201934124"></p>
+<h2 id="屏障"><a href="#屏障" class="headerlink" title="屏障"></a>屏障</h2><p>屏障用于一组进程,是他们用相同的节奏进行执行.先执行到屏障处的进程被拦截.直到所有进程都到达屏障,然后同步继续执行.</p>
+<p><img src="https://tva1.sinaimg.cn/large/006tNbRwly1ga0216s6obj30id06xmxp.jpg" alt="image-20191214202433289"></p>
+<h2 id="管道"><a href="#管道" class="headerlink" title="管道"></a>管道</h2><p>管道是一个环形缓冲区,先进先出的单向队列,由一个进程写,另一个进程读.一次只有一个进程可以进入管道.写满了会阻塞,读空了也会阻塞.</p>
+<h1 id="进程调度"><a href="#进程调度" class="headerlink" title="进程调度"></a>进程调度</h1><ul>
+<li><p>调度原因</p>
+<p>不同的进程都是执行io请求和计算交替的.而进程执行io时为了不浪费CPU.需要调度别的进程来执行</p>
+</li>
+<li><p>何时调度</p>
+<p>进程创建时,进程退出时,进程阻塞在io操作时,io操作完成发出io中断时.</p>
+</li>
+<li><p>调度分类</p>
+<p>批处理,就是批量的处理一批任务</p>
+<p>交互式,就是与用户进行交互操作.</p>
+<p>实时,必须在特定的时间完成任务.</p>
+</li>
+<li><p>调度的目标</p>
+<p>吞吐量是系统每小时完成的作业书.周转时间是一个作业从提交到完成所需要的平均时间.</p>
+</li>
+</ul>
+<p><img src="https://tva1.sinaimg.cn/large/006tNbRwly1ga021aqe1zj30ag09hq3q.jpg" alt="image-20191214203002437"></p>
+<h2 id="调度算法"><a href="#调度算法" class="headerlink" title="调度算法"></a>调度算法</h2><h3 id="批处理系统的调度算法"><a href="#批处理系统的调度算法" class="headerlink" title="批处理系统的调度算法"></a>批处理系统的调度算法</h3><h4 id="先来先服务"><a href="#先来先服务" class="headerlink" title="先来先服务"></a>先来先服务</h4><p>按照作业的请求顺序来执行.用一个队列来实现就可以.先来的先执行.后来的排在后边.</p>
+<p>优点是设计简单.缺点是没有针对作业的特性做优化.比如先进去的是复杂作业.后进入的是简单作业,简单作业就要等待很长时间才能开始执行.</p>
+<h4 id="最短作业优先"><a href="#最短作业优先" class="headerlink" title="最短作业优先"></a>最短作业优先</h4><p>把所有作业排序,把让执行时间段的作业先完成.这需要保证所有作业同时到达.然后进行排序.如果短作业比长作业晚很久到达.那么久没法做最短优先</p>
+<h4 id="最短剩余时间优先"><a href="#最短剩余时间优先" class="headerlink" title="最短剩余时间优先"></a>最短剩余时间优先</h4><p>看那个作业剩余执行时间最短,通过调度让他先执行,这需要估计程序的运行时间.</p>
+<h3 id="交互式系统的调度算法"><a href="#交互式系统的调度算法" class="headerlink" title="交互式系统的调度算法"></a>交互式系统的调度算法</h3><h4 id="轮转调度"><a href="#轮转调度" class="headerlink" title="轮转调度"></a>轮转调度</h4><p>每个进程分配一个时间片.时间片到了.就切换到下一个进程执行.</p>
+<p>进程切换需要时间.因此时间片的长度选择也需要权衡.</p>
+<p><img src="https://tva1.sinaimg.cn/large/006tNbRwly1ga02191p0uj30my01zt90.jpg" alt="image-20191214204253201"></p>
+<h4 id="优先级调度"><a href="#优先级调度" class="headerlink" title="优先级调度"></a>优先级调度</h4><p>给每个进程设置一个优先级.高优先级的进程先运行.也可以是高优先级的进程拥有更多的时间片.还可以按优先级给进程分组.不同组之间用优先级调度.同组之间用轮转调度.缺点是低优先级进程可能会长时间得不到执行</p>
+<p><img src="https://tva1.sinaimg.cn/large/006tNbRwly1ga01zodoutj30an06dmxj.jpg" alt="image-20191214204508488"></p>
+<h4 id="最短进程优先"><a href="#最短进程优先" class="headerlink" title="最短进程优先"></a>最短进程优先</h4><p>推测出执行时间最短的进程,让他先执行,但这个比较困难,因为是交互式系统,很多不可知的因素.</p>
+<h4 id="保证调度"><a href="#保证调度" class="headerlink" title="保证调度"></a>保证调度</h4><p>保证每个进程有公平的资源来执行.需要计算进程运行了多久,来分配后边给他运行的时间</p>
+<h4 id="彩票调度"><a href="#彩票调度" class="headerlink" title="彩票调度"></a>彩票调度</h4><p>随机抽取进程来执行.还可以根据优先级,给高优先级的进程更高抽取几率来执行.</p>
+<h3 id="实时系统的调度"><a href="#实时系统的调度" class="headerlink" title="实时系统的调度"></a>实时系统的调度</h3><p>按照要求的截止时间来完成调度.</p>
+<h3 id="线程调度"><a href="#线程调度" class="headerlink" title="线程调度"></a>线程调度</h3><p>线程调度要看线程是在内核态还是在用户态,如果在用户态.由进程控制线程的调度.内核只控制进程的调出.这样的方式开销小.如果在内核态.内核控制内核线程的调度,在调度时需要进行用户进程的切换.这种开销比较大.</p>
+<p><img src="https://tva1.sinaimg.cn/large/006tNbRwly1ga020vzzx1j30l6095gmy.jpg" alt="image-20191214205602429"></p>
+<h3 id="哲学家就餐问题"><a href="#哲学家就餐问题" class="headerlink" title="哲学家就餐问题"></a>哲学家就餐问题</h3><p>这里的解法就是哲学家要保证左右两人都没有就餐,才可以锁定左右两个餐刀进餐,如果左右两边有一个人进餐,就得放弃他的所有餐刀.</p>
+<p><img src="https://tva1.sinaimg.cn/large/006tNbRwly1ga020hk3xsj30mn01f74h.jpg" alt="image-20191214210300958"></p>
+<p><img src="https://tva1.sinaimg.cn/large/006tNbRwly1ga020dcu2uj30940agq3o.jpg" alt="image-20191214210315014"></p>
+<p><img src="https://tva1.sinaimg.cn/large/006tNbRwly1ga01zys429j30kj0ma77p.jpg" alt="image-20191214210325009"></p>
+<h3 id="读者写者问题"><a href="#读者写者问题" class="headerlink" title="读者写者问题"></a>读者写者问题</h3><p><img src="https://tva1.sinaimg.cn/large/006tNbRwly1ga020kdq4cj30n10mpgpr.jpg" alt="image-20191214210353394"></p>
+<h1 id="内存管理"><a href="#内存管理" class="headerlink" title="内存管理"></a>内存管理</h1><h2 id="内存管理总结"><a href="#内存管理总结" class="headerlink" title="内存管理总结"></a>内存管理总结</h2><p><img src="https://tva1.sinaimg.cn/large/006tNbRwly1ga021bw3nvj30ve0epjvb.jpg" alt="image-20191217211727918"></p>
+<p>内存要解决的问题,如下图.当两个程序都加载到内存中(c)时,如果使用物理地址,一个进程的跳转指令可能跳转到另一个程序的地址上.这是灾难.</p>
+<p><img src="https://tva1.sinaimg.cn/large/006tNbRwly1ga0213f8tbj30h90ca3zr.jpg" alt="image-20191216195045541"></p>
+<p>为了解决这个问题.要对每个程序解决重定位和包含的问题.因此产生地址空间.</p>
+<p>地址空间就是一个进程可以在内存寻址的一套地址空间.每个进程有自己独立的地址空间.并且独立于其他进程.</p>
+<h2 id="内存交换技术"><a href="#内存交换技术" class="headerlink" title="内存交换技术"></a>内存交换技术</h2><p>把一个完成的进程加载到内存中,让他运行一段时间,然后把它换出到磁盘.把其他进程加载到内存中.</p>
+<p>缺点是需要把运行的进程完整换入换出.耗费时间.还会产生内存空洞,又需要对空闲内存进行压缩.还需要内存比运行的程序大才行.</p>
+<p><img src="https://tva1.sinaimg.cn/large/006tNbRwly1ga020rav5bj30i208p75q.jpg" alt="image-20191216195632006"></p>
+<h3 id="空闲内存管理"><a href="#空闲内存管理" class="headerlink" title="空闲内存管理"></a>空闲内存管理</h3><p>当内存中进程进行不断的换入换出.由于进程大小不一.换入换出的进程也不一.因此内存中很容易产生大量不连接的空闲内存.需要对这些内存进行记录.以便下次再有进程交换时使用.</p>
+<p>使用位图管理.把每个小块内存标记为1位.0表示空闲,1表示占用</p>
+<p>使用链表管理.把空闲内存和占用内存都看成节点.用链表串起来,p表示进程,h表示空闲.进程的交换可以通过移动链表来实现.如下是两种方式.</p>
+<p><img src="https://tva1.sinaimg.cn/large/006tNbRwly1ga01zmznnvj30nb0af760.jpg" alt="image-20191216202125556"></p>
+<h2 id="虚拟内存技术"><a href="#虚拟内存技术" class="headerlink" title="虚拟内存技术"></a>虚拟内存技术</h2><p>内存交换技术的最大问题是.现在程序的容量远大于内存的容量.这就限制了程序的大小.</p>
+<p>虚拟内存的目的,是把程序中的地址和真正的物理地址解绑.而通过一层映射关系来转换.这样可以给进程提供大的一致的和私有的地址空间.程序就不必关心实际上执行的地址是哪里. 而且程序可以部分加载到内存中,部分在磁盘里.只有在需要时才加载到内存.并把用完的换出来.这需要把内存和程序都分成多个块.按块来加载移出.’</p>
+<h3 id="分页"><a href="#分页" class="headerlink" title="分页"></a>分页</h3><p>分页就是把内存和磁盘分为同样容量的空间.内存中交页面.磁盘中叫页框.通常为4kb,然后内存和磁盘以页为单位进行数据交换.内存中找不到需要的页时,触发缺页中断.通过系统把该页读到内存中,更行映射表.</p>
+<p>映射表管理内存页和磁盘页的对应关系.每个页的记录是一条页表项.页表项中有保护位,指出页的权限(可读,可写,可执行), 修改位记录该页是否在内存中被修改过.如果修改过,换出时要写回磁盘.没有修改过可以直接丢弃(没有修改意味着内存的数据和磁盘是一致的). 访问位记录该页被CPU访问的情况,用来在内存不足时通过算法把不常访问的页换出内存.</p>
+<p>因为需要把内存中的页换出到磁盘.在加载指定的页.这里有一个算法的选择.大概记录下.</p>
+<p><img src="https://tva1.sinaimg.cn/large/006tNbRwly1ga01zngqtgj30h50890tx.jpg" alt="image-20191216203850672"></p>
+<p>分页在内存中的效果.需要看到.每次进程换入换出的物理地址不一定是一样的.每个进程有自己的进程页表,通过页表.导致虚拟地址总能映射到该进程正确的物理地址.</p>
+<p><img src="https://tva1.sinaimg.cn/large/006tNbRwly1ga0214vy82j30fp0gu76i.jpg" alt="image-20191217212152594"></p>
+<p><img src="https://tva1.sinaimg.cn/large/006tNbRwly1ga020sfwfsj30gv04f74r.jpg" alt="image-20191217212205160"></p>
+<h3 id="共享库"><a href="#共享库" class="headerlink" title="共享库"></a>共享库</h3><p>目前常规的做法是一个程序.具有程序的地址空间和数据的地址空间,这两个空间有自己独立的映射表.分别进行内存映射.而对于系统程序和库文件.采用共享的方式实现.多个进程共享一份库程序的地址空间,但是每个进程有自己的数据空间.也就是对与共享库, 代码共享,数据独立.</p>
+<p><img src="https://tva1.sinaimg.cn/large/006tNbRwly1ga020gydp3j30c50bamxx.jpg" alt="image-20191216204218263"></p>
+<p><img src="https://tva1.sinaimg.cn/large/006tNbRwly1ga01zk7lt0j30s003rjsl.jpg" alt="image-20191214121521230"></p>
+<h3 id="分段"><a href="#分段" class="headerlink" title="分段"></a>分段</h3><p>因为程序可能在运行过程中占用内存越来越多.系统提供多个互相独立的称为段的地址空间.每个段都从0地址开始增长,且段的长度可以在运行期间动态改变.每个段都是独立的. 通过一个段号和一个段内地址来定位到特定的位置.段是一个逻辑实体.是对程序员可见的.而页是物理实体.是对程序员不可见.</p>
+<p>因为每个段独立.因此每个段如果改版后重新编译,即使比上一个版本变大了(也就是地址变化了),也不会影响别的段.</p>
+<p>一个程序的各种段.</p>
+<p><img src="https://tva1.sinaimg.cn/large/006tNbRwly1ga01zy9ctcj30i509kmy5.jpg" alt="image-20191216204939518"></p>
+<h3 id="分段和分页结合"><a href="#分段和分页结合" class="headerlink" title="分段和分页结合"></a>分段和分页结合</h3><p><img src="https://tva1.sinaimg.cn/large/006tNbRwly1ga020mmhgij30dr0dsgmo.jpg" alt="image-20191216205743827"></p>
+<p>段号和段表指针找到段号.通过段号在段表中拿到数据和页号组成页表中的索引,在得到页框号.页框好和偏移量形成物理地址.</p>
+<p><img src="https://tva1.sinaimg.cn/large/006tNbRwly1ga01zz7ol3j30fu09u75a.jpg" alt="image-20191217212948303"></p>
+<p>查询办法如下.因为有断的概念,因此也就多了一个段号和描述符段的映射表.也就是要两次映射关系.这增加了复杂度.</p>
+<p><img src="https://tva1.sinaimg.cn/large/006tNbRwly1ga021695o9j30as096t9p.jpg" alt="image-20191216205837574"></p>
+<h3 id="分段和分页的比较"><a href="#分段和分页的比较" class="headerlink" title="分段和分页的比较"></a>分段和分页的比较</h3><p><img src="https://tva1.sinaimg.cn/large/006tNbRwly1ga020frocoj30hm0e6dhm.jpg" alt="image-20191216205156513"></p>
+<p><img src="https://tva1.sinaimg.cn/large/006tNbRwly1ga020o1oxfj30n40c1779.jpg" alt="image-20191217212609395"></p>
+<h2 id="虚拟寻址"><a href="#虚拟寻址" class="headerlink" title="虚拟寻址"></a>虚拟寻址</h2><p><img src="https://tva1.sinaimg.cn/large/006tNbRwly1ga01zuydeuj30nt0boq3o.jpg" alt="image-20191214124310647"></p>
+<p>虚拟寻址就是CPU生成的地址需要通过一个cpu上的硬件MMU进行转翻译,才能对应真正的物理地址.CPU以为他生产的是物理地址,其实不是.</p>
+<h3 id="虚拟内存"><a href="#虚拟内存" class="headerlink" title="虚拟内存"></a>虚拟内存</h3><p>虚拟内存就是对时间磁盘的缓存. 虚拟内存的大小单位是虚拟页,物理内存的大小单位是物理页.虚拟页和物理页的大小相等.</p>
+<p><img src="https://tva1.sinaimg.cn/large/006tNbRwly1ga0217u8inj30qy04y75a.jpg" alt="image-20191214124758710"></p>
+<p>缓存就是利用程序的局部性原理.把CPU要执行的一小块数据和指令.放入高速,容量小的高级缓存中,其余局部性外的数据和指令放在低速容量大的存储中,CPU依次向下执行,不断有新的数据和指令加入到高级缓存中,然后把执行过的数据和指令移出到低速存储中.这就模拟处了CPU执行的数据和指令一直在高速的高级缓存中执行的效果.</p>
+<p>这里就涉及到了一个虚拟页到实际物理页的转化. 通常操作系统都是用一个映射表来保存这种映射关系的.这个映射表叫做页表.通过一个有效为来标识,改虚拟页对应的物理页是否在内存中.如果在.就可以直接使用这个内存中的页.如果不在,就表示该虚拟页对应的物理页是在磁盘上.就要先把物理页读取到内存中,然后更新页表的这个条目,然后从新查询这个条目.这次就发现在内存中了.就可以使用</p>
+<p><img src="https://tva1.sinaimg.cn/large/006tNbRwly1ga0218o2a4j30fe0ci3zk.jpg" alt="image-20191214125956952"></p>
+<p>对于虚拟页中来说.他对于的物理页可能在内存中,也可能在磁盘中.物理页号或者磁盘地址,是用来结合虚拟地址形成真正的物理地址使用的.</p>
+<h3 id="缺页"><a href="#缺页" class="headerlink" title="缺页"></a>缺页</h3><p>虚拟页对应的物理页不在内存中,这就要缺页.需要把对应的物理页从磁盘中读取到内存中.并更新页表的条目</p>
+<p><img src="https://tva1.sinaimg.cn/large/006tNbRwly1ga01zmia8nj30dz08it9j.jpg" alt="image-20191216204513613"></p>
+<p><img src="https://tva1.sinaimg.cn/large/006tNbRwly1ga01zu0vcxj30kq0s078k.jpg" alt="image-20191214130330696"></p>
+<h3 id="内存分配"><a href="#内存分配" class="headerlink" title="内存分配"></a>内存分配</h3><p><img src="https://tva1.sinaimg.cn/large/006tNbRwly1ga020g5ph4j30b006v74l.jpg" alt="image-20191214130611087"></p>
+<p>实际上操作系统为每个进程都分配了独立页表.因此每个进程独享一个独立的虚拟空间.有一下好处</p>
+<ul>
+<li>简化程序链接过程.    独立的地址空间,可以让程序有标准的内存结构.比如程序都从0x4000开始.数据都从0x8000开始.这样.不同的程序地址相同.但是这个只是虚拟地址相同(实际上可能a的程序从0x1111开始,b程序从0x9999开始,但是这对程序是不可见的).</li>
+<li>简化共享.    共享文件和系统库,可以只在内存中保留一份,然后通过映射到不同进程的不同虚拟地址,这样可以共享一份系统库的代码.然后每个进程有自己的数据存储就可以了</li>
+<li>简化加载.  加载器加载可执行文件时,把.text和.data的代码和数据段分配虚拟地址,并标记为没有内存缓存,这样就可以在执行到代码和数据的时候通过缺页,从磁盘中加载进来.这就构成了动态的载入.</li>
+<li>简化内存分配.  这使得一个程序不需要全部加载到内存中才开始执行,而是执行到那里加载哪里.就可以在内存中运行多个程序.也可以运行比内存空间还打的程序.</li>
+</ul>
+<h3 id="地址翻译"><a href="#地址翻译" class="headerlink" title="地址翻译"></a>地址翻译</h3><p>地址翻译就是把虚拟地址翻译成物理地址,这需要通过上文的页表的数据来实现</p>
+<p><img src="https://tva1.sinaimg.cn/large/006tNbRwly1ga020dpmmyj30jo0azjs4.jpg" alt="image-20191214131719766"></p>
+<p>因为页表中的条目.是虚拟地址的映射,这是经常变动的.虚拟地址的高位部分是虚拟页号,通过虚拟页号可以找到页表中对应的物理页号.物理页号和虚拟地址的后半部分的虚拟页偏移量构成真正的物理地址,总结起来就是页偏移量是固定的 .但是虚拟页对应哪个物理页是要靠表来查出.当有效位为真时,组成的物理地址指向内存中的缓存页.有效为为假时.指向的是磁盘的物理地址,需要把这个页换如内存中. </p>
+<p>具体执行过程如下</p>
+<p>VA (virtual addreaa)是虚拟地址. PTEA(page table Entry address) 是页表映射条目的地址,表示要拿哪个页表映射条目.pte(page table entry)是页表映射条目,也就是虚拟地址和物理地址的映射关系,pa 是物理地址(physical address),也就是CPU真正要获取数据或指令的地址,通过pa拿到真正的数据.</p>
+<p><img src="https://tva1.sinaimg.cn/large/006tNbRwly1ga0219ny0zj30l60qdq6b.jpg" alt="image-20191214132328677"></p>
+<p><img src="https://tva1.sinaimg.cn/large/006tNbRwly1ga0200m7ykj30j402waak.jpg" alt="image-20191214132339851"></p>
+<p>可以看到.MMU不保存页表结构.因此他要先查询页表条目,在翻译成物理地址.为了加快这一过程.又在MMU中加入了一个小的缓存结构TLB(tarnslation lookaside buffer),tlb就是对页表的局部换从,因此以后可以先从TBL中查询页表条目,在经过MMU生成物理地址,在从内存或磁盘中获取. TLB的容量远小于内存中的页表大小.因此TLB也需要实时更新.</p>
+<p><img src="https://tva1.sinaimg.cn/large/006tNbRwly1ga020je5uqj30l30dggnl.jpg" alt="image-20191214133443892"></p>
+<h3 id="多级页面"><a href="#多级页面" class="headerlink" title="多级页面"></a>多级页面</h3><p>因为内存和磁盘的容量不断增大.为了提高页表的查找速度,把页表分成了多级页表.也就是高层页表中的条目指向底层页表.然后多次读取多个页表后.在最底层的页表中拿到对应的物理地址.</p>
+<p><img src="https://tva1.sinaimg.cn/large/006tNbRwly1ga020qt6wxj30ht0ayq3u.jpg" alt="image-20191214133815485"></p>
+<p>记住.这种多级页表.只有最后级页表中才存储物理地址的页号信息.</p>
+<p><img src="https://tva1.sinaimg.cn/large/006tNbRwly1ga01zm4x80j30f508cwev.jpg" alt="image-20191214133827913"></p>
+<h2 id="linux虚拟内存系统"><a href="#linux虚拟内存系统" class="headerlink" title="linux虚拟内存系统"></a>linux虚拟内存系统</h2><p><img src="https://tva1.sinaimg.cn/large/006tNbRwly1ga01zqeucuj30a20dgab8.jpg" alt="image-20191214135210854"></p>
+<p>可以看到.每个进程的虚拟内存中.都有一部分内核虚拟内存被映射进该进程.内核虚拟内存的某些区域被映射到所有进程共享的物理页面.例如每个进程共享内核的代码和数据.而内核中还有一些属于进程独有的数据.这些就是该进程的上下文环境.</p>
+<p>linux把虚拟内存组成成多个连续的内存片段或区域.一个区域就是已分配的连续的虚拟内存片.通过一个数据结构记录那些已分配的虚拟存储.而不记录没有分配的空间.这就允许虚拟地址空间中有间隙.(也就是说虚拟地址也不一定都是完全连在一起的,而是某个结构中虚拟地址是连续的.)</p>
+<p><img src="https://tva1.sinaimg.cn/large/006tNbRwly1ga0212y7qpj30i10deq44.jpg" alt="image-20191214135820058"></p>
+<p>这是一个链表结构,他抽象了进程的代码和数据和共享库的内容.也就是这个结构只记录该进程使用了哪些地址空间.具有什么权限.而不管这个空间存的是数据还是代码还是系统库.</p>
+<p><img src="https://tva1.sinaimg.cn/large/006tNbRwly1ga01zt3n9dj30jr04zwf8.jpg" alt="image-20191214135953314"></p>
+<h2 id="内存映射"><a href="#内存映射" class="headerlink" title="内存映射"></a>内存映射</h2><p>内存映射就是虚拟内存和磁盘上的 对象关联起来,用来初始化虚拟内存区域的内容.这种技术可以实现很多功能.</p>
+<ul>
+<li>共享对象. 可以实现多个进程映射到同一物理区域,这样一个进程对物理区域的改变,其他进程也能知道变化,这为进程间通讯提供了一种方式</li>
+</ul>
+<p><img src="https://tva1.sinaimg.cn/large/006tNbRwly1ga01zpc1tqj30j90a7t9m.jpg" alt="image-20191214141212086"></p>
+<ul>
+<li>私有对象 私有对象也可能是一个物理内存被多个进程所映射了.但是不同进程对改私有区域的改动只会是自己的区域可见.别的进程看不见.这就要求每个进程在写私有区域时写到额外的空间并只有自己持有.开始时与共享对象一项,所有进程指向同一区域,然后A进程写改私有对象时,会把要写的页在内存中创建一个新的副本.把数据在复制进去.这副本只有进程A有映射关系.这叫写时复制.读时无所谓.</li>
+</ul>
+<p><img src="https://tva1.sinaimg.cn/large/006tNbRwly1ga01zxty0rj30ku0h5gpe.jpg" alt="image-20191214141822512"></p>
+<p>写时复制就是fork函数的实现原理.fork完成后.父进程和子进程共享原来的内存.当子进程或者父进程要执行写操作时.触发写时复制,然后两个进程就有了自己独立的数据.</p>
+<h2 id="计算机结构"><a href="#计算机结构" class="headerlink" title="计算机结构"></a>计算机结构</h2><p><img src="https://tva1.sinaimg.cn/large/006tNbRwly1ga01zxboa8j30gz0c10u5.jpg" alt="image-20191214172220877"></p>
+<h1 id="文件系统"><a href="#文件系统" class="headerlink" title="文件系统"></a>文件系统</h1><h2 id="文件"><a href="#文件" class="headerlink" title="文件"></a>文件</h2><p>文件是一种抽象.提供了对磁盘上信息的增删改查.并让用户忽略底层细节.通过拓展名可以表示一些信息,执行不同操作.</p>
+<p>文件通常分为文件和目录.目录中包含其他目录或文件.文件的访问方式是顺序或者随机.顺序访问必须从前向后访问,不可以跳过.随机访问仍以跳转访问文件的任何位置.</p>
+<p><img src="https://tva1.sinaimg.cn/large/006tNbRwly1ga020l63wvj30f80eldhu.jpg" alt="image-20191216211331078"></p>
+<p>文件操作</p>
+<p>create 创建,delete 删除,open 打开,close 关闭,read 读,write 写,append 追加(只在文件末尾写),seek 随机访问文.rename 重命名文件.get/setattribute,设置文件属性</p>
+<p>目录操作</p>
+<p>create 创建,delete删除,opendir.打开目录.closedir关闭目录.readdir读取目录.rename 重命名.link 把某文件链接到另一处.这样两处都可以修改这个文件. unlink 解出链接.</p>
+<h2 id="文件的结构"><a href="#文件的结构" class="headerlink" title="文件的结构"></a>文件的结构</h2><p><img src="https://tva1.sinaimg.cn/large/006tNbRwly1ga0215trmvj30jx08gmy2.jpg" alt="image-20191216212124437"></p>
+<p>mbr是主引导记录,用来引导计算机加载磁盘.分区表记录磁盘所有分区的开始和结束.每个分区开头都是引导块.引导块中可以装在操作系统.超级快包含文件系统的所有信息.空闲空间管理文件系统的空闲块信息.i节点连接文件系统中所有文件,每个文件1个i节点,</p>
+<h2 id="文件分配"><a href="#文件分配" class="headerlink" title="文件分配"></a>文件分配</h2><h3 id="文件分配表法"><a href="#文件分配表法" class="headerlink" title="文件分配表法"></a>文件分配表法</h3><p><img src="https://tva1.sinaimg.cn/large/006tNbRwly1ga01zvhttxj30a90bowf4.jpg" alt="image-20191216212627661"></p>
+<p>每个文件由多个文件块构成.然后通过链表连接在一起.但是链表的随机访问比较慢.因此在内存中保存一个文件分配表.记录文件块的连接关系.比如A文件从物理块4开始,指向物理块7,物理块7的位置又指向2,因此a的链表是 4-7-2-10-12(最后一-1结束.)这个方式的缺点是整个表要放在内存中.因此又提出了改进方法</p>
+<h3 id="i节点法"><a href="#i节点法" class="headerlink" title="i节点法"></a>i节点法</h3><p>每个节点赋值一个i节点的数据结构.记录所以改文件的块,只有该文件打开,才把i节点加载到内存中.</p>
+<p><img src="https://tva1.sinaimg.cn/large/006tNbRwly1ga020ofqbtj30b90c2my1.jpg" alt="image-20191217194425568"></p>
+<p>i节点的最好一个地址指向额外的磁盘块,这样就不会限制文件的大小.下图是unix的i节点,他最后几个块指向间接块.这个样可以使文件的容量变大很多</p>
+<p><img src="https://tva1.sinaimg.cn/large/006tNbRwly1ga02176xqvj30is0bajsl.jpg" alt="image-20191217195522307"></p>
+<h2 id="虚拟文件系统"><a href="#虚拟文件系统" class="headerlink" title="虚拟文件系统"></a>虚拟文件系统</h2><p>将多中文件系统统一成一个有序的结构,抽象所有文件系统的公共部分,作为虚拟文件系统.在虚拟文件系统下一层是不同系统的具体实现</p>
+<p><img src="https://tva1.sinaimg.cn/large/006tNbRwly1ga01zqwgtuj30d307f74u.jpg" alt="image-20191217194510614"></p>
+<p>vfs(虚拟文件系统)有两层接口,上层提供给用户进程,下次给实际的文件系统.当一个文件系统要加载到vfs上时,需要该系统向vfs注册,提供一个包含vfs需要的函数(打开关闭等)的列表.以后vfs就可以通过这列表来调用该文件操作系统.而对用户进程.则不管接入的是什么文件系统.都是统一调用vfs提供的接口.</p>
+<h1 id="io"><a href="#io" class="headerlink" title="io"></a>io</h1><p>io设备分块设备和字符设备.块设备把信息存储在固定大小的快中,每个块有自己地址.可以独立读写.字符设备以字符为单位发生或接受一个字符流.不可寻址,只能按顺序读写. 磁盘是块设备.打印机是字符设备.</p>
+<h2 id="io通信方式"><a href="#io通信方式" class="headerlink" title="io通信方式"></a>io通信方式</h2><p>io设备分为机械部件和电子部件.电子部件叫控制器,每个控制器有几个寄存器与CPU通信.有些设备还有缓冲区.控制器负责与CPU沟通.控制io设备.因此需要与io设备通信.有两种方式</p>
+<p><img src="https://tva1.sinaimg.cn/large/006tNbRwly1ga0215fdkuj30cy07y3yw.jpg" alt="image-20191217214021146"></p>
+<h3 id="io端口"><a href="#io端口" class="headerlink" title="io端口"></a>io端口</h3><p>每个寄存器被分配一个io端口号,CPU通过特殊指令与io端口通信.</p>
+<h3 id="内存映射io"><a href="#内存映射io" class="headerlink" title="内存映射io"></a>内存映射io</h3><p>把控制器映射到内存中,不需要特殊的指令.控制器具有唯一的地址.CPU通过这个地址与io设备通信</p>
+<p>控制器是硬件设备.而且不同的io设备有不同的控制器.因此加入了设备驱动程序这一层.设备驱动同硬件绑定, 一个硬件在不同操作系统平台有不同的驱动程序.驱动程序用来控制io硬件.设备驱动程序运行在内核态.不允许用户随便执行.</p>
+<h2 id="DMA技术"><a href="#DMA技术" class="headerlink" title="DMA技术"></a>DMA技术</h2><p>内存和io设备直接通信,在结束后通知CPU的方法.这样不需要CPU实时进行处理.但是也需要占用总线传输数据.</p>
+<p><img src="https://tva1.sinaimg.cn/large/006tNbRwly1ga01zkn0oxj30kw09ngmu.jpg" alt="image-20191217201118600"></p>
+<ol>
+<li>CPU对DMA控制器的寄存器对他编程,指明把什么数据从那送到那</li>
+<li>DMA控制器向磁盘发送命令.通知磁盘读数据到他内部的缓冲区.并校验数据</li>
+<li>DMA控制器在总线上发请求给磁盘控制器来发起DMA传送</li>
+<li>磁盘把他内部缓冲区的数据传输到内充中.因为磁盘是以块为单位读写.所以3.4步会一直重复直到数据写完</li>
+<li>DMA发出完成的中断信号给CPU.通知传输完成,此时数据在内存中.</li>
+</ol>
+
+        
+      </div>
+      
+      
+      
+    </div>
+    
+
+    
+    
+    
+  </div>
+
+
+          </div>
+          
+
+        </div>
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">liujiakuo</p>
+  <div class="site-description motion-element" itemprop="description"></div>
+</div>
+  <nav class="site-state motion-element">
+      <div class="site-state-item site-state-posts">
+        
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">12</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-tags">
+        
+        
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+        <span class="site-state-item-count">6</span>
+        <span class="site-state-item-name">tags</span>
+        
+      </div>
+    
+  </nav>
+
+
+
+        </div>
+      </div>
+      <!--noindex-->
+        <div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+            
+            
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#程序的机器级表示"><span class="nav-text">程序的机器级表示</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#编译的过程"><span class="nav-text">编译的过程</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#汇编代码常用寄存器"><span class="nav-text">汇编代码常用寄存器</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#寻址方式"><span class="nav-text">寻址方式</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#条件码"><span class="nav-text">条件码</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#过程"><span class="nav-text">过程</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#存储器层次"><span class="nav-text">存储器层次</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#存储设备"><span class="nav-text">存储设备</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#传输过程"><span class="nav-text">传输过程</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#局部性原理"><span class="nav-text">局部性原理</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#存储器金字塔"><span class="nav-text">存储器金字塔</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#执行流程"><span class="nav-text">执行流程</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#链接"><span class="nav-text">链接</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#目标文件"><span class="nav-text">目标文件</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#链接过程"><span class="nav-text">链接过程</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#符号和符号表"><span class="nav-text">符号和符号表</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#符号解析"><span class="nav-text">符号解析</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#静态库连接"><span class="nav-text">静态库连接</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#重定位"><span class="nav-text">重定位</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#可执行文件"><span class="nav-text">可执行文件</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#动态连接"><span class="nav-text">动态连接</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#加载连接场景"><span class="nav-text">加载连接场景</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#跳转控制"><span class="nav-text">跳转控制</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#进程"><span class="nav-text">进程</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#进程的创建"><span class="nav-text">进程的创建</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#进程的状态"><span class="nav-text">进程的状态</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#上下文切换"><span class="nav-text">上下文切换</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#信号"><span class="nav-text">信号</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#线程"><span class="nav-text">线程</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#进程和线程的区别"><span class="nav-text">进程和线程的区别</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#线程的抽象"><span class="nav-text">线程的抽象</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#线程的实现方式"><span class="nav-text">线程的实现方式</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#用户态线程"><span class="nav-text">用户态线程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#内核态线程"><span class="nav-text">内核态线程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#混合实现"><span class="nav-text">混合实现</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#线程切换模型"><span class="nav-text">线程切换模型</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#进程间通信"><span class="nav-text">进程间通信</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#常用的并发机制"><span class="nav-text">常用的并发机制</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#忙等待的互斥"><span class="nav-text">忙等待的互斥</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#信号量"><span class="nav-text">信号量</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#互斥量"><span class="nav-text">互斥量</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#管程"><span class="nav-text">管程</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#消息传递"><span class="nav-text">消息传递</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#屏障"><span class="nav-text">屏障</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#管道"><span class="nav-text">管道</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#进程调度"><span class="nav-text">进程调度</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#调度算法"><span class="nav-text">调度算法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#批处理系统的调度算法"><span class="nav-text">批处理系统的调度算法</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#先来先服务"><span class="nav-text">先来先服务</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#最短作业优先"><span class="nav-text">最短作业优先</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#最短剩余时间优先"><span class="nav-text">最短剩余时间优先</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#交互式系统的调度算法"><span class="nav-text">交互式系统的调度算法</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#轮转调度"><span class="nav-text">轮转调度</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#优先级调度"><span class="nav-text">优先级调度</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#最短进程优先"><span class="nav-text">最短进程优先</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#保证调度"><span class="nav-text">保证调度</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#彩票调度"><span class="nav-text">彩票调度</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#实时系统的调度"><span class="nav-text">实时系统的调度</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#线程调度"><span class="nav-text">线程调度</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#哲学家就餐问题"><span class="nav-text">哲学家就餐问题</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#读者写者问题"><span class="nav-text">读者写者问题</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#内存管理"><span class="nav-text">内存管理</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#内存管理总结"><span class="nav-text">内存管理总结</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#内存交换技术"><span class="nav-text">内存交换技术</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#空闲内存管理"><span class="nav-text">空闲内存管理</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#虚拟内存技术"><span class="nav-text">虚拟内存技术</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#分页"><span class="nav-text">分页</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#共享库"><span class="nav-text">共享库</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#分段"><span class="nav-text">分段</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#分段和分页结合"><span class="nav-text">分段和分页结合</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#分段和分页的比较"><span class="nav-text">分段和分页的比较</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#虚拟寻址"><span class="nav-text">虚拟寻址</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#虚拟内存"><span class="nav-text">虚拟内存</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#缺页"><span class="nav-text">缺页</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#内存分配"><span class="nav-text">内存分配</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#地址翻译"><span class="nav-text">地址翻译</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#多级页面"><span class="nav-text">多级页面</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#linux虚拟内存系统"><span class="nav-text">linux虚拟内存系统</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#内存映射"><span class="nav-text">内存映射</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#计算机结构"><span class="nav-text">计算机结构</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#文件系统"><span class="nav-text">文件系统</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#文件"><span class="nav-text">文件</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#文件的结构"><span class="nav-text">文件的结构</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#文件分配"><span class="nav-text">文件分配</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#文件分配表法"><span class="nav-text">文件分配表法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#i节点法"><span class="nav-text">i节点法</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#虚拟文件系统"><span class="nav-text">虚拟文件系统</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#io"><span class="nav-text">io</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#io通信方式"><span class="nav-text">io通信方式</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#io端口"><span class="nav-text">io端口</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#内存映射io"><span class="nav-text">内存映射io</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#DMA技术"><span class="nav-text">DMA技术</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </div>
+      <!--/noindex-->
+      
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2020</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">liujiakuo</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> v3.9.0</div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">Theme – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> v7.3.0</div>
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+      </div>
+
+    
+
+  </div>
+
+  
+  <script src="/lib/jquery/index.js?v=3.4.1"></script>
+  <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+<script src="/js/utils.js?v=7.3.0"></script>
+  <script src="/js/motion.js?v=7.3.0"></script>
+
+
+  <script src="/js/schemes/muse.js?v=7.3.0"></script>
+
+
+
+<script src="/js/next-boot.js?v=7.3.0"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+
+  
+    <script src="/js/scrollspy.js?v=7.3.0"></script>
+<script src="/js/post-details.js?v=7.3.0"></script>
+
+  
+
+</body>
+</html>
