@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+
+
+
+
+
+<html class="theme-next mist use-motion" lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="generator" content="Hexo 3.9.0">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=7.3.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=7.3.0">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=7.3.0">
+  <link rel="mask-icon" href="/images/logo.svg?v=7.3.0" color="#222">
+
+<link rel="stylesheet" href="/css/main.css?v=7.3.0">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.7.0">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '7.3.0',
+    exturl: false,
+    sidebar: {"position":"left","width":400,"display":"always","offset":12,"onmobile":false},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    save_scroll: false,
+    copycode: {"enable":false,"show_result":false,"style":null},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: '',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: 'Copy',
+      copy_success: 'Copied',
+      copy_failure: 'Copy failed'
+    }
+  };
+</script>
+
+  <meta name="description" content="本文主要记录四大组件在framework和APP中如何交互启动.记录大概框架.不追求完备的细节.源码根据8.0Activity启动过程主要流程桌面程序通常是launch.我们点击桌面图标启动app时.是由桌面launch程序通过AMS来启动Activity.这个过程大概如下">
+<meta name="keywords" content="android源码">
+<meta property="og:type" content="article">
+<meta property="og:title" content="四大组件启动过程">
+<meta property="og:url" content="http://yoursite.com/2020/05/05/四大组件启动过程/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="本文主要记录四大组件在framework和APP中如何交互启动.记录大概框架.不追求完备的细节.源码根据8.0Activity启动过程主要流程桌面程序通常是launch.我们点击桌面图标启动app时.是由桌面launch程序通过AMS来启动Activity.这个过程大概如下">
+<meta property="og:locale" content="en">
+<meta property="og:image" content="http://yoursite.com/2020/05/05/四大组件启动过程/image-20200505163411999.png">
+<meta property="og:image" content="http://yoursite.com/2020/05/05/四大组件启动过程/image-20200505173538751.png">
+<meta property="og:image" content="http://yoursite.com/2020/05/05/四大组件启动过程/image-20200505173614505.png">
+<meta property="og:image" content="http://yoursite.com/2020/05/05/四大组件启动过程/Service_Start.png">
+<meta property="og:updated_time" content="2020-06-25T07:13:38.462Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="四大组件启动过程">
+<meta name="twitter:description" content="本文主要记录四大组件在framework和APP中如何交互启动.记录大概框架.不追求完备的细节.源码根据8.0Activity启动过程主要流程桌面程序通常是launch.我们点击桌面图标启动app时.是由桌面launch程序通过AMS来启动Activity.这个过程大概如下">
+<meta name="twitter:image" content="http://yoursite.com/2020/05/05/四大组件启动过程/image-20200505163411999.png">
+  <link rel="canonical" href="http://yoursite.com/2020/05/05/四大组件启动过程/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+
+  <title>四大组件启动过程 | Hexo</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .motion-element,
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-title { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="en">
+
+  <div class="container sidebar-position-left">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta">
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Hexo</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="Toggle navigation bar">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+      
+      
+      
+        
+        <li class="menu-item menu-item-home">
+      
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>Home</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-about">
+      
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>About</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-tags">
+      
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>Tags</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-archives">
+      
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>Archives</a>
+
+  </li>
+  </ul>
+
+    
+
+</nav>
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content page-post-detail">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/05/05/四大组件启动过程/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="liujiakuo">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+    </span>
+      <header class="post-header">
+
+        
+          <h1 class="post-title" itemprop="name headline">四大组件启动过程
+
+            
+          </h1>
+        
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              
+                
+              
+
+              <time title="Created: 2020-05-05 13:13:02" itemprop="dateCreated datePublished" datetime="2020-05-05T13:13:02+08:00">2020-05-05</time>
+            </span>
+          
+            
+
+            
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2020-06-25 15:13:38" itemprop="dateModified" datetime="2020-06-25T15:13:38+08:00">2020-06-25</time>
+              </span>
+            
+          
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>本文主要记录四大组件在framework和APP中如何交互启动.记录大概框架.不追求完备的细节.源码根据8.0</p><h1 id="Activity启动过程"><a href="#Activity启动过程" class="headerlink" title="Activity启动过程"></a>Activity启动过程</h1><h2 id="主要流程"><a href="#主要流程" class="headerlink" title="主要流程"></a>主要流程</h2><p>桌面程序通常是launch.我们点击桌面图标启动app时.是由桌面launch程序通过AMS来启动Activity.这个过程大概如下</p><a id="more"></a>
+
+<p><img src="/2020/05/05/四大组件启动过程/image-20200505163411999.png" alt="image-20200505163411999"></p>
+<p>简单说就是.launch通知AMS启动新Activity. AMS则会先暂停当前进程.然后在启动新进程.然后在新进程启动完成后在创建Activity并启动.</p>
+<h3 id="通过intent定位Activity"><a href="#通过intent定位Activity" class="headerlink" title="通过intent定位Activity"></a>通过intent定位Activity</h3><p>APP在安装时.通过PackageManagerService 安装.并解析出来AndroidManifest.xml里声明的所有Activity.然后吧主Activity和应用图标绑定起来.这样点击图标.就能找到对应的Activity信息.</p>
+<h3 id="Instrumentation启动Activity"><a href="#Instrumentation启动Activity" class="headerlink" title="Instrumentation启动Activity"></a>Instrumentation启动Activity</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">execStartActivity( Context who, IBinder contextThread, IBinder token, Activity target,</span><br><span class="line">   Intent intent, int requestCode, Bundle options)&#123;</span><br><span class="line">       int result = ActivityManager.getService()</span><br><span class="line">                .startActivity(whoThread, who.getBasePackageName(), intent,</span><br><span class="line">                        intent.resolveTypeIfNeeded(who.getContentResolver()),</span><br><span class="line">                        token, target != null ? target.mEmbeddedID : null,</span><br><span class="line">                        requestCode, 0, null, options);   </span><br><span class="line">   &#125;</span><br></pre></td></tr></table></figure>
+
+<p>这个可以说是代理类,他用来监控程序和系统间的交互.里边有针对Activity启动的监控ActivityMonitor.</p>
+<p>他会通过AMS在客户端的代理来通知AMS启动Activity.并且传给AMS一个IBinder类的ApplicationThread,这是用来让AMS回调通知客户端进程的binder本地对象.</p>
+<p>同时还传入一个IBinder的 token. 代表当前Activity对象在AMS中的标识. 每个启动的Activity都会有这个token.在AMS端是ActivityRecord对象.</p>
+<h3 id="ActivityManager-拿到AMS的代理-进行binder通信"><a href="#ActivityManager-拿到AMS的代理-进行binder通信" class="headerlink" title="ActivityManager 拿到AMS的代理,进行binder通信"></a>ActivityManager 拿到AMS的代理,进行binder通信</h3><p>ActivityManager.getService通过ServiceManager 拿到AMS对应的用户端binder.然后包装成AMS的客户端代理.</p>
+<p>然后通过binder通信.调用AMS服务端.启动Activity.</p>
+<p><img src="/2020/05/05/四大组件启动过程/image-20200505173538751.png" alt="image-20200505173538751"></p>
+<h3 id="AMS端处理请求"><a href="#AMS端处理请求" class="headerlink" title="AMS端处理请求"></a>AMS端处理请求</h3><p>这里内部会有几个类共同处理.而且每个版本的代码也有所不同.显示AcctivityStack来处理Activity的堆栈管理.</p>
+<p><img src="/2020/05/05/四大组件启动过程/image-20200505173614505.png" alt="image-20200505173614505"></p>
+<h3 id="PMS解析intent-找到对应的Activity"><a href="#PMS解析intent-找到对应的Activity" class="headerlink" title="PMS解析intent.找到对应的Activity."></a>PMS解析intent.找到对应的Activity.</h3><p>PMS在启动的时候,已经解析了所有apk的androidManifest.xml文件.然后就知道所有intent格式对应的Activity.这里会通过PMS来找到合适的Activity.保存在ActivityInfo中.</p>
+<h3 id="检查调用进程的权限-封装信息"><a href="#检查调用进程的权限-封装信息" class="headerlink" title="检查调用进程的权限,封装信息"></a>检查调用进程的权限,封装信息</h3><p>通过调用进程的ProsessRecord 来在AMS端对应一个用户进程. AMS检查调用者Launcher的进程.看是否有启动Activity的权限等. 同时封装要启动的Activity的信息为ActivityRecord.也拿到了源Activity(也就是launcher)的组件信息.</p>
+<h3 id="处理启动标识Intent-FLAG"><a href="#处理启动标识Intent-FLAG" class="headerlink" title="处理启动标识Intent.FLAG"></a>处理启动标识Intent.FLAG</h3><p>这里处理各种启动模式,然后产生Activity对应的taskRecord. TaskRecord表示任务栈. 如果这个任务已经存在,就把待启动的Activity加入进去.如果新Activity对应的是新的任务.就要创建新的TaskRecord.</p>
+<p>通过管理当前激活的Activity.上次中止的Activity.正在被中止的Activity.AMS来决定把旧Activity(launcher)执行暂停.然后在启动新的Activity.</p>
+<h3 id="暂停旧的activity"><a href="#暂停旧的activity" class="headerlink" title="暂停旧的activity"></a>暂停旧的activity</h3><p>通过 用户进程的ApplicationThread 在AMS端的代理. AMS通知 旧Activity(launcher) 进行 pause.并把他保存在即将pause的变量中. launcher的Activity在pause后.又会通知AMS他已经pause完毕.然后AMS就会继续执行新Activity的启动过程.</p>
+<h3 id="启动新的Activity"><a href="#启动新的Activity" class="headerlink" title="启动新的Activity"></a>启动新的Activity</h3><p>先根据新Activity的进程名称判断对应进程是否启动.如果没有启动就先通过zygote来启动新进程.Activity的进程在AMS中的对应的对象是ProcessRecord. 新进程启动完成后必须在规定时间内通知AMS已经启动完成.新进程会执行ActivityThread的main方法.</p>
+<h3 id="新进程ActivityThread-main"><a href="#新进程ActivityThread-main" class="headerlink" title="新进程ActivityThread.main"></a>新进程ActivityThread.main</h3><p>通过ams.attach.通知AMS 新进程已启动完毕并传入新的ApplicationThread.创建主线程的looper和Handler.开始消息循环.</p>
+<h3 id="AMS继续启动Activity"><a href="#AMS继续启动Activity" class="headerlink" title="AMS继续启动Activity"></a>AMS继续启动Activity</h3><p>AMS收到ActivityThread的att通知后.继续启动新Activity.此时新进程已经和ProcessRecord对应上.然后通过上边的ApplicationThread在AMS的代理.通知ActivityThread启动Activity.而客户端ApplicationThread收到AMS的消息后.通过向主线程looper 发送消息.启动Activity. ActivityThread收到消息后.取出要启动的Activity信息</p>
+<h3 id="ActivityThread-启动Activity"><a href="#ActivityThread-启动Activity" class="headerlink" title="ActivityThread 启动Activity"></a>ActivityThread 启动Activity</h3><p>通过执行handleLauncherActivity,反射 创建activity所属的Application.ContextImpl.和activity.</p>
+<p>然后执行activity.attach .使activity和WMS建立联系.获得应用窗口.</p>
+<p>在执行activity.onCreate. 创建view树.</p>
+<p>Activity 的启动.因为之前已经写过了.这里就简单的过一下</p>
+<h1 id="Service启动过程"><a href="#Service启动过程" class="headerlink" title="Service启动过程"></a>Service启动过程</h1><p>Service的启动分为显示启动和隐式启动.并且可以运行在不同的进程.并且可以通过startService启动.和bindService启动.</p>
+<h2 id="activity启动服务"><a href="#activity启动服务" class="headerlink" title="activity启动服务"></a>activity启动服务</h2><p>最开始其余 startService.  他会调用到ContextWrapper.startService.有会调用到mBase.startService(service). mBase实际是一个ComtextImpl对象.每个Activity创建时都有一个ContextImpl对象. 他又会调用AMS.startService.通过binder来启动.</p>
+<h2 id="AMS接收调用-启动服务"><a href="#AMS接收调用-启动服务" class="headerlink" title="AMS接收调用.启动服务"></a>AMS接收调用.启动服务</h2><p>AMS内部又通过  mServices.startServiceLocked 来启动 mService 是ActiveServices类.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">ActiveServices.java</span><br><span class="line">startServiceLocked()&#123;</span><br><span class="line">			继续启动Service,找到 intent对应的Service.</span><br><span class="line">		 ServiceLookupResult res =retrieveServiceLocked(service, resolvedType, callingPackage,</span><br><span class="line">                    callingPid, callingUid, userId, true, callerFg, false);</span><br><span class="line">      启动完的Service在AMS里抽象为ServiceRecord</span><br><span class="line">      ServiceRecord r = res.record;</span><br><span class="line">      然后是一些权限的验证处理</span><br><span class="line">      </span><br><span class="line">      生成了一个 ComponentName.这里一会看.</span><br><span class="line">     ComponentName cmp = startServiceInnerLocked(smap, service, r, callerFg, addToStarting);              </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="通过intent找到Service"><a href="#通过intent找到Service" class="headerlink" title="通过intent找到Service"></a>通过intent找到Service</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">ActivityService.java</span><br><span class="line">根据intent.找到对应的Service,在AMS里.每个ServiceRecord是和ComponentName绑定的</span><br><span class="line">private ServiceLookupResult retrieveServiceLocked(Intent service...)&#123;</span><br><span class="line">	 ServiceRecord r = null;</span><br><span class="line">	 找到进程对应的 ServiceMap.然后根据componentName找Service.</span><br><span class="line">	 ServiceMap smap = getServiceMapLocked(userId);</span><br><span class="line">	 final ComponentName comp = service.getComponent();</span><br><span class="line">        if (comp != null) &#123;</span><br><span class="line">            r = smap.mServicesByName.get(comp);</span><br><span class="line">        &#125;</span><br><span class="line">   接下来是对ServiceRecord 权限的检查,看用户进程是否可以启动这个Service</span><br><span class="line">   最后封装后返回出去</span><br><span class="line">  return new ServiceLookupResult(r, null); </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="启动服务-startServiceInnerLocked"><a href="#启动服务-startServiceInnerLocked" class="headerlink" title="启动服务 startServiceInnerLocked"></a>启动服务 startServiceInnerLocked</h3><p>这里又调用的同名函数 bringUpServiceLocked 这是真正启懂Service的地方.然后又调度队列.启动所以等待的Service</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">ComponentName startServiceInnerLocked(ServiceMap smap, Intent service, ServiceRecord r...)&#123;</span><br><span class="line">	//启动Service</span><br><span class="line">  String error = bringUpServiceLocked(r, service.getFlags(), callerFg, false, false);</span><br><span class="line">  </span><br><span class="line">  //通过队列.把等待启动的Service 再次通过startServiceInnerLocked方法启动.</span><br><span class="line">	if (r.startRequested &amp;&amp; addToStarting) &#123;</span><br><span class="line">            if (first) &#123;</span><br><span class="line">                smap.rescheduleDelayedStartsLocked();</span><br><span class="line">            &#125;</span><br><span class="line">  &#125; else if (callerFg || r.fgRequired) &#123;</span><br><span class="line">      smap.ensureNotStartingBackgroundLocked(r);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="AMS启动service对应进程"><a href="#AMS启动service对应进程" class="headerlink" title="AMS启动service对应进程"></a>AMS启动service对应进程</h2><p>这里会看Service对应的进程是否启动.如果启动.就直接启动Service就行了.如果没有.就先启动对应的进程.进程在AMS端的代表对象是ProsessRecord</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">private String bringUpServiceLocked(ServiceRecord r)&#123;</span><br><span class="line">		进程存在,直接启动Service</span><br><span class="line">			 if (r.app != null &amp;&amp; r.app.thread != null) &#123;</span><br><span class="line">            sendServiceArgsLocked(r, execInFg, false);</span><br><span class="line">            return null;</span><br><span class="line">        &#125;</span><br><span class="line">        </span><br><span class="line">        进程不存在.启动进程,然后在把Service放入队列,等待启动</span><br><span class="line">      if (app == null &amp;&amp; !permissionsReviewRequired) &#123;</span><br><span class="line">            if ((app=mAm.startProcessLocked(procName, r.appInfo, true, intentFlags,</span><br><span class="line">                    hostingType, r.name, false, isolated, false)) == null) &#123;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125; </span><br><span class="line">        </span><br><span class="line">          if (!mPendingServices.contains(r)) &#123;</span><br><span class="line">            mPendingServices.add(r);</span><br><span class="line">        &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>AMS启动Service的进程,这里还是通过Process.start来启动新进程.这里和之前的Activity比较类似.也是通过zygote进程来fork出新进程.然后执行ActivityThread的main函数. 进程初始化完成后.会调用AMS.attachApplication.</p>
+<p>这里和Activity的启动是一个方法.这次他会在这里看上边加入队列的</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">ActivityManagerService.java</span><br><span class="line">boolean attachApplicationLocked(IApplicationThread thread,int pid) &#123;</span><br><span class="line">	又回调到了Service的方法区去处理启动Service</span><br><span class="line">	   // Find any services that should be running in this process...</span><br><span class="line">        if (!badApp) &#123;</span><br><span class="line">            try &#123;</span><br><span class="line">                didSomething |= mServices.attachApplicationLocked(app, processName);</span><br><span class="line">            &#125; catch (Exception e) &#123;</span><br><span class="line">                badApp = true;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;          </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="Service继续启动服务"><a href="#Service继续启动服务" class="headerlink" title="Service继续启动服务"></a>Service继续启动服务</h2><p>遍历pending队列,启动Service</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">ActivityServices.java</span><br><span class="line">boolean attachApplicationLocked(ProcessRecord proc, String processName) &#123;</span><br><span class="line">        if (mPendingServices.size() &gt; 0) &#123;</span><br><span class="line">            ServiceRecord sr = null;</span><br><span class="line">                for (int i=0; i&lt;mPendingServices.size(); i++) &#123;</span><br><span class="line">                    sr = mPendingServices.get(i);</span><br><span class="line">                    realStartServiceLocked(sr, proc, sr.createdFromFg);</span><br><span class="line">                &#125;</span><br><span class="line">          &#125;</span><br><span class="line">&#125;</span><br><span class="line">realStartServiceLocked里最主要的是,下边的.也就是通过binder调用用户进程启动service,通过ApplicationThread继而通知ActivityThread启动服务</span><br><span class="line">app.thread.scheduleCreateService(r, r.serviceInfo,</span><br><span class="line">    mAm.compatibilityInfoForPackageLocked(r.serviceInfo.applicationInfo),app.repProcState);</span><br></pre></td></tr></table></figure>
+
+<h2 id="用户进程启动service"><a href="#用户进程启动service" class="headerlink" title="用户进程启动service"></a>用户进程启动service</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line">ActivityThread.java</span><br><span class="line">void handleCreateService(CreateServiceData data) &#123;</span><br><span class="line">每个app都有一个loadedApk来描述应用程序的资源.</span><br><span class="line">        LoadedApk packageInfo = getPackageInfoNoCheck(</span><br><span class="line">                data.info.applicationInfo, data.compatInfo);</span><br><span class="line">        Service service = null;</span><br><span class="line">        try &#123;</span><br><span class="line">        反射加载servi的类.</span><br><span class="line">            java.lang.ClassLoader cl = packageInfo.getClassLoader();</span><br><span class="line">            service = (Service) cl.loadClass(data.info.name).newInstance();</span><br><span class="line">        &#125; catch (Exception e) &#123;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        try &#123;</span><br><span class="line">    为service创建ContextImpl上下文环境. activity也有这个.</span><br><span class="line">            ContextImpl context = ContextImpl.createAppContext(this, packageInfo);</span><br><span class="line">            context.setOuterContext(service);</span><br><span class="line">		service 绑定Application. 执行onCreate</span><br><span class="line">            Application app = packageInfo.makeApplication(false, mInstrumentation);</span><br><span class="line">            service.attach(context, this, data.info.name, data.token, app,</span><br><span class="line">                    ActivityManager.getService());</span><br><span class="line">            service.onCreate();</span><br><span class="line">      ActivityThread 保存所有的service</span><br><span class="line">            mServices.put(data.token, service);</span><br><span class="line">            try &#123;</span><br><span class="line">       通知AMS.service启动成功     </span><br><span class="line">                ActivityManager.getService().serviceDoneExecuting(</span><br><span class="line">                        data.token, SERVICE_DONE_EXECUTING_ANON, 0, 0);</span><br><span class="line">            &#125; catch (RemoteException e) &#123;</span><br><span class="line">                throw e.rethrowFromSystemServer();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125; catch (Exception e) &#123;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<p>最后AMS里会做一些收尾工作.</p>
+<p>附一个流程图.</p>
+<p>![Sample sequence diagram](/Sample sequence diagram.png)</p>
+<h1 id="service绑定过程"><a href="#service绑定过程" class="headerlink" title="service绑定过程"></a>service绑定过程</h1><p>绑定的Service也是需要先启动起来的. 过程和启动服务类似. 都是从ContextImpl通知AMS开始.这里会封装一个IServiceConnection.这个IServiceConnection 是一个adil类.这是夸进程传递给AMS 的对象. 这里.APP的进程是IServiceConnection的binder服务端. AMS则持有 IServiceConnection的binder的代理端.</p>
+<h2 id="封装ServiceConnect-通知AMS"><a href="#封装ServiceConnect-通知AMS" class="headerlink" title="封装ServiceConnect.通知AMS"></a>封装ServiceConnect.通知AMS</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">bindServiceCommon(Intent service, ServiceConnection conn,)&#123;</span><br><span class="line">	 IServiceConnection sd;</span><br><span class="line">	 //封装成一个IBinder.</span><br><span class="line">   sd = mPackageInfo.getServiceDispatcher(conn, getOuterContext(), handler, flags);</span><br><span class="line"> //  调用ams的方法.</span><br><span class="line">int res = ActivityManager.getService().bindService(</span><br><span class="line">                mMainThread.getApplicationThread(), getActivityToken(), service,</span><br><span class="line">                service.resolveTypeIfNeeded(getContentResolver()),</span><br><span class="line">                sd, flags, getOpPackageName(), user.getIdentifier());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="AMS转给ActiveServices处理"><a href="#AMS转给ActiveServices处理" class="headerlink" title="AMS转给ActiveServices处理."></a>AMS转给ActiveServices处理.</h2><p>这里的流程比较复杂.简单说就是找到service的记录.然后和对应的Activity. 及Activity对应的process创建绑定关系ConnectionRecord并保存起来.保存在service 的ServiceRecord中.然后开始启动service</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line">ActivityServices.java</span><br><span class="line">bindServiceLocked (IApplicationThread caller, IBinder token, Intent service,  final IServiceConnection connection..)&#123;</span><br><span class="line">		请求绑定服务的Activity的进程.</span><br><span class="line">      final ProcessRecord callerApp = mAm.getRecordForAppLocked(caller);</span><br><span class="line">      请求的Activity的记录</span><br><span class="line"> ActivityRecord activity = null;</span><br><span class="line">    if (token != null) &#123;</span><br><span class="line">        activity = ActivityRecord.isInStackLocked(token);</span><br><span class="line">    &#125;</span><br><span class="line">    //同启动服务一样.找到对应的service记录.</span><br><span class="line">ServiceLookupResult res =</span><br><span class="line">      retrieveServiceLocked(service, resolvedType, callingPackage, Binder.getCallingPid(),</span><br><span class="line">              Binder.getCallingUid(), userId, true, callerFg, isBindExternal);            </span><br><span class="line">      ServiceRecord s = res.record;</span><br><span class="line"></span><br><span class="line">		找到service对应的app绑定描述对象.表示service绑定在callerApp进程中.表示绑定在这个service上的进程.</span><br><span class="line">		这是一种对应关系. 一个service可以被多个进程绑定.</span><br><span class="line">      AppBindRecord b = s.retrieveAppBindingLocked(service, callerApp);</span><br><span class="line">      这里是描述Activity.service.process 的对应关系的一个记录.</span><br><span class="line">      ConnectionRecord c = new ConnectionRecord(b, activity,</span><br><span class="line">              connection, flags, clientLabel, clientIntent);</span><br><span class="line">			得到connection的远程代理类.,保存上边的映射关系.</span><br><span class="line">      IBinder binder = connection.asBinder();</span><br><span class="line">      ArrayList&lt;ConnectionRecord&gt; clist = s.connections.get(binder);</span><br><span class="line">			接着启动这个service</span><br><span class="line">      if (bringUpServiceLocked(s, service.getFlags(), callerFg, false,</span><br><span class="line">                  permissionsReviewRequired) != null) &#123;</span><br><span class="line">              return 0;</span><br><span class="line">          &#125;</span><br><span class="line">       clist.add(c);</span><br><span class="line">      c.conn.connected(s.name, b.intent.binder, false);</span><br><span class="line"></span><br><span class="line">         </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="ActivityServices-继续启动"><a href="#ActivityServices-继续启动" class="headerlink" title="ActivityServices 继续启动"></a>ActivityServices 继续启动</h2><p>bringUpServiceLocked方法.在启动service里已经出现过了.流程就是启动service对应的进程. 进程启动完后通知AMS.AMS在通知创建Service. 直到执行service的onStart.onCreate</p>
+<p>但是这里不太一样的是realStartServiceLocked里又会执行requestServiceBindingsLocked.进而遍历调用r.app.thread.scheduleBindService(r, i.intent.getIntent(), rebind,  r.app.repProcState); 也就是变量得到该service所有对应的要绑定的activity的相关记录.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">private final void requestServiceBindingsLocked(ServiceRecord r, boolean execInFg)</span><br><span class="line">            throws TransactionTooLargeException &#123;</span><br><span class="line">        for (int i=r.bindings.size()-1; i&gt;=0; i--) &#123;</span><br><span class="line">            IntentBindRecord ibr = r.bindings.valueAt(i);</span><br><span class="line">            if (!requestServiceBindingLocked(r, ibr, execInFg, false)) &#123;</span><br><span class="line">                break;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">private final boolean requestServiceBindingLocked(ServiceRecord r, IntentBindRecord i,</span><br><span class="line">            boolean execInFg, boolean rebind) throws TransactionTooLargeException &#123;</span><br><span class="line">        if ((!i.requested || rebind) &amp;&amp; i.apps.size() &gt; 0) &#123;</span><br><span class="line">                r.app.forceProcessStateUpTo(ActivityManager.PROCESS_STATE_SERVICE);</span><br><span class="line">                r.app.thread.scheduleBindService(r, i.intent.getIntent(), rebind,</span><br><span class="line">                        r.app.repProcState);</span><br><span class="line">            &#125;</span><br><span class="line">        return true;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="ActivityThread处理绑定服务"><a href="#ActivityThread处理绑定服务" class="headerlink" title="ActivityThread处理绑定服务"></a>ActivityThread处理绑定服务</h2><p>这时.又通过Binder通知到了ActivityThread,他调用servic的onBind. 获取服务的binder对象.然后回传给AMS</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">ActivityThread.java</span><br><span class="line">private void handleBindService(BindServiceData data) &#123;</span><br><span class="line">      Service s = mServices.get(data.token);</span><br><span class="line">          try &#123;</span><br><span class="line">               if (!data.rebind) &#123;</span><br><span class="line">               调用了service的onBind 获取service的 binder. ActivityThread保存所有的service.</span><br><span class="line">                      IBinder binder = s.onBind(data.intent);</span><br><span class="line">                再把service服务的binder传递个AMS.用来发送回所有绑定到该service的进程.当然发送过去的是本地binder的代理类.</span><br><span class="line">                      ActivityManager.getService().publishService(</span><br><span class="line">                              data.token, data.intent, binder);</span><br><span class="line">                  &#125; else &#123;</span><br><span class="line">                      s.onRebind(data.intent);</span><br><span class="line">                      ActivityManager.getService().serviceDoneExecuting(</span><br><span class="line">                              data.token, SERVICE_DONE_EXECUTING_ANON, 0, 0);</span><br><span class="line">                  &#125;</span><br><span class="line">              &#125; catch (RemoteException ex) &#123;</span><br><span class="line">                  throw ex.rethrowFromSystemServer();</span><br><span class="line">              &#125;</span><br><span class="line">          &#125; </span><br><span class="line">      &#125;</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="AMS获取service的binder代理对象"><a href="#AMS获取service的binder代理对象" class="headerlink" title="AMS获取service的binder代理对象"></a>AMS获取service的binder代理对象</h2><p>ams还是把请求交个ActivityServices来处理.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">ActivityServices.java</span><br><span class="line">publishServiceLocked(ServiceRecord r, Intent intent, IBinder service) &#123;</span><br><span class="line">        final long origId = Binder.clearCallingIdentity();</span><br><span class="line">        try &#123;</span><br><span class="line">            Intent.FilterComparison filter= new Intent.FilterComparison(intent);</span><br><span class="line">            IntentBindRecord b = r.bindings.get(filter);</span><br><span class="line">            if (b != null &amp;&amp; !b.received) &#123;</span><br><span class="line">            ConnectionRecord是上问我们介绍的 service和Activity和acitivity的process建立的绑定关系.</span><br><span class="line">            这里拿到这个服务的所有ConnectionRecord.然后取出里边的binder代理类 IServiceConnection.</span><br><span class="line">            在调用connected方法.并传入service发过来的binder. 就实现了 service和Activity的绑定.</span><br><span class="line">                for (int conni=r.connections.size()-1; conni&gt;=0; conni--) &#123;</span><br><span class="line">                    ArrayList&lt;ConnectionRecord&gt; clist = r.connections.valueAt(conni);</span><br><span class="line">                    for (int i=0; i&lt;clist.size(); i++) &#123;</span><br><span class="line">                        ConnectionRecord c = clist.get(i);</span><br><span class="line">                            c.conn.connected(r.name, service, false);</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">            serviceDoneExecutingLocked(r, mDestroyingServices.contains(r), false);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125; finally &#123;</span><br><span class="line">            Binder.restoreCallingIdentity(origId);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<p>看到这里就明白了. activity提供的ServiceConnection 被包装成Binder后.发送到AMS中.与要绑定的Service建立关系.产生ConnectionRecord对象. 而service在对应的进程启动完成.service也启动完成后. 由AMS调用service 的onBind. service 则会提供代表他的功能的binder给AMS. 在publishServiceLocked方法中.遍历所有的ConnectionRecord, 调用conn.connected 把service 传来的binder发送给 activity里的ServiceConnection .这就实现了 activity和service的绑定.</p>
+<h2 id="ServiceDispatcher-处理connection"><a href="#ServiceDispatcher-处理connection" class="headerlink" title="ServiceDispatcher 处理connection"></a>ServiceDispatcher 处理connection</h2><p>上边的 c.conn.connected(r.name, service, false); 其实是调用的的InnerConnection的方法.他是LoadApk 里ServiceDispatcher的内部类.是aidl实现的类.这里又涉及到AMS和最初 的Activity 通过aidl 方式来进程ipc.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">loadApk.java</span><br><span class="line">public void connected(ComponentName name, IBinder service, boolean dead) &#123;</span><br><span class="line">            if (mActivityThread != null) &#123;</span><br><span class="line">            可以看到.通过handler.把connec推到住线程来处理了.</span><br><span class="line">                mActivityThread.post(new RunConnection(name, service, 0, dead));</span><br><span class="line">            &#125; else &#123;</span><br><span class="line">                doConnected(name, service, dead);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="Runnconection-在主线程处理"><a href="#Runnconection-在主线程处理" class="headerlink" title="Runnconection 在主线程处理"></a>Runnconection 在主线程处理</h2><p>简单说就是找到旧的服务.将他断开,然后执行新的connection 的onServiceConnected方法.也就是回调activity里设置的connection.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line">public void doConnected(ComponentName name, IBinder service, boolean dead) &#123;</span><br><span class="line">            ServiceDispatcher.ConnectionInfo old;</span><br><span class="line">            ServiceDispatcher.ConnectionInfo info;</span><br><span class="line"></span><br><span class="line">            synchronized (this) &#123;</span><br><span class="line">                &#125;</span><br><span class="line">                old = mActiveConnections.get(name);</span><br><span class="line">                if (service != null) &#123;</span><br><span class="line">                    info = new ConnectionInfo();</span><br><span class="line">                    info.binder = service;</span><br><span class="line">                    info.deathMonitor = new DeathMonitor(name, service);</span><br><span class="line">                    try &#123;</span><br><span class="line">                        service.linkToDeath(info.deathMonitor, 0);</span><br><span class="line">                        mActiveConnections.put(name, info);</span><br><span class="line">                    &#125; catch (RemoteException e) &#123;</span><br><span class="line">                &#125;</span><br><span class="line">                if (old != null) &#123;</span><br><span class="line">                    old.binder.unlinkToDeath(old.deathMonitor, 0);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">断开旧服务</span><br><span class="line">            if (old != null) &#123;</span><br><span class="line">                mConnection.onServiceDisconnected(name);</span><br><span class="line">            &#125;</span><br><span class="line"> 开启新服务           </span><br><span class="line">            if (service != null) &#123;</span><br><span class="line">                mConnection.onServiceConnected(name, service);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br></pre></td></tr></table></figure>
+
+<p><img src="/2020/05/05/四大组件启动过程/Service_Start.png" alt="Service_Start"></p>
+<h1 id="广播机制"><a href="#广播机制" class="headerlink" title="广播机制"></a>广播机制</h1><p>广播机制是在binder的基础上实现的.广播机制存在注册中心.就是AMS.广播订阅者要先向AMS注册,并指明接受广播的类型.然后广播发送者把广播发送给AMS.再由AMS分发给对应的接收者.</p>
+<p>广播分为有序广播和无序广播. 注册时有静态注册和动态注册.</p>
+<h2 id="注册广播"><a href="#注册广播" class="headerlink" title="注册广播"></a>注册广播</h2><p>同样是从ContextImpl开始.先拿到主线程的handler.然后封装一个 receiverDispatcher.然后通知AMS来注册,</p>
+<p>这个ReceiverDispatcher也是对receiver的封装.并且内部有实现aidl 的类.也就是利用binder 把代理类发给AMS.用于回调.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">ContextImpl.java</span><br><span class="line"> private Intent registerReceiverInternal(BroadcastReceiver receiver, int userId,</span><br><span class="line">            IntentFilter filter, String broadcastPermission,</span><br><span class="line">            Handler scheduler, Context context, int flags) &#123;</span><br><span class="line">        IIntentReceiver rd = null;</span><br><span class="line">        if (receiver != null) &#123;</span><br><span class="line">        封装一个receiverDispatcher .这个和service原理有点类似.都是发给AMS用来回调app进程的binder类</span><br><span class="line">            if (mPackageInfo != null &amp;&amp; context != null) &#123;</span><br><span class="line">                if (scheduler == null) &#123;</span><br><span class="line">                还拿到了ui线程的handler,用来向主线程发消息.</span><br><span class="line">                    scheduler = mMainThread.getHandler();</span><br><span class="line">                &#125;</span><br><span class="line">                rd = mPackageInfo.getReceiverDispatcher(</span><br><span class="line">                    receiver, context, scheduler,</span><br><span class="line">                    mMainThread.getInstrumentation(), true);</span><br><span class="line">            &#125;  </span><br><span class="line">        &#125;</span><br><span class="line">        通过ams注册</span><br><span class="line">            final Intent intent = ActivityManager.getService().registerReceiver(</span><br><span class="line">                    mMainThread.getApplicationThread(), mBasePackageName, rd, filter,</span><br><span class="line">                    broadcastPermission, userId, flags);</span><br><span class="line">            </span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<p>AMS中注册广播</p>
+<p>这里有对粘性广播和普通广播的处理. 如果存在粘性广播.就把他们保存在 allSticky中.粘性广播就是广播发送在广播注册之前.但是也能收到.粘性广播会一直留在AMS中.直到下一个同类型粘性广播的到来.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br></pre></td><td class="code"><pre><span class="line">public Intent registerReceiver(IApplicationThread caller, String callerPackage,</span><br><span class="line">            IIntentReceiver receiver, IntentFilter filter, String permission, int userId,</span><br><span class="line">            int flags) &#123;</span><br><span class="line">        ArrayList&lt;Intent&gt; stickyIntents = null;</span><br><span class="line">        ProcessRecord callerApp = null;</span><br><span class="line">                callerApp = getRecordForAppLocked(caller);</span><br><span class="line"></span><br><span class="line">            instantApp = isInstantApp(callerApp, callerPackage, callingUid);</span><br><span class="line"></span><br><span class="line">				找到匹配的粘性广播,保存intent</span><br><span class="line">        ArrayList&lt;Intent&gt; allSticky = null;</span><br><span class="line">        if (stickyIntents != null) &#123;</span><br><span class="line">            final ContentResolver resolver = mContext.getContentResolver();</span><br><span class="line">            // Look for any matching sticky broadcasts...</span><br><span class="line">            for (int i = 0, N = stickyIntents.size(); i &lt; N; i++) &#123;</span><br><span class="line">                Intent intent = stickyIntents.get(i);</span><br><span class="line">                if (filter.match(resolver, intent, true, TAG) &gt;= 0) &#123;</span><br><span class="line">                    allSticky.add(intent);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">				</span><br><span class="line">		每个广播接收者是用BroadcastFilter 来描述.BroadcastFilter和APP传过来的InnerReceiver.而可能多个activity会使用同一个InnerReceiver.因此用集合来保存相同InneReceiver的广播接收者.</span><br><span class="line">		也就是如果多个activity注册同一个广播.就会有一个InnerReceiver.对应多个BroadcastFilter.</span><br><span class="line">        synchronized (this) &#123;</span><br><span class="line">            ReceiverList rl = mRegisteredReceivers.get(receiver.asBinder());</span><br><span class="line">            if (rl == null) &#123;</span><br><span class="line">                rl = new ReceiverList(this, callerApp, callingPid, callingUid,</span><br><span class="line">                        userId, receiver);</span><br><span class="line">                mRegisteredReceivers.put(receiver.asBinder(), rl);</span><br><span class="line">            &#125;</span><br><span class="line">            BroadcastFilter bf = new BroadcastFilter(filter, rl, callerPackage,</span><br><span class="line">                    permission, callingUid, userId, instantApp, visibleToInstantApps);</span><br><span class="line">            rl.add(bf);</span><br><span class="line">            if (!bf.debugCheck()) &#123;</span><br><span class="line">                Slog.w(TAG, &quot;==&gt; For Dynamic broadcast&quot;);</span><br><span class="line">            &#125;</span><br><span class="line">            加到这里后.以后来了广播.就能找到对应的接收者.</span><br><span class="line">            mReceiverResolver.addFilter(bf);</span><br><span class="line"></span><br><span class="line">            把粘性广播返回给activity组件.也就实现了粘性广播的发送.</span><br><span class="line">            if (allSticky != null) &#123;</span><br><span class="line">                ArrayList receivers = new ArrayList();</span><br><span class="line">                receivers.add(bf);</span><br><span class="line"></span><br><span class="line">                final int stickyCount = allSticky.size();</span><br><span class="line">                for (int i = 0; i &lt; stickyCount; i++) &#123;</span><br><span class="line">                    Intent intent = allSticky.get(i);</span><br><span class="line">                    BroadcastQueue queue = broadcastQueueForIntent(intent);</span><br><span class="line">                    每个广播对应的就是 BroadCastRecord 记录.这里是入栈.然后发送粘性广播.</span><br><span class="line">                    BroadcastRecord r = new BroadcastRecord(queue, intent, null,</span><br><span class="line">                            null, -1, -1, false, null, null, AppOpsManager.OP_NONE, null, receivers,</span><br><span class="line">                            null, 0, null, null, false, true, true, -1);</span><br><span class="line">                    queue.enqueueParallelBroadcastLocked(r);</span><br><span class="line">                    queue.scheduleBroadcastsLocked();</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            return sticky;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="发送广播"><a href="#发送广播" class="headerlink" title="发送广播"></a>发送广播</h2><p>首先广播发送者把广播发送给AMS. </p>
+<p>然后AMS找到这个广播对应的接收者,再把这个广播和接收者添加到广播队列中.并向AMS中发送一个BROADCAST_INTENT_MSG的消息.等待AMS处理.</p>
+<p>当AMS处理到这个消息时,取出广播及接收者,分别将广播发给接收者的进程</p>
+<p>接受者进程的ActivityThread会再次把消息发送到主线程的消息队列.等消息被处理时在交给广播接收者.</p>
+<h3 id="发送广播给AMS"><a href="#发送广播给AMS" class="headerlink" title="发送广播给AMS"></a>发送广播给AMS</h3><p>由ContextImpl 通过binder通信把广播发给AMS.</p>
+<h3 id="AMS接收处理广播"><a href="#AMS接收处理广播" class="headerlink" title="AMS接收处理广播"></a>AMS接收处理广播</h3><h4 id="broadcastIntent"><a href="#broadcastIntent" class="headerlink" title="broadcastIntent()"></a>broadcastIntent()</h4><p>验证广播intent参数的合法性.</p>
+<h4 id="broadcastIntentLocked"><a href="#broadcastIntentLocked" class="headerlink" title="broadcastIntentLocked()"></a>broadcastIntentLocked()</h4><p>先是对intent里的action的不同类型的处理.如检查权限.同时对系统广播进行处理.</p>
+<p>接着是对粘性广播的处理.所有的粘性广播都保存在一个hashmap中,并已action作为key</p>
+<p>然后如果广播指定了接收者的Component.就从pms中找到对应的接收者,保存起来</p>
+<p>然后在判断intent的flag 是发给动态接收者还是动态接收者以及静态接收者.静态和动态的广播接收者分别保存在不同的集合中.</p>
+<p>针对无序广播.并且有动态接收者.在发给静态接收者.封装成BroadcastRecord,加入队列.</p>
+<p>接着把剩下的广播都加入到BroadcastQueue,并且接收者会按照优先级排序.合并静态动态接受者.</p>
+<h4 id="BroadcastQueue-scheduleBroadcastsLocked"><a href="#BroadcastQueue-scheduleBroadcastsLocked" class="headerlink" title="BroadcastQueue.scheduleBroadcastsLocked"></a>BroadcastQueue.scheduleBroadcastsLocked</h4><p>将广播加入队列后.通过handler发送给AMS的线程.可以看到广播的发送和接收是异步的</p>
+<h4 id="BroadcastQueue-processNextBroadcast"><a href="#BroadcastQueue-processNextBroadcast" class="headerlink" title="BroadcastQueue.processNextBroadcast"></a>BroadcastQueue.processNextBroadcast</h4><p>取出广播对象BroadcastRecord,处理无序广播队列,找到所有的无序接收者.遍历执行deliverToRegisteredReceiverLocked</p>
+<p>然后执行有序广播的处理. 如果对应的广播接收者还没启动.则先启动对应的进程,然后继续处理下一个有序广播接收者.</p>
+<p>入股有序广播不能再一个限定时间内处理完成.就会结束这个有序广播.</p>
+<h4 id="BroadcastQueue-deliverToRegisteredReceiverLocked"><a href="#BroadcastQueue-deliverToRegisteredReceiverLocked" class="headerlink" title="BroadcastQueue.deliverToRegisteredReceiverLocked"></a>BroadcastQueue.deliverToRegisteredReceiverLocked</h4><p>这里AMS把广播转发给APP所在进程.其实是通过回调ApplicationThread的scheduleRegisteredReceiver把消息发给ActivityThread的.这时发送给APP进程的是之前包装过的InntentReceiver的代理类. 他内部封装了一个广播接收者.</p>
+<h4 id="ActivityThread-scheduleRegisteredReceiver"><a href="#ActivityThread-scheduleRegisteredReceiver" class="headerlink" title="ActivityThread.scheduleRegisteredReceiver"></a>ActivityThread.scheduleRegisteredReceiver</h4><p>这里就到了APP进程.然后由之前传入的InnerReceiver 来继续执行.</p>
+<p>他内部会发消息给ActivityThread的主线程. 发一个runnable过去.等主线程处理这个消息. runnable是<strong>Args</strong></p>
+<p>的内部类.</p>
+<h4 id="Args-getRunnable"><a href="#Args-getRunnable" class="headerlink" title="Args.getRunnable"></a>Args.getRunnable</h4><p>最后调用receiver.onReceive .也就是接收者接收到了消息.然后在回调AMS.finishReceive表示消息接收完成</p>
+<p>contentprovider 以后再补充.他是用共享内存作为夸进程传输数据的.</p>
+
+    </div>
+
+    
+    
+    
+        
+      
+
+      <footer class="post-footer">
+          
+            
+          
+          <div class="post-tags">
+            
+              <a href="/tags/android源码/" rel="tag"># android源码</a>
+            
+          </div>
+        
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+              
+                <a href="/2020/04/15/rxjava源码解析/" rel="next" title="rxjava源码解析">
+                  <i class="fa fa-chevron-left"></i> rxjava源码解析
+                </a>
+              
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+              
+                <a href="/2020/05/15/android性能优化/" rel="prev" title="android性能优化">
+                  android性能优化 <i class="fa fa-chevron-right"></i>
+                </a>
+              
+            </div>
+          </div>
+        
+      </footer>
+    
+  </div>
+  
+  
+  
+  </article>
+
+  </div>
+
+
+          </div>
+          
+
+        </div>
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">liujiakuo</p>
+  <div class="site-description motion-element" itemprop="description"></div>
+</div>
+  <nav class="site-state motion-element">
+      <div class="site-state-item site-state-posts">
+        
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">15</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-tags">
+        
+        
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+        <span class="site-state-item-count">8</span>
+        <span class="site-state-item-name">tags</span>
+        
+      </div>
+    
+  </nav>
+
+
+
+        </div>
+      </div>
+      <!--noindex-->
+        <div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+            
+            
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Activity启动过程"><span class="nav-text">Activity启动过程</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#主要流程"><span class="nav-text">主要流程</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#通过intent定位Activity"><span class="nav-text">通过intent定位Activity</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Instrumentation启动Activity"><span class="nav-text">Instrumentation启动Activity</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ActivityManager-拿到AMS的代理-进行binder通信"><span class="nav-text">ActivityManager 拿到AMS的代理,进行binder通信</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#AMS端处理请求"><span class="nav-text">AMS端处理请求</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#PMS解析intent-找到对应的Activity"><span class="nav-text">PMS解析intent.找到对应的Activity.</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#检查调用进程的权限-封装信息"><span class="nav-text">检查调用进程的权限,封装信息</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#处理启动标识Intent-FLAG"><span class="nav-text">处理启动标识Intent.FLAG</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#暂停旧的activity"><span class="nav-text">暂停旧的activity</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#启动新的Activity"><span class="nav-text">启动新的Activity</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#新进程ActivityThread-main"><span class="nav-text">新进程ActivityThread.main</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#AMS继续启动Activity"><span class="nav-text">AMS继续启动Activity</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ActivityThread-启动Activity"><span class="nav-text">ActivityThread 启动Activity</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Service启动过程"><span class="nav-text">Service启动过程</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#activity启动服务"><span class="nav-text">activity启动服务</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#AMS接收调用-启动服务"><span class="nav-text">AMS接收调用.启动服务</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#通过intent找到Service"><span class="nav-text">通过intent找到Service</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#启动服务-startServiceInnerLocked"><span class="nav-text">启动服务 startServiceInnerLocked</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#AMS启动service对应进程"><span class="nav-text">AMS启动service对应进程</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Service继续启动服务"><span class="nav-text">Service继续启动服务</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#用户进程启动service"><span class="nav-text">用户进程启动service</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#service绑定过程"><span class="nav-text">service绑定过程</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#封装ServiceConnect-通知AMS"><span class="nav-text">封装ServiceConnect.通知AMS</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#AMS转给ActiveServices处理"><span class="nav-text">AMS转给ActiveServices处理.</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ActivityServices-继续启动"><span class="nav-text">ActivityServices 继续启动</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ActivityThread处理绑定服务"><span class="nav-text">ActivityThread处理绑定服务</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#AMS获取service的binder代理对象"><span class="nav-text">AMS获取service的binder代理对象</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ServiceDispatcher-处理connection"><span class="nav-text">ServiceDispatcher 处理connection</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Runnconection-在主线程处理"><span class="nav-text">Runnconection 在主线程处理</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#广播机制"><span class="nav-text">广播机制</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#注册广播"><span class="nav-text">注册广播</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#发送广播"><span class="nav-text">发送广播</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#发送广播给AMS"><span class="nav-text">发送广播给AMS</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#AMS接收处理广播"><span class="nav-text">AMS接收处理广播</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#broadcastIntent"><span class="nav-text">broadcastIntent()</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#broadcastIntentLocked"><span class="nav-text">broadcastIntentLocked()</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#BroadcastQueue-scheduleBroadcastsLocked"><span class="nav-text">BroadcastQueue.scheduleBroadcastsLocked</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#BroadcastQueue-processNextBroadcast"><span class="nav-text">BroadcastQueue.processNextBroadcast</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#BroadcastQueue-deliverToRegisteredReceiverLocked"><span class="nav-text">BroadcastQueue.deliverToRegisteredReceiverLocked</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#ActivityThread-scheduleRegisteredReceiver"><span class="nav-text">ActivityThread.scheduleRegisteredReceiver</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Args-getRunnable"><span class="nav-text">Args.getRunnable</span></a></li></ol></li></ol></li></ol></li></ol></div>
+            
+
+          </div>
+        </div>
+      <!--/noindex-->
+      
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2020</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">liujiakuo</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> v3.9.0</div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">Theme – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> v7.3.0</div>
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+      </div>
+
+    
+
+  </div>
+
+  
+  <script src="/lib/jquery/index.js?v=3.4.1"></script>
+  <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+<script src="/js/utils.js?v=7.3.0"></script>
+  <script src="/js/motion.js?v=7.3.0"></script>
+
+
+  <script src="/js/schemes/muse.js?v=7.3.0"></script>
+
+
+
+<script src="/js/next-boot.js?v=7.3.0"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+
+  
+  <script src="/js/scrollspy.js?v=7.3.0"></script>
+<script src="/js/post-details.js?v=7.3.0"></script>
+
+
+</body>
+</html>

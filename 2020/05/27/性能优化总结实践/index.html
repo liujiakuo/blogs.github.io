@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+
+
+
+
+
+<html class="theme-next mist use-motion" lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="generator" content="Hexo 3.9.0">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=7.3.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=7.3.0">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=7.3.0">
+  <link rel="mask-icon" href="/images/logo.svg?v=7.3.0" color="#222">
+
+<link rel="stylesheet" href="/css/main.css?v=7.3.0">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.7.0">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '7.3.0',
+    exturl: false,
+    sidebar: {"position":"left","width":400,"display":"always","offset":12,"onmobile":false},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    save_scroll: false,
+    copycode: {"enable":false,"show_result":false,"style":null},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: '',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: 'Copy',
+      copy_success: 'Copied',
+      copy_failure: 'Copy failed'
+    }
+  };
+</script>
+
+  <meta name="description" content="工具dumpsys gfxinfo使用dumpsys gfxinfo 测UI性能.将 gfxinfo命令传递给dumpsys可在logcat中提供输出，其中包含各阶段发生的动画以及帧相关的性能信息。命令">
+<meta name="keywords" content="android 工具">
+<meta property="og:type" content="article">
+<meta property="og:title" content="性能优化总结实践">
+<meta property="og:url" content="http://yoursite.com/2020/05/27/性能优化总结实践/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="工具dumpsys gfxinfo使用dumpsys gfxinfo 测UI性能.将 gfxinfo命令传递给dumpsys可在logcat中提供输出，其中包含各阶段发生的动画以及帧相关的性能信息。命令">
+<meta property="og:locale" content="en">
+<meta property="og:updated_time" content="2020-06-11T02:56:23.161Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="性能优化总结实践">
+<meta name="twitter:description" content="工具dumpsys gfxinfo使用dumpsys gfxinfo 测UI性能.将 gfxinfo命令传递给dumpsys可在logcat中提供输出，其中包含各阶段发生的动画以及帧相关的性能信息。命令">
+  <link rel="canonical" href="http://yoursite.com/2020/05/27/性能优化总结实践/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+
+  <title>性能优化总结实践 | Hexo</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .motion-element,
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-title { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="en">
+
+  <div class="container sidebar-position-left">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta">
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Hexo</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="Toggle navigation bar">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+      
+      
+      
+        
+        <li class="menu-item menu-item-home">
+      
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>Home</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-about">
+      
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>About</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-tags">
+      
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>Tags</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-archives">
+      
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>Archives</a>
+
+  </li>
+  </ul>
+
+    
+
+</nav>
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content page-post-detail">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/05/27/性能优化总结实践/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="liujiakuo">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+    </span>
+      <header class="post-header">
+
+        
+          <h1 class="post-title" itemprop="name headline">性能优化总结实践
+
+            
+          </h1>
+        
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              
+                
+              
+
+              <time title="Created: 2020-05-27 16:35:01" itemprop="dateCreated datePublished" datetime="2020-05-27T16:35:01+08:00">2020-05-27</time>
+            </span>
+          
+            
+
+            
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2020-06-11 10:56:23" itemprop="dateModified" datetime="2020-06-11T10:56:23+08:00">2020-06-11</time>
+              </span>
+            
+          
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="工具"><a href="#工具" class="headerlink" title="工具"></a>工具</h1><h2 id="dumpsys-gfxinfo"><a href="#dumpsys-gfxinfo" class="headerlink" title="dumpsys gfxinfo"></a>dumpsys gfxinfo</h2><p>使用dumpsys gfxinfo 测UI性能.将 <em>gfxinfo</em>命令传递给dumpsys可在logcat中提供输出，其中包含各阶段发生的动画以及帧相关的性能信息。</p><h3 id="命令"><a href="#命令" class="headerlink" title="命令"></a>命令</h3><a id="more"></a>
+<p> adb shell dumpsys gfxinfo &lt; PACKAGE_NAME &gt;</p>
+<h3 id="结果"><a href="#结果" class="headerlink" title="结果"></a>结果</h3><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">  Graphics info for pid 31148 [com.android.settings]: 表明当前dump的为设置界面的帧信息，pid为31148</span><br><span class="line">Total frames rendered: 105 本次dump搜集了105帧的信息</span><br><span class="line">Janky frames: 2 (1.90%) 105帧中有2帧的耗时超过了16ms，卡顿概率为1.9%</span><br><span class="line">Number Missed Vsync: 0 垂直同步失败的帧</span><br><span class="line">Number High input latency: 0 处理input时间超时的帧数</span><br><span class="line">Number Slow UI thread: 2 因UI线程上的工作导致超时的帧数</span><br><span class="line">Number Slow bitmap uploads: 0 因bitmap的加载耗时的帧数</span><br><span class="line">Number Slow issue draw commands: 1 因绘制导致耗时的帧数</span><br><span class="line">HISTOGRAM: 5ms=78 6ms=16 7ms=4 ... 直方图数据，表面耗时为0-5ms的帧数为78，耗时为5-6ms的帧数为16，同理类推</span><br></pre></td></tr></table></figure>
+
+<h3 id="文档"><a href="#文档" class="headerlink" title="文档"></a>文档</h3><p><a href="https://www.jianshu.com/p/7477e381a7ea" target="_blank" rel="noopener">https://www.jianshu.com/p/7477e381a7ea</a></p>
+<p><a href="https://blog.csdn.net/zhangyongfeiyong/article/details/53906887" target="_blank" rel="noopener">https://blog.csdn.net/zhangyongfeiyong/article/details/53906887</a></p>
+<p><a href="https://juejin.im/post/5e1d15a851882536ca666a49" target="_blank" rel="noopener">https://juejin.im/post/5e1d15a851882536ca666a49</a></p>
+<h2 id="view-布局加载流程"><a href="#view-布局加载流程" class="headerlink" title="view 布局加载流程"></a>view 布局加载流程</h2><p>1、在setContentView方法中，会通过LayoutInflater的inflate方法去加载对应的布局。</p>
+<p>2、inflate方法中首先会调用Resources的getLayout方法去通过IO的方式去加载对应的Xml布局解析器到内存中。</p>
+<p>3、接着，会通过createViewFromTag根据每一个tag创建具体的View对象。</p>
+<p>4、它内部主要是按优先顺序为Factory2和Factory的onCreatView、createView方法进行View的创建，而createView方法内部采用了构造器反射的方式实现。</p>
+<h2 id="CPU-Profiler"><a href="#CPU-Profiler" class="headerlink" title="CPU Profiler"></a>CPU Profiler</h2><h3 id="使用方式"><a href="#使用方式" class="headerlink" title="使用方式"></a>使用方式</h3><p>Debug.startMethodTracing(“”); </p>
+<p>// 需要检测的代码片段 …</p>
+<p> Debug.stopMethodTracing();</p>
+<p>终生成的生成文件在sd卡：Android/data/packagename/files</p>
+<h2 id="Systrace-监控api调用"><a href="#Systrace-监控api调用" class="headerlink" title="Systrace  监控api调用"></a>Systrace  监控api调用</h2><p>systrace 利用了 <strong>Linux 的ftrace调试工具（ftrace是用于了解Linux内核内部运行情况的调试工具），相当于在系统各个关键位置都添加了一些性能探针，也就是在代码里加了一些性能监控的埋点。Android 在 ftrace 的基础上封装了atrace，并增加了更多特有的探针，比如Graphics、Activity Manager、Dalvik VM、System Server 等等</strong></p>
+<p>systrace 原子 ftrace </p>
+<p><a href="https://www.ibm.com/developerworks/cn/linux/l-cn-ftrace/index.html" target="_blank" rel="noopener">https://www.ibm.com/developerworks/cn/linux/l-cn-ftrace/index.html</a> ftrace讲解.</p>
+<p>监控和跟踪API调用、线程运行情况，生成HTML报告。</p>
+<p>使用python命令执行脚本，后面加上一系列参数，如下所示：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">python systrace.py -t 10 [other-options] [categories]</span><br><span class="line">// 笔者通常使用的systrace配置</span><br><span class="line">python /Users/quchao/Library/Android/sdk/platform-tools/systrace/systrace.py -t 20 sched gfx view wm am app webview -a &quot;com.wanandroid.json.chao&quot; -o ~/Documents/open-project/systrace_data/wanandroid_start_1.html</span><br><span class="line">复制代码</span><br></pre></td></tr></table></figure>
+
+<p>具体参数含义如下：</p>
+<ul>
+<li>-t：指定统计时间为20s。</li>
+<li>shced：cpu调度信息。</li>
+<li>gfx：图形信息。</li>
+<li>view：视图。</li>
+<li>wm：窗口管理。</li>
+<li>am：活动管理。</li>
+<li>app：应用信息。</li>
+<li>webview：webview信息。</li>
+<li>-a：指定目标应用程序的包名。</li>
+<li>-o：生成的systrace.html文件。</li>
+</ul>
+<h2 id="查看cpu信息"><a href="#查看cpu信息" class="headerlink" title="查看cpu信息"></a>查看cpu信息</h2><p>adb 命令.线下手机连接电脑时使用</p>
+ <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">// 先输入adb shell进入手机的shell环境</span><br><span class="line">adb shell</span><br><span class="line"></span><br><span class="line">// 获取 CPU 核心数，我的手机是8核</span><br><span class="line"> cat /sys/devices/system/cpu/possible</span><br><span class="line">0-7</span><br><span class="line"></span><br><span class="line">// 获取第一个 CPU 的最大频率</span><br><span class="line"> cat /sys/devices/system/cpu/cpu0/cpufreq/cpuinfo_max_freq                         &lt;</span><br><span class="line">1843200</span><br><span class="line"></span><br><span class="line">// 获取第二个CPU的最小频率</span><br><span class="line"> cat</span><br><span class="line">/sys/devices/system/cpu/cpu1/cpufreq/cpuinfo_min_freq                         &lt;</span><br><span class="line">633600</span><br></pre></td></tr></table></figure>
+
+<h2 id="top-查看应用进程的CPU消耗情况"><a href="#top-查看应用进程的CPU消耗情况" class="headerlink" title="top 查看应用进程的CPU消耗情况"></a>top 查看应用进程的CPU消耗情况</h2><h3 id="命令-1"><a href="#命令-1" class="headerlink" title="命令"></a>命令</h3><p>adb shell top</p>
+<p>adb shell top | grep -v ‘0% S’ // 排除0%的进程信息 </p>
+<p>adb shell top -d 1 | grep com.abc  // 获取指定进程(com.ab)的CPU、内存消耗，并设置刷新间隔</p>
+<p>使用top命令查看哪些进程是 CPU 的主要消耗者。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">Tasks: 654 total,   1 running, 462 sleeping,   0 stopped,   5 zombie            </span><br><span class="line">Mem:   5792924k total,  5588156k used,   204768k free,     6920k buffers        </span><br><span class="line">Swap:  2621436k total,   880688k used,  1740748k free,  1914980k cached         </span><br><span class="line">800%cpu  44%user   1%nice  48%sys 698%idle   0%iow   6%irq   2%sirq   0%host    </span><br><span class="line">  PID USER         PR  NI VIRT  RES  SHR S[%CPU] %MEM     TIME+ ARGS            </span><br><span class="line"> 1551 system       18  -2 4.8G 283M 283M S 12.6   4.9  14:00.95 system_server</span><br><span class="line"> 1583 shell        20   0  23M 304K 304K S 10.3   0.0   0:20.37 adbd --root_sec+</span><br><span class="line">  713 system       -2  -8 2.1G  18M  12M S 10.3   0.3  11:40.83 surfaceflinger</span><br><span class="line">15816 shell        20   0  98M  42M 5.4M S  9.0   0.7   0:14.06 transport -conf+</span><br><span class="line">15489 u0_a580      10 -10 4.3G 136M  99M S  8.6   2.4   0:22.04 liujiakuo.safed+</span><br><span class="line">13552 u0_a205      20   0 1.9G 266M 190M S  7.6   4.7   1:25.43 com.netease.clo+</span><br><span class="line">  711 audioserver  20   0 265M 5.8M 3.9M S  6.6   0.1   3:09.71 audioserver</span><br><span class="line"> 5351 root         20   0    0    0    0 I  4.6   0.0   0:19.21 [kworker/u16:14]</span><br><span class="line"> 1888 system       20   0 4.6G 233M 135M S  4.0   4.1   3:50.84 com.android.sys+</span><br><span class="line">13676 u0_a205      20   0 1.8G 173M 123M S  3.0   3.0   0:45.47 com.netease.clo+</span><br><span class="line">15361 root         20   0    0    0    0 I  2.6   0.0   0:02.87 [kworker/u16:0]</span><br></pre></td></tr></table></figure>
+
+<h2 id="AND-WatchDog-监控anr"><a href="#AND-WatchDog-监控anr" class="headerlink" title="AND-WatchDog- 监控anr"></a>AND-WatchDog- 监控anr</h2><p><a href="https://github.com/SalomonBrys/ANR-WatchDog" target="_blank" rel="noopener">ANR-WatchDog</a></p>
+<h3 id="原理"><a href="#原理" class="headerlink" title="原理"></a>原理</h3><p>子线程向主线程发消息,里边带个变量,交给主线程修改. 然后睡眠5s. 醒来后.发现如果变量没变.说明主线程还没执行.说明anr了.然后就打印主线程堆栈.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br></pre></td><td class="code"><pre><span class="line">public void run() &#123;</span><br><span class="line">    // 1、首先，将线程命名为|ANR-WatchDog|。</span><br><span class="line">    setName(&quot;|ANR-WatchDog|&quot;);</span><br><span class="line"></span><br><span class="line">    // 2、接着，声明了一个默认的超时间隔时间，默认的值为5000ms。</span><br><span class="line">    long interval = _timeoutInterval;</span><br><span class="line">    // 3、然后，在while循环中通过_uiHandler去post一个_ticker Runnable。</span><br><span class="line">    while (!isInterrupted()) &#123;</span><br><span class="line">        // 3.1 这里的_tick默认是0，所以needPost即为true。</span><br><span class="line">        boolean needPost = _tick == 0;</span><br><span class="line">        // 这里的_tick加上了默认的5000ms</span><br><span class="line">        _tick += interval;</span><br><span class="line">        if (needPost) &#123;</span><br><span class="line">            _uiHandler.post(_ticker);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        // 接下来，线程会sleep一段时间，默认值为5000ms。</span><br><span class="line">        try &#123;</span><br><span class="line">            Thread.sleep(interval);</span><br><span class="line">        &#125; catch (InterruptedException e) &#123;</span><br><span class="line">            _interruptionListener.onInterrupted(e);</span><br><span class="line">            return ;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        // 4、如果主线程没有处理Runnable，即_tick的值没有被赋值为0，则说明发生了ANR，第二个_reported标志位是为了避免重复报道已经处理过的ANR。</span><br><span class="line">        if (_tick != 0 &amp;&amp; !_reported) &#123;</span><br><span class="line">            //noinspection ConstantConditions</span><br><span class="line">            if (!_ignoreDebugger &amp;&amp; (Debug.isDebuggerConnected() || Debug.waitingForDebugger())) &#123;</span><br><span class="line">                Log.w(&quot;ANRWatchdog&quot;, &quot;An ANR was detected but ignored because the debugger is connected (you can prevent this with setIgnoreDebugger(true))&quot;);</span><br><span class="line">                _reported = true;</span><br><span class="line">                continue ;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            interval = _anrInterceptor.intercept(_tick);</span><br><span class="line">            if (interval &gt; 0) &#123;</span><br><span class="line">                continue;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            final ANRError error;</span><br><span class="line">            if (_namePrefix != null) &#123;</span><br><span class="line">                error = ANRError.New(_tick, _namePrefix, _logThreadsWithoutStackTrace);</span><br><span class="line">            &#125; else &#123;</span><br><span class="line">                // 5、如果没有主动给ANR_Watchdog设置线程名，则会默认会使用ANRError的NewMainOnly方法去处理ANR。</span><br><span class="line">                error = ANRError.NewMainOnly(_tick);</span><br><span class="line">            &#125;</span><br><span class="line">           </span><br><span class="line">           // 6、最后会通过ANRListener调用它的onAppNotResponding方法，其默认的处理会直接抛出当前的ANRError，导致程序崩溃。 _anrListener.onAppNotResponding(error);</span><br><span class="line">            interval = _timeoutInterval;</span><br><span class="line">            _reported = true;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>首先，在注释1处，我们将线程命名为了|ANR-WatchDog|。接着，在注释2处，声明了一个默认的超时间隔时间，默认的值为5000ms。然后，注释3处，在while循环中通过_uiHandler去post一个_ticker Runnable。注意这里的_tick默认是0，所以needPost即为true。接下来，线程会sleep一段时间，默认值为5000ms。在注释4处，**如果主线程没有处理Runnable，即_tick的值没有被赋值为0，则说明发生了ANR，第二个_reported标志位是为了避免重复报道已经处理过的ANR。如果发生了ANR，就会调用接下来的代码，开始会处理debug的情况，然后，我们看到注释5处，如果没有主动给ANR_Watchdog设置线程名，则会默认会使用ANRError的NewMainOnly方法去处理ANR。就是打印线程堆栈信息.封装成一个ANRError,传递给对应listener</p>
+<h3 id="资源文章"><a href="#资源文章" class="headerlink" title="资源文章"></a>资源文章</h3><p> <a href="https://www.sohu.com/a/220647552_741445" target="_blank" rel="noopener">https://www.sohu.com/a/220647552_741445</a></p>
+<p><a href="https://github.com/ACRA/acra" target="_blank" rel="noopener">https://github.com/ACRA/acra</a></p>
+<p><a href="https://github.com/markzhai/AndroidPerformanceMonitor" target="_blank" rel="noopener">https://github.com/markzhai/AndroidPerformanceMonitor</a></p>
+<p><a href="https://github.com/SalomonBrys/ANR-WatchDog、" target="_blank" rel="noopener">https://github.com/SalomonBrys/ANR-WatchDog、</a></p>
+<p><a href="http://gityuan.com/2016/07/02/android-anr/" target="_blank" rel="noopener">http://gityuan.com/2016/07/02/android-anr/</a></p>
+<p><a href="http://blog.csdn.net/zhudaozhuan/article/details/50964832" target="_blank" rel="noopener">http://blog.csdn.net/zhudaozhuan/article/details/50964832</a></p>
+<h2 id="Lancet"><a href="#Lancet" class="headerlink" title="Lancet"></a>Lancet</h2><p>Lancet是一个轻量级的Android AOP框架，它具有如下优势：</p>
+<ul>
+<li><p>1、编译速度快，支持增量编译。</p>
+</li>
+<li><p>2、API简单，没有任何多余代码插入apk。（这一点对应包体积优化时至关重要的）</p>
+</li>
+</ul>
+<p>​    classpath ‘me.ele:lancet-plugin:1.0.5’ </p>
+<h2 id="AndroidPerformanceMonitor-卡顿检测"><a href="#AndroidPerformanceMonitor-卡顿检测" class="headerlink" title="AndroidPerformanceMonitor-卡顿检测"></a>AndroidPerformanceMonitor-卡顿检测</h2><p>1.检测主线程的looper处理消息能力..通过重写主线程消息循环中的 Pringer. 打印log.来观察主线程消息执行情况.每个消息都会在执行前后打印log。</p>
+<p>首先，我们需要使用Looper.getMainLooper().setMessageLogging()去设置我们自己的Printer实现类去打印输出logging。这样，在每个message执行的之前和之后都会调用我们设置的这个Printer实现类。</p>
+<p>2、如果我们匹配到”&gt;&gt;&gt;&gt;&gt; Dispatching to “之后，我们就可以执行一行代码：也就是在指定的时间阈值之后，我们在子线程去执行一个任务，这个任务就是去获取当前主线程的堆栈信息以及当前的一些场景信息，比如：内存大小、电脑、网络状态等。</p>
+<p>3、如果在指定的阈值之内匹配到了”&lt;&lt;&lt;&lt;&lt; Finished to “，那么说明message就被执行完成了，则表明此时没有产生我们认为的卡顿效果，那我们就可以将这个子线程任务取消掉</p>
+<h3 id="开源方案"><a href="#开源方案" class="headerlink" title="开源方案."></a>开源方案.</h3><p>BlockCanary,用的就是上边的原理.</p>
+<p>// release：项目中实现了线上监控体系的时候去使用<br>api ‘com.github.markzhai:blockcanary-android:1.5.0’</p>
+<p>// 仅在debug包启用BlockCanary进行卡顿监控和提示的话，可以这么用<br>debugApi ‘com.github.markzhai:blockcanary-android:1.5.0’<br>releaseApi ‘com.github.markzhai:blockcanary-no-op:1.5.0’</p>
+<h2 id="Idc-hook"><a href="#Idc-hook" class="headerlink" title="Idc hook"></a>Idc hook</h2><p>通过hook 系统服务. 因为系统服务是ipc的过程.比较耗时,在开始和结束的时候进行hook.查看耗费的时间.</p>
+<p><a href="https://blog.csdn.net/ganyao939543405/article/details/86661040" target="_blank" rel="noopener">https://blog.csdn.net/ganyao939543405/article/details/86661040</a></p>
+
+    </div>
+
+    
+    
+    
+        
+      
+
+      <footer class="post-footer">
+          
+            
+          
+          <div class="post-tags">
+            
+              <a href="/tags/android-工具/" rel="tag"># android 工具</a>
+            
+          </div>
+        
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+              
+                <a href="/2020/05/15/android性能优化/" rel="next" title="android性能优化">
+                  <i class="fa fa-chevron-left"></i> android性能优化
+                </a>
+              
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+              
+            </div>
+          </div>
+        
+      </footer>
+    
+  </div>
+  
+  
+  
+  </article>
+
+  </div>
+
+
+          </div>
+          
+
+        </div>
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">liujiakuo</p>
+  <div class="site-description motion-element" itemprop="description"></div>
+</div>
+  <nav class="site-state motion-element">
+      <div class="site-state-item site-state-posts">
+        
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">15</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-tags">
+        
+        
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+        <span class="site-state-item-count">8</span>
+        <span class="site-state-item-name">tags</span>
+        
+      </div>
+    
+  </nav>
+
+
+
+        </div>
+      </div>
+      <!--noindex-->
+        <div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+            
+            
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#工具"><span class="nav-text">工具</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#dumpsys-gfxinfo"><span class="nav-text">dumpsys gfxinfo</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#命令"><span class="nav-text">命令</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#结果"><span class="nav-text">结果</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#文档"><span class="nav-text">文档</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#view-布局加载流程"><span class="nav-text">view 布局加载流程</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#CPU-Profiler"><span class="nav-text">CPU Profiler</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#使用方式"><span class="nav-text">使用方式</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Systrace-监控api调用"><span class="nav-text">Systrace  监控api调用</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#查看cpu信息"><span class="nav-text">查看cpu信息</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#top-查看应用进程的CPU消耗情况"><span class="nav-text">top 查看应用进程的CPU消耗情况</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#命令-1"><span class="nav-text">命令</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#AND-WatchDog-监控anr"><span class="nav-text">AND-WatchDog- 监控anr</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#原理"><span class="nav-text">原理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#资源文章"><span class="nav-text">资源文章</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Lancet"><span class="nav-text">Lancet</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#AndroidPerformanceMonitor-卡顿检测"><span class="nav-text">AndroidPerformanceMonitor-卡顿检测</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#开源方案"><span class="nav-text">开源方案.</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Idc-hook"><span class="nav-text">Idc hook</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </div>
+      <!--/noindex-->
+      
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2020</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">liujiakuo</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> v3.9.0</div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">Theme – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> v7.3.0</div>
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+      </div>
+
+    
+
+  </div>
+
+  
+  <script src="/lib/jquery/index.js?v=3.4.1"></script>
+  <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+<script src="/js/utils.js?v=7.3.0"></script>
+  <script src="/js/motion.js?v=7.3.0"></script>
+
+
+  <script src="/js/schemes/muse.js?v=7.3.0"></script>
+
+
+
+<script src="/js/next-boot.js?v=7.3.0"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+
+  
+  <script src="/js/scrollspy.js?v=7.3.0"></script>
+<script src="/js/post-details.js?v=7.3.0"></script>
+
+
+</body>
+</html>
