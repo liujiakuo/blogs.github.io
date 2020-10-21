@@ -212,6 +212,92 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/10/21/ffmpeg_sample解读_decode_audio/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="liujiakuo">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+    </span>
+      <header class="post-header">
+
+        
+          <h1 class="post-title" itemprop="name headline">
+              
+              <a href="/2020/10/21/ffmpeg_sample解读_decode_audio/" class="post-title-link" itemprop="url">ffmpeg_sample解读_decode_audio</a>
+            
+          </h1>
+        
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              
+                
+              
+
+              <time title="Created: 2020-10-21 10:15:02 / Modified: 11:03:34" itemprop="dateCreated datePublished" datetime="2020-10-21T10:15:02+08:00">2020-10-21</time>
+            </span>
+          
+            
+
+            
+          
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h2 id="概括"><a href="#概括" class="headerlink" title="概括"></a>概括</h2><p>Ffmpeg 项目中的 实例解读. 把他移到安卓项目中来开发了.</p><p>这个项目是解码音频数据,输入aac格式的文件.最后生成pcm格式的文件</p><p>总结. 就是每次从文件中读取一部分数据(20480),然后把这部分数据解析成packet. 然后在送入解码器解码成frame.最后写到文件中,然后在继续从文件中读取数据,解析packet.生成frame.</p>
+          <!--noindex-->
+          
+            <div class="post-button text-center">
+              <a class="btn" href="/2020/10/21/ffmpeg_sample解读_decode_audio/#more" rel="contents">
+                Read more &raquo;
+              </a>
+            </div>
+          
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+          <div class="post-eof"></div>
+        
+      </footer>
+  </div>
+  
+  
+  
+  </article>
+
+    
+      
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/05/27/性能优化总结实践/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1092,100 +1178,6 @@
   </article>
 
     
-      
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/02/25/深入理解android/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="liujiakuo">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Hexo">
-    </span>
-      <header class="post-header">
-
-        
-          <h1 class="post-title" itemprop="name headline">
-              
-              <a href="/2020/02/25/深入理解android/" class="post-title-link" itemprop="url">深入理解android-jni,binder,zygote-ams</a>
-            
-          </h1>
-        
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">Posted on</span>
-
-              
-                
-              
-
-              <time title="Created: 2020-02-25 15:48:23" itemprop="dateCreated datePublished" datetime="2020-02-25T15:48:23+08:00">2020-02-25</time>
-            </span>
-          
-            
-
-            
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2020-05-15 19:06:57" itemprop="dateModified" datetime="2020-05-15T19:06:57+08:00">2020-05-15</time>
-              </span>
-            
-          
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h1 id="jni"><a href="#jni" class="headerlink" title="jni"></a>jni</h1><p>Jni就是java代码与Native(c,c++)代码交互的媒介. 通过jni,java代码可以主动调用native代码,然后native代码在被调用时,可以回调java的代码.</p><p>jni由两部分构成. Java端的声明为 native 的java方法.和native端对应的Java方法的实现方法. 然后就是通过一些技术把两端的声明方法和实现方法建立映射关系.就可以调用了.</p>
-          <!--noindex-->
-          
-            <div class="post-button text-center">
-              <a class="btn" href="/2020/02/25/深入理解android/#more" rel="contents">
-                Read more &raquo;
-              </a>
-            </div>
-          
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-          <div class="post-eof"></div>
-        
-      </footer>
-  </div>
-  
-  
-  
-  </article>
-
-    
   </section>
 
   
@@ -1223,7 +1215,7 @@
         
           <a href="/archives/">
         
-          <span class="site-state-item-count">15</span>
+          <span class="site-state-item-count">16</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
@@ -1250,7 +1242,9 @@
         
           
         
-        <span class="site-state-item-count">8</span>
+          
+        
+        <span class="site-state-item-count">9</span>
         <span class="site-state-item-name">tags</span>
         
       </div>
